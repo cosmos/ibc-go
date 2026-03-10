@@ -5,9 +5,8 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"

@@ -69,10 +69,6 @@ func (cs ClientState) Validate() error {
 		seen[normalizedAddr] = true
 	}
 
-	if cs.LatestHeight == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "latest height must be greater than 0")
-	}
-
 	return nil
 }
 
@@ -106,7 +102,7 @@ func (cs *ClientState) verifyMembership(
 		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
 	}
 
-	if err := cs.verifySignatures(&attestationProof); err != nil {
+	if err := cs.verifySignatures(&attestationProof, AttestationTypePacket); err != nil {
 		return err
 	}
 
@@ -176,7 +172,7 @@ func (cs *ClientState) verifyNonMembership(
 		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
 	}
 
-	if err := cs.verifySignatures(&attestationProof); err != nil {
+	if err := cs.verifySignatures(&attestationProof, AttestationTypePacket); err != nil {
 		return err
 	}
 

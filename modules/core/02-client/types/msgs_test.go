@@ -9,12 +9,12 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -110,7 +110,7 @@ func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 		expErr   error
 	}{
 		{
-			"valid - tendermint client",
+			"success: tendermint client",
 			func() {
 				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
@@ -119,39 +119,7 @@ func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 			nil,
 		},
 		{
-			"invalid tendermint client",
-			func() {
-				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
-				s.Require().NoError(err)
-			},
-			errorsmod.Wrap(ibctm.ErrInvalidChainID, "chain id cannot be empty string"),
-		},
-		{
-			"failed to unpack client",
-			func() {
-				msg.ClientState = nil
-			},
-			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
-		},
-		{
-			"failed to unpack consensus state",
-			func() {
-				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
-				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
-				s.Require().NoError(err)
-				msg.ConsensusState = nil
-			},
-			errorsmod.Wrap(ibcerrors.ErrUnpackAny, "protobuf Any message cannot be nil"),
-		},
-		{
-			"invalid signer",
-			func() {
-				msg.Signer = ""
-			},
-			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
-		},
-		{
-			"valid - solomachine client",
+			"success: solomachine client",
 			func() {
 				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
 				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
@@ -160,7 +128,59 @@ func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 			nil,
 		},
 		{
-			"invalid solomachine client",
+			"failure: invalid tendermint client",
+			func() {
+				msg, err = types.NewMsgCreateClient(&ibctm.ClientState{}, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
+			},
+			errorsmod.Wrap(ibctm.ErrInvalidChainID, "chain id cannot be empty string"),
+		},
+		{
+			"failure: client state too large",
+			func() {
+				msg.ClientState.Value = []byte(ibctesting.GenerateString(types.MaxClientStateSize + 1))
+			},
+			ibcerrors.ErrTooLarge,
+		},
+		{
+			"failure: consensus state too large",
+			func() {
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
+				msg.ConsensusState = &codectypes.Any{
+					TypeUrl: "lol",
+					Value:   []byte(ibctesting.GenerateString(types.MaxConsensusStateSize + 1)),
+				}
+			},
+			ibcerrors.ErrTooLarge,
+		},
+		{
+			"failure: failed to unpack client",
+			func() {
+				msg.ClientState = &codectypes.Any{}
+			},
+			ibcerrors.ErrUnpackAny,
+		},
+		{
+			"failure: failed to unpack consensus state",
+			func() {
+				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
+				msg, err = types.NewMsgCreateClient(tendermintClient, s.chainA.CurrentTMClientHeader().ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
+				s.Require().NoError(err)
+				msg.ConsensusState = &codectypes.Any{}
+			},
+			ibcerrors.ErrUnpackAny,
+		},
+		{
+			"failure: invalid signer",
+			func() {
+				msg.Signer = ""
+			},
+			errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: empty address string is not allowed"),
+		},
+		{
+			"failure: invalid solomachine client",
 			func() {
 				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
 				msg, err = types.NewMsgCreateClient(&solomachine.ClientState{}, soloMachine.ConsensusState(), s.chainA.SenderAccount.GetAddress().String())
@@ -169,7 +189,7 @@ func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 			errorsmod.Wrap(types.ErrInvalidClient, "sequence cannot be 0"),
 		},
 		{
-			"invalid solomachine consensus state",
+			"failure: invalid solomachine consensus state",
 			func() {
 				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)
 				msg, err = types.NewMsgCreateClient(soloMachine.ClientState(), &solomachine.ConsensusState{}, s.chainA.SenderAccount.GetAddress().String())
@@ -178,7 +198,7 @@ func (s *TypesTestSuite) TestMsgCreateClient_ValidateBasic() {
 			errorsmod.Wrap(types.ErrInvalidConsensus, "timestamp cannot be 0"),
 		},
 		{
-			"invalid - client state and consensus state client types do not match",
+			"failure: invalid - client state and consensus state client types do not match",
 			func() {
 				tendermintClient := ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath)
 				soloMachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachine", "", 2)

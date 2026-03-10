@@ -76,6 +76,8 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 			// Header2 time in order to be valid misbehaviour (violation of monotonic time).
 			return true
 		}
+	default:
+		return false
 	}
 
 	return false

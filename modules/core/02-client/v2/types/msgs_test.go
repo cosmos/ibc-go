@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
+	conntypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
@@ -26,83 +27,88 @@ func TestMsgRegisterCounterpartyValidateBasic(t *testing.T) {
 	signer := ibctesting.TestAccAddress
 	testCases := []struct {
 		name     string
-		msg      *types.MsgRegisterCounterparty
+		malleate func(msg *types.MsgRegisterCounterparty)
 		expError error
 	}{
 		{
 			"success",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-3",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid-2",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {},
 			nil,
 		},
 		{
 			"failure: client id does not match clientID format",
-			types.NewMsgRegisterCounterparty(
-				"testclientid1",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid-3",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.ClientId = "testclientid1"
+			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: counterparty client id does not match clientID format",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-1",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid2",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.CounterpartyClientId = "testclientid2"
+			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: empty client id",
-			types.NewMsgRegisterCounterparty(
-				"",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid-3",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.ClientId = ""
+			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: empty counterparty client id",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-1",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.CounterpartyClientId = ""
+			},
 			host.ErrInvalidID,
 		},
 		{
 			"failure: empty counterparty messaging key",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-1",
-				[][]byte{},
-				"testclientid-3",
-				signer,
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.CounterpartyMerklePrefix = [][]byte{}
+			},
 			types.ErrInvalidCounterparty,
 		},
 		{
 			"failure: empty signer",
-			types.NewMsgRegisterCounterparty(
-				"testclientid-2",
-				[][]byte{[]byte("ibc"), []byte("channel-9")},
-				"testclientid-3",
-				"badsigner",
-			),
+			func(msg *types.MsgRegisterCounterparty) {
+				msg.Signer = "badsigner"
+			},
 			ibcerrors.ErrInvalidAddress,
+		},
+		{
+			"failure: counterparty merkle prefix length too large",
+			func(msg *types.MsgRegisterCounterparty) {
+				tooLargePrefix := make([][]byte, types.MaxCounterpartyMerklePrefixElements+1)
+				for i := range tooLargePrefix {
+					tooLargePrefix[i] = []byte("key")
+				}
+				msg.CounterpartyMerklePrefix = tooLargePrefix
+			},
+			ibcerrors.ErrTooLarge,
+		},
+		{
+			"failure: counterparty merkle prefix key too large",
+			func(msg *types.MsgRegisterCounterparty) {
+				largeKey := make([]byte, conntypes.MaxMerklePrefixLength+1)
+				msg.CounterpartyMerklePrefix = [][]byte{largeKey}
+			},
+			ibcerrors.ErrTooLarge,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.msg.ValidateBasic()
+			msg := types.NewMsgRegisterCounterparty(
+				"testclientid-3",
+				[][]byte{[]byte("ibc"), []byte("channel-9")},
+				"testclientid-2",
+				signer,
+			)
+
+			tc.malleate(msg)
+
+			err := msg.ValidateBasic()
 			if tc.expError == nil {
 				require.NoError(t, err)
 			} else {

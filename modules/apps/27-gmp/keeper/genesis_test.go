@@ -1,12 +1,16 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/collections"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
 	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
+
+const invalid = "invalid"
 
 func (s *KeeperTestSuite) TestInitGenesis() {
 	var genesisState *types.GenesisState
@@ -31,14 +35,14 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 		{
 			"failure: invalid account address",
 			func() {
-				genesisState.Ics27Accounts[0].AccountAddress = "invalid"
+				genesisState.Ics27Accounts[0].AccountAddress = invalid
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
 		{
 			"failure: invalid sender address",
 			func() {
-				genesisState.Ics27Accounts[0].AccountId.Sender = "invalid"
+				genesisState.Ics27Accounts[0].AccountId.Sender = invalid
 			},
 			ibcerrors.ErrInvalidAddress,
 		},
@@ -56,7 +60,7 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 			genesisState = &types.GenesisState{
 				Ics27Accounts: []types.RegisteredICS27Account{
 					{
-						AccountAddress: sdk.AccAddress(addr).String(),
+						AccountAddress: addr.String(),
 						AccountId:      accountID,
 					},
 				},
@@ -77,6 +81,21 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 					)
 					s.Require().NoError(err)
 					s.Require().Equal(account.AccountAddress, storedAddr)
+					storedAccount, err := s.chainA.GetSimApp().GMPKeeper.Accounts.Get(
+						s.chainA.GetContext(),
+						collections.Join3(account.AccountId.ClientId, account.AccountId.Sender, account.AccountId.Salt),
+					)
+					s.Require().NoError(err)
+					s.Require().Equal(account.AccountAddress, storedAccount.Address)
+					addressFromMap, err := s.chainA.GetSimApp().GMPKeeper.AccountsByAddress.Get(
+						s.chainA.GetContext(),
+						sdk.MustAccAddressFromBech32(account.AccountAddress),
+					)
+					s.Require().NoError(err)
+					s.Require().Equal(account.AccountAddress, addressFromMap.Address)
+					s.Require().Equal(account.AccountId.ClientId, storedAccount.AccountId.ClientId)
+					s.Require().Equal(account.AccountId.Sender, storedAccount.AccountId.Sender)
+					s.Require().Equal(account.AccountId.Salt, storedAccount.AccountId.Salt)
 				}
 			} else {
 				s.Require().ErrorIs(err, tc.expErr)
@@ -99,7 +118,7 @@ func (s *KeeperTestSuite) TestExportGenesis() {
 	accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
 	addr, err := types.BuildAddressPredictable(&accountID)
 	s.Require().NoError(err)
-	gmpAccountAddr := sdk.AccAddress(addr).String()
+	gmpAccountAddr := addr.String()
 
 	s.createGMPAccount(gmpAccountAddr)
 

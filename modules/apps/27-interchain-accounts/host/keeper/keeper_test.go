@@ -192,7 +192,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 }
 
 func (s *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
-	// Currently, all queries in bank, staking, auth, and circuit are marked safe
+	// Currently, all queries in bank, staking, auth are marked safe
 	// Notably, the gov and distribution modules are not marked safe
 
 	var allowList []string

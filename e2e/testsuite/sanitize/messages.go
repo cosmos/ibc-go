@@ -57,6 +57,8 @@ func removeUnknownFields(tag string, msg sdk.Msg) sdk.Msg {
 		if !icaUnorderedChannelFeatureReleases.IsSupported(tag) {
 			msg.Ordering = channeltypes.NONE
 		}
+
+	default:
 	}
 	return msg
 }

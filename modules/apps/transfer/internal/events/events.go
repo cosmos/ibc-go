@@ -89,6 +89,7 @@ func EmitOnAcknowledgementPacketEvent(ctx sdk.Context, packetData types.Internal
 				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
 			),
 		)
+	default:
 	}
 }
 

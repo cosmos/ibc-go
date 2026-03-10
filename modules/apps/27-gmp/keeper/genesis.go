@@ -22,10 +22,15 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
 
-		if err := k.Accounts.Set(ctx, collections.Join3(account.AccountId.ClientId, account.AccountId.Sender, account.AccountId.Salt), types.ICS27Account{
+		ics27Account := types.ICS27Account{
 			Address:   account.AccountAddress,
 			AccountId: &account.AccountId,
-		}); err != nil {
+		}
+		if err := k.Accounts.Set(ctx, collections.Join3(account.AccountId.ClientId, account.AccountId.Sender, account.AccountId.Salt), ics27Account); err != nil {
+			return err
+		}
+
+		if err := k.AccountsByAddress.Set(ctx, sdk.MustAccAddressFromBech32(account.AccountAddress), ics27Account); err != nil {
 			return err
 		}
 	}

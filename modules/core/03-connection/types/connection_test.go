@@ -53,6 +53,11 @@ func TestConnectionValidateBasic(t *testing.T) {
 			types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, emptyPrefix}, 500},
 			types.ErrInvalidCounterparty,
 		},
+		{
+			"counterparty prefix too long",
+			types.ConnectionEnd{clientID, []*types.Version{ibctesting.ConnectionVersion}, types.INIT, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix(make([]byte, types.MaxMerklePrefixLength+1))}, 500},
+			types.ErrInvalidCounterparty,
+		},
 	}
 
 	for i, tc := range testCases {

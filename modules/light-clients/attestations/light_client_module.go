@@ -1,6 +1,8 @@
 package attestations
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -71,14 +73,36 @@ func (l LightClientModule) VerifyClientMessage(ctx sdk.Context, clientID string,
 	return clientState.VerifyClientMessage(ctx, l.cdc, clientStore, clientMsg)
 }
 
-// CheckForMisbehaviour returns false since the attestations client does not support misbehaviour detection.
-func (LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
-	return false
+// CheckForMisbehaviour returns true if the provided client message contains conflicting timestamps
+func (l LightClientModule) CheckForMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) bool {
+	attestationProof, ok := clientMsg.(*AttestationProof)
+	if !ok {
+		panic(fmt.Sprintf("expected type %T, got type %T", (*AttestationProof)(nil), clientMsg))
+	}
+
+	stateAttestation, err := ABIDecodeStateAttestation(attestationProof.AttestationData)
+	if err != nil {
+		panic(fmt.Sprintf("failed to ABI decode attestation data: %v", err))
+	}
+
+	consensusState, found := getConsensusState(l.storeProvider.ClientStore(ctx, clientID), l.cdc, clienttypes.NewHeight(0, stateAttestation.Height))
+	if !found {
+		return false
+	}
+
+	return consensusState.Timestamp != stateAttestation.Timestamp
 }
 
-// UpdateStateOnMisbehaviour is not supported in this version.
-func (LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, clientMsg exported.ClientMessage) {
-	panic(errorsmod.Wrap(ibcerrors.ErrInvalidRequest, "updateStateOnMisbehaviour is not supported"))
+// UpdateStateOnMisbehaviour freezes the client
+func (l LightClientModule) UpdateStateOnMisbehaviour(ctx sdk.Context, clientID string, _ exported.ClientMessage) {
+	clientStore := l.storeProvider.ClientStore(ctx, clientID)
+	clientState, found := getClientState(clientStore, l.cdc)
+	if !found {
+		panic(errorsmod.Wrap(clienttypes.ErrClientNotFound, clientID))
+	}
+
+	clientState.IsFrozen = true
+	setClientState(clientStore, l.cdc, clientState)
 }
 
 // UpdateState obtains the client state associated with the client identifier and calls into the clientState.UpdateState method.

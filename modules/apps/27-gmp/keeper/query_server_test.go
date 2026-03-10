@@ -74,7 +74,7 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 	var (
 		req            *types.QueryAccountIdentifierRequest
 		gmpAccountAddr string
-		expAccountId   *types.AccountIdentifier
+		expAccountID   *types.AccountIdentifier
 	)
 
 	testCases := []struct {
@@ -86,7 +86,7 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 			"success",
 			func() {
 				sender := s.chainB.SenderAccount.GetAddress().String()
-				expAccountId = &types.AccountIdentifier{
+				expAccountID = &types.AccountIdentifier{
 					ClientId: ibctesting.FirstClientID,
 					Sender:   sender,
 					Salt:     []byte(testSalt),
@@ -117,7 +117,7 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 			accountID := types.NewAccountIdentifier(ibctesting.FirstClientID, sender, []byte(testSalt))
 			addr, err := types.BuildAddressPredictable(&accountID)
 			s.Require().NoError(err)
-			gmpAccountAddr = sdk.AccAddress(addr).String()
+			gmpAccountAddr = addr.String()
 
 			req = &types.QueryAccountIdentifierRequest{
 				AccountAddress: gmpAccountAddr,
@@ -129,9 +129,9 @@ func (s *KeeperTestSuite) TestQueryAccountIdentifier() {
 
 			if tc.expErr == nil {
 				s.Require().NoError(err)
-				s.Require().Equal(expAccountId.ClientId, resp.AccountId.ClientId)
-				s.Require().Equal(expAccountId.Sender, resp.AccountId.Sender)
-				s.Require().Equal(expAccountId.Salt, resp.AccountId.Salt)
+				s.Require().Equal(expAccountID.ClientId, resp.AccountId.ClientId)
+				s.Require().Equal(expAccountID.Sender, resp.AccountId.Sender)
+				s.Require().Equal(expAccountID.Salt, resp.AccountId.Salt)
 			} else {
 				s.Require().ErrorIs(err, tc.expErr)
 			}

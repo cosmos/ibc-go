@@ -167,7 +167,7 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 			newTimestamp := uint64(2 * time.Second.Nanoseconds())
 			stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
 			signers := []int{0, 1, 2}
-			updateProof := s.createAttestationProof(stateAttestation, signers)
+			updateProof := s.createAttestationProof(stateAttestation, signers, attestations.AttestationTypeState)
 
 			err := s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
 			s.Require().NoError(err)
@@ -182,7 +182,7 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 			// Commitment is stored as raw value (not hashed)
 			hashedPath := crypto.Keccak256(tc.attestedPath)
 			packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: tc.value}})
-			membershipProof := s.createAttestationProof(packetAttestation, signers)
+			membershipProof := s.createAttestationProof(packetAttestation, signers, attestations.AttestationTypePacket)
 			membershipProofBz := s.marshalProof(membershipProof)
 
 			proofHeight := clienttypes.NewHeight(0, newHeight)
@@ -215,7 +215,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 	s.Require().ErrorContains(err, "failed to unmarshal proof")
 
 	malformedData := []byte("invalid-packet-attestation-data")
-	proof := s.createAttestationProof(malformedData, []int{0, 1, 2})
+	proof := s.createAttestationProof(malformedData, []int{0, 1, 2}, attestations.AttestationTypePacket)
 	proofBz := s.marshalProof(proof)
 
 	err = s.lightClientModule.VerifyMembership(ctx, clientID, proofHeight, 0, 0, proofBz, path, value)
@@ -242,7 +242,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipVariableLengthPath() {
 	hashedPath := crypto.Keccak256(shortPath)
 	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(packetAttestation, signers)
+	proof := s.createAttestationProof(packetAttestation, signers, attestations.AttestationTypePacket)
 	proofBz := s.marshalProof(proof)
 
 	proofHeight := clienttypes.NewHeight(0, newHeight)
@@ -266,7 +266,7 @@ func (s *AttestationsTestSuite) TestVerifyMembershipInvalidKeyPathLength() {
 	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
 	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: value32}})
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(packetAttestation, signers)
+	proof := s.createAttestationProof(packetAttestation, signers, attestations.AttestationTypePacket)
 	proofBz := s.marshalProof(proof)
 	proofHeight := clienttypes.NewHeight(0, newHeight)
 
@@ -296,7 +296,7 @@ func (s *AttestationsTestSuite) TestVerifyNonMembershipInvalidKeyPathLength() {
 	hashedPath := crypto.Keccak256(bytes.Repeat([]byte{0x01}, 32))
 	packetAttestation := s.createPacketAttestation(newHeight, []attestations.PacketCompact{{Path: hashedPath, Commitment: make([]byte, 32)}})
 	signers := []int{0, 1, 2}
-	proof := s.createAttestationProof(packetAttestation, signers)
+	proof := s.createAttestationProof(packetAttestation, signers, attestations.AttestationTypePacket)
 	proofBz := s.marshalProof(proof)
 	proofHeight := clienttypes.NewHeight(0, newHeight)
 
@@ -404,7 +404,7 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 			newTimestamp := uint64(2 * time.Second.Nanoseconds())
 			stateAttestation := s.createStateAttestation(newHeight, newTimestamp)
 			signers := []int{0, 1, 2}
-			updateProof := s.createAttestationProof(stateAttestation, signers)
+			updateProof := s.createAttestationProof(stateAttestation, signers, attestations.AttestationTypeState)
 
 			err := s.lightClientModule.VerifyClientMessage(ctx, clientID, updateProof)
 			s.Require().NoError(err)
@@ -422,7 +422,7 @@ func (s *AttestationsTestSuite) TestVerifyNonMembership() {
 				}
 			}
 			packetAttestation := s.createPacketAttestation(newHeight, hashedPackets)
-			nonMembershipProof := s.createAttestationProof(packetAttestation, signers)
+			nonMembershipProof := s.createAttestationProof(packetAttestation, signers, attestations.AttestationTypePacket)
 			nonMembershipProofBz := s.marshalProof(nonMembershipProof)
 
 			proofHeight := clienttypes.NewHeight(0, newHeight)
