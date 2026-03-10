@@ -70,7 +70,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 	t.Run("create attestations clients", func(t *testing.T) {
 		attestorAddresses := s.getAttestorAddresses()
 
-		clientStateA := attestations.NewClientState(attestorAddresses, 2, proofHeight)
+		clientStateA := attestations.NewClientState(attestorAddresses, 2, proofHeight, uint32(testvalues.DefaultTrustingPeriod.Seconds()))
 		consensusStateA := &attestations.ConsensusState{Timestamp: proofTimestamp}
 
 		msgCreateClientA, err := clienttypes.NewMsgCreateClient(clientStateA, consensusStateA, rlyWallet.FormattedAddress())
@@ -83,7 +83,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Attestations() {
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &createClientRes))
 		clientIDA = createClientRes.ClientId
 
-		clientStateB := attestations.NewClientState(attestorAddresses, 2, proofHeight)
+		clientStateB := attestations.NewClientState(attestorAddresses, 2, proofHeight, uint32(testvalues.DefaultTrustingPeriod.Seconds()))
 		consensusStateB := &attestations.ConsensusState{Timestamp: proofTimestamp}
 
 		msgCreateClientB, err := clienttypes.NewMsgCreateClient(clientStateB, consensusStateB, rlyWallet.FormattedAddress())
@@ -333,7 +333,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 	t.Run("create attestations clients", func(t *testing.T) {
 		attestorAddresses := s.getAttestorAddresses()
 
-		clientStateA := attestations.NewClientState(attestorAddresses, 2, proofHeight)
+		clientStateA := attestations.NewClientState(attestorAddresses, 2, proofHeight, uint32(testvalues.DefaultTrustingPeriod.Seconds()))
 		consensusStateA := &attestations.ConsensusState{Timestamp: proofTimestamp}
 
 		msgCreateClientA, err := clienttypes.NewMsgCreateClient(clientStateA, consensusStateA, rlyWallet.FormattedAddress())
@@ -346,7 +346,7 @@ func (s *AttestationsTestSuite) TestMsgTransfer_Timeout_Attestations() {
 		s.Require().NoError(testsuite.UnmarshalMsgResponses(txResp, &createClientRes))
 		clientIDA = createClientRes.ClientId
 
-		clientStateB := attestations.NewClientState(attestorAddresses, 2, proofHeight)
+		clientStateB := attestations.NewClientState(attestorAddresses, 2, proofHeight, uint32(testvalues.DefaultTrustingPeriod.Seconds()))
 		consensusStateB := &attestations.ConsensusState{Timestamp: proofTimestamp}
 
 		msgCreateClientB, err := clienttypes.NewMsgCreateClient(clientStateB, consensusStateB, rlyWallet.FormattedAddress())

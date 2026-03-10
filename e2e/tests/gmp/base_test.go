@@ -210,7 +210,7 @@ func (s *GMPTestSuite) getAttestorAddresses() []string {
 }
 
 func (s *GMPTestSuite) createAttestationsClient(ctx context.Context, chain ibc.Chain, wallet ibc.Wallet, timestamp uint64) string {
-	clientState := attestations.NewClientState(s.getAttestorAddresses(), quorumThreshold, proofHeight)
+	clientState := attestations.NewClientState(s.getAttestorAddresses(), quorumThreshold, proofHeight, uint32(testvalues.DefaultTrustingPeriod.Seconds()))
 	consensusState := &attestations.ConsensusState{Timestamp: timestamp}
 
 	msg, err := clienttypes.NewMsgCreateClient(clientState, consensusState, wallet.FormattedAddress())

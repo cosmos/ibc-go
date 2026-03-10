@@ -18,6 +18,7 @@ const (
 	IBCTransferAmount               int64  = 10_000
 	InvalidAddress                  string = "<invalid-address>"
 	DefaultGovV1ProposalTokenAmount        = 500_000_000
+	DefaultTrustingPeriod                  = time.Hour * 24 * 7 * 2
 )
 
 // VotingPeriod may differ per test.
