@@ -20,7 +20,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260311165803-2c527014f3ee
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
-	github.com/cosmos/ibc-go/v11 v11.0.0-20260304204640-9f835275a381
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260311202756-5eb894108ae3
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260309185641-50dd401fd4c8
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.0
@@ -226,7 +226,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/sequential v0.6.0 // indirect
-	github.com/moby/term v0.5.2 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
