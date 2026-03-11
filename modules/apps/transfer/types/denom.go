@@ -1,9 +1,11 @@
 package types
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -137,7 +139,18 @@ func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 
 // Sort is a helper function to sort the set of denomination in-place
 func (d Denoms) Sort() Denoms {
-	sort.Sort(d)
+	slices.SortFunc(d, func(a, b Denom) int {
+		if diff := cmp.Compare(a.Base, b.Base); diff != 0 {
+			return diff
+		}
+
+		if diff := cmp.Compare(len(a.Trace), len(b.Trace)); diff != 0 {
+			return diff
+		}
+
+		return cmp.Compare(a.Path(), b.Path())
+	})
+
 	return d
 }
 
