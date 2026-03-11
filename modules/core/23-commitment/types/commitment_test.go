@@ -8,7 +8,6 @@ import (
 
 	"cosmossdk.io/log/v2"
 	"cosmossdk.io/store/iavl"
-	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -23,7 +22,7 @@ type MerkleTestSuite struct {
 
 func (s *MerkleTestSuite) SetupTest() {
 	db := dbm.NewMemDB()
-	s.store = rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	s.store = rootmulti.NewStore(db, log.NewNopLogger())
 
 	s.storeKey = storetypes.NewKVStoreKey("iavlStoreKey")
 

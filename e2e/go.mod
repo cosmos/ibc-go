@@ -16,8 +16,8 @@ require (
 	cosmossdk.io/api v1.0.0
 	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/math v1.5.3
-	github.com/cometbft/cometbft v0.39.0-beta.2.0.20260227171234-00271936093e
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260305171751-ead3b8107f01
+	github.com/cometbft/cometbft v0.39.0-beta.3
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260311165803-2c527014f3ee
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
 	github.com/cosmos/ibc-go/v11 v11.0.0-20260304204640-9f835275a381
@@ -46,9 +46,9 @@ require (
 	cosmossdk.io/collections v1.4.0 // indirect
 	cosmossdk.io/core v1.1.0 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
-	cosmossdk.io/log/v2 v2.0.2-0.20260305171751-ead3b8107f01 // indirect
+	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
-	cosmossdk.io/store v1.10.0-rc.2.0.20260217205615-0d33c2463b76 // indirect
+	cosmossdk.io/store v1.10.0-rc.2.0.20260311135820-ea452a1660fd // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -286,7 +286,7 @@ require (
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
-	github.com/sasha-s/go-deadlock v0.3.6 // indirect
+	github.com/sasha-s/go-deadlock v0.3.7 // indirect
 	github.com/shamaton/msgpack/v2 v2.2.3 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v4 v4.26.2 // indirect

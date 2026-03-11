@@ -11,7 +11,6 @@ import (
 
 	"cosmossdk.io/log/v2"
 	"cosmossdk.io/store/iavl"
-	"cosmossdk.io/store/metrics"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 
@@ -59,7 +58,7 @@ func (s *MsgTestSuite) SetupTest() {
 
 	app := simapp.Setup(s.T(), false)
 	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	store := rootmulti.NewStore(db, log.NewNopLogger())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
