@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"google.golang.org/grpc/codes"
@@ -105,8 +105,9 @@ func (q *queryServer) ClientStates(goCtx context.Context, req *types.QueryClient
 		return nil, err
 	}
 
-	//nolint:revive // TODO: replace sort.Sort with slices.SortFunc
-	sort.Sort(clientStates)
+	slices.SortFunc(clientStates, func(a, b types.IdentifiedClientState) int {
+		return cmp.Compare(a.ClientId, b.ClientId)
+	})
 
 	return &types.QueryClientStatesResponse{
 		ClientStates: clientStates,

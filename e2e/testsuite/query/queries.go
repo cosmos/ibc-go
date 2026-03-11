@@ -1,9 +1,10 @@
 package query
 
 import (
+	"cmp"
 	"context"
 	"errors"
-	"sort"
+	"slices"
 
 	"github.com/cosmos/interchaintest/v11/ibc"
 
@@ -93,9 +94,8 @@ func GetValidatorSetByHeight(ctx context.Context, chain ibc.Chain, height uint64
 		return nil, err
 	}
 
-	//nolint:revive // TODO: replace sort.SliceStable with slices.SortStableFunc
-	sort.SliceStable(res.Validators, func(i, j int) bool {
-		return res.Validators[i].Address < res.Validators[j].Address
+	slices.SortStableFunc(res.Validators, func(a, b *cmtservice.Validator) int {
+		return cmp.Compare(a.Address, b.Address)
 	})
 
 	return res.Validators, nil
