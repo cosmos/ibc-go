@@ -1,9 +1,10 @@
 package main
 
 import (
+	"cmp"
 	"os"
 	"path"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -142,22 +143,20 @@ func assertGithubActionTestMatricesEqual(t *testing.T, expected, actual GithubAc
 	t.Helper()
 	// sort by both suite and test as the order of the end result does not matter as
 	// all tests will be run.
-	sort.SliceStable(expected.Include, func(i, j int) bool {
-		memberI := expected.Include[i]
-		memberJ := expected.Include[j]
-		if memberI.EntryPoint == memberJ.EntryPoint {
-			return memberI.Test < memberJ.Test
+	slices.SortStableFunc(expected.Include, func(a, b TestSuitePair) int {
+		if diff := cmp.Compare(a.EntryPoint, b.EntryPoint); diff != 0 {
+			return diff
 		}
-		return memberI.EntryPoint < memberJ.EntryPoint
+
+		return cmp.Compare(a.Test, b.Test)
 	})
 
-	sort.SliceStable(actual.Include, func(i, j int) bool {
-		memberI := actual.Include[i]
-		memberJ := actual.Include[j]
-		if memberI.EntryPoint == memberJ.EntryPoint {
-			return memberI.Test < memberJ.Test
+	slices.SortStableFunc(actual.Include, func(a, b TestSuitePair) int {
+		if diff := cmp.Compare(a.EntryPoint, b.EntryPoint); diff != 0 {
+			return diff
 		}
-		return memberI.EntryPoint < memberJ.EntryPoint
+
+		return cmp.Compare(a.Test, b.Test)
 	})
 	require.Equal(t, expected.Include, actual.Include)
 }
