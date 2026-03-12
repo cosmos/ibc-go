@@ -523,7 +523,7 @@ func (c *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trus
 		AppHash:            c.ProposedHeader.AppHash,
 		LastResultsHash:    unusedHash,
 		EvidenceHash:       unusedHash,
-		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
+		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck // will not be nil
 	}
 
 	signedHeader, err := CommitHeader(proposedHeader, cmtValSet, signers)
