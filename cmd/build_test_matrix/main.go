@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strings"
 )
 
@@ -144,8 +144,8 @@ func getGithubActionMatrixForTests(e2eRootDirectory, testName string, suite stri
 	}
 
 	// Sort the test cases by name so that the order is consistent.
-	sort.SliceStable(gh.Include, func(i, j int) bool {
-		return gh.Include[i].Test < gh.Include[j].Test
+	slices.SortStableFunc(gh.Include, func(a, b TestSuitePair) int {
+		return cmp.Compare(a.Test, b.Test)
 	})
 
 	if testName != "" && len(gh.Include) != 1 {

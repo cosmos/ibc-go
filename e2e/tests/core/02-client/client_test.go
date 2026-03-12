@@ -3,10 +3,10 @@
 package client
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -462,8 +462,8 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 
 	// We sort by address as GetValidatorSetByHeight also sorts by address. When iterating over them, the index
 	// will correspond to the correct ibcmock.PV.
-	sort.SliceStable(filePvs, func(i, j int) bool {
-		return filePvs[i].Address.String() < filePvs[j].Address.String()
+	slices.SortStableFunc(filePvs, func(a, b privval.FilePVKey) int {
+		return cmp.Compare(a.Address.String(), b.Address.String())
 	})
 
 	for _, filePV := range filePvs {

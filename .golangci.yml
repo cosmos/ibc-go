@@ -112,6 +112,9 @@ linters:
         linters:
           - prealloc
           - testpackage
+      - linters:
+          - revive
+        text: '^package-naming:'
       - path: testing/*
         linters:
           - prealloc

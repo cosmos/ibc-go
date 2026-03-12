@@ -1,8 +1,10 @@
 package types
 
 import (
+	"cmp"
 	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 
@@ -60,7 +62,10 @@ func (ics IdentifiedClientStates) Swap(i, j int) { ics[i], ics[j] = ics[j], ics[
 
 // Sort is a helper function to sort the set of IdentifiedClientStates in place
 func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
-	sort.Sort(ics)
+	slices.SortFunc(ics, func(a, b IdentifiedClientState) int {
+		return cmp.Compare(a.ClientId, b.ClientId)
+	})
+
 	return ics
 }
 
