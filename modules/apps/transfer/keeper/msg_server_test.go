@@ -6,15 +6,16 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	clienttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
@@ -80,7 +81,7 @@ func (s *KeeperTestSuite) TestMsgTransfer() {
 			func() {
 				msg.Sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: bank send disabled",
@@ -222,7 +223,7 @@ func (s *KeeperTestSuite) TestMsgTransferIBCV2() {
 			func() {
 				msg.Sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: bank send disabled",
@@ -326,22 +327,22 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 		{
 			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 	}
 
@@ -356,4 +357,30 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestUpdateParamsAuthority() {
+	keeperAuthority := s.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		_, err := s.chainA.GetSimApp().TransferKeeper.UpdateParams(s.chainA.GetContext(), types.NewMsgUpdateParams(keeperAuthority, types.DefaultParams()))
+		s.Require().NoError(err)
+
+		_, err = s.chainA.GetSimApp().TransferKeeper.UpdateParams(s.chainA.GetContext(), types.NewMsgUpdateParams(overrideAuthority, types.DefaultParams()))
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err := s.chainA.GetSimApp().TransferKeeper.UpdateParams(ctx, types.NewMsgUpdateParams(overrideAuthority, types.DefaultParams()))
+		s.Require().NoError(err)
+
+		_, err = s.chainA.GetSimApp().TransferKeeper.UpdateParams(ctx, types.NewMsgUpdateParams(keeperAuthority, types.DefaultParams()))
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
 }
