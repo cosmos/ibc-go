@@ -167,7 +167,7 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 		{
 			"invalid signer address",
 			types.NewMsgUpdateParams("signer", types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 	}
 

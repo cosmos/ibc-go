@@ -346,7 +346,7 @@ func (s *KeeperTestSuite) TestRecoverClient() {
 			func() {
 				msg.Signer = ibctesting.InvalidID
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"invalid subject client",
@@ -1027,7 +1027,7 @@ func (s *KeeperTestSuite) TestIBCSoftwareUpgrade() {
 			func() {
 				msg.Signer = s.chainA.SenderAccount.GetAddress().String()
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: invalid clientState",

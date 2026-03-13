@@ -206,7 +206,7 @@ func (s *KeeperTestSuite) TestMsgMigrateContract() {
 			func() {
 				msg = types.NewMsgMigrateContract(s.chainA.SenderAccount.GetAddress().String(), defaultWasmClientID, newChecksum, []byte("{}"))
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: invalid wasm checksum",
@@ -380,7 +380,7 @@ func (s *KeeperTestSuite) TestMsgRemoveChecksum() {
 			func() {
 				msg = types.NewMsgRemoveChecksum(s.chainA.SenderAccount.GetAddress().String(), checksum)
 			},
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: code has could not be unpinned",
