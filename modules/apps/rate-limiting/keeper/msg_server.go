@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
@@ -30,11 +29,10 @@ func (k msgServer) AddRateLimit(goCtx context.Context, msg *types.MsgAddRateLimi
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address: %s", msg.Signer)
 	}
 
-	if k.authority != msg.Signer {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+		return nil, err
+	}
 	if err := k.Keeper.AddRateLimit(ctx, msg); err != nil {
 		return nil, err
 	}
@@ -49,11 +47,10 @@ func (k msgServer) UpdateRateLimit(goCtx context.Context, msg *types.MsgUpdateRa
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address: %s", msg.Signer)
 	}
 
-	if k.authority != msg.Signer {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+		return nil, err
+	}
 	if err := k.Keeper.UpdateRateLimit(ctx, msg); err != nil {
 		return nil, err
 	}
@@ -68,11 +65,10 @@ func (k msgServer) RemoveRateLimit(goCtx context.Context, msg *types.MsgRemoveRa
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address: %s", msg.Signer)
 	}
 
-	if k.authority != msg.Signer {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+		return nil, err
+	}
 	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
 	if !found {
 		return nil, types.ErrRateLimitNotFound
@@ -89,11 +85,10 @@ func (k msgServer) ResetRateLimit(goCtx context.Context, msg *types.MsgResetRate
 		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid signer address: %s", msg.Signer)
 	}
 
-	if k.authority != msg.Signer {
-		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+		return nil, err
+	}
 	if err := k.Keeper.ResetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId); err != nil {
 		return nil, err
 	}

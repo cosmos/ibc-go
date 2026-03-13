@@ -6,10 +6,12 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
@@ -356,4 +358,30 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestUpdateParamsAuthority() {
+	keeperAuthority := s.chainA.GetSimApp().TransferKeeper.GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		_, err := s.chainA.GetSimApp().TransferKeeper.UpdateParams(s.chainA.GetContext(), types.NewMsgUpdateParams(keeperAuthority, types.DefaultParams()))
+		s.Require().NoError(err)
+
+		_, err = s.chainA.GetSimApp().TransferKeeper.UpdateParams(s.chainA.GetContext(), types.NewMsgUpdateParams(overrideAuthority, types.DefaultParams()))
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err := s.chainA.GetSimApp().TransferKeeper.UpdateParams(ctx, types.NewMsgUpdateParams(overrideAuthority, types.DefaultParams()))
+		s.Require().NoError(err)
+
+		_, err = s.chainA.GetSimApp().TransferKeeper.UpdateParams(ctx, types.NewMsgUpdateParams(keeperAuthority, types.DefaultParams()))
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
 }

@@ -7,6 +7,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
@@ -1370,4 +1372,326 @@ func (s *KeeperTestSuite) TestDeleteClientCreator() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestUpdateClientConfigAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+
+		msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, keeperAuthority, clientv2types.DefaultConfig())
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientConfig(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+
+		msg = clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, overrideAuthority, clientv2types.DefaultConfig())
+		_, err = s.chainA.App.GetIBCKeeper().UpdateClientConfig(s.chainA.GetContext(), msg)
+		s.Require().ErrorIs(err, ibcerrors.ErrUnauthorized)
+	})
+
+	s.Run("creator still works as fallback", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+
+		creator := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(s.chainA.GetContext(), path.EndpointA.ClientID)
+		msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.DefaultConfig())
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientConfig(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		// Override authority works
+		msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, overrideAuthority, clientv2types.DefaultConfig())
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientConfig(ctx, msg)
+		s.Require().NoError(err)
+
+		// Keeper authority rejected when consensus authority is set
+		msg = clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, keeperAuthority, clientv2types.DefaultConfig())
+		_, err = s.chainA.App.GetIBCKeeper().UpdateClientConfig(ctx, msg)
+		s.Require().ErrorIs(err, ibcerrors.ErrUnauthorized)
+	})
+
+	s.Run("creator still works when consensus authority is set", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		creator := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(ctx, path.EndpointA.ClientID)
+		msg := clientv2types.NewMsgUpdateClientConfig(path.EndpointA.ClientID, creator.String(), clientv2types.DefaultConfig())
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientConfig(ctx, msg)
+		s.Require().NoError(err)
+	})
+}
+
+func (s *KeeperTestSuite) TestDeleteClientCreatorAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+		clientID := path.EndpointA.ClientID
+
+		// Unauthorized signer fails
+		msg := clienttypes.NewMsgDeleteClientCreator(clientID, overrideAuthority)
+		_, err := s.chainA.App.GetIBCKeeper().DeleteClientCreator(s.chainA.GetContext(), msg)
+		s.Require().ErrorIs(err, ibcerrors.ErrUnauthorized)
+
+		// Keeper authority succeeds
+		msg = clienttypes.NewMsgDeleteClientCreator(clientID, keeperAuthority)
+		_, err = s.chainA.App.GetIBCKeeper().DeleteClientCreator(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+	})
+
+	s.Run("creator still works as fallback", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+		clientID := path.EndpointA.ClientID
+
+		creator := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(s.chainA.GetContext(), clientID)
+		msg := clienttypes.NewMsgDeleteClientCreator(clientID, creator.String())
+		_, err := s.chainA.App.GetIBCKeeper().DeleteClientCreator(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+		clientID := path.EndpointA.ClientID
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		// Keeper authority rejected when consensus authority is set
+		msg := clienttypes.NewMsgDeleteClientCreator(clientID, keeperAuthority)
+		_, err := s.chainA.App.GetIBCKeeper().DeleteClientCreator(ctx, msg)
+		s.Require().ErrorIs(err, ibcerrors.ErrUnauthorized)
+
+		// Override authority succeeds
+		msg = clienttypes.NewMsgDeleteClientCreator(clientID, overrideAuthority)
+		_, err = s.chainA.App.GetIBCKeeper().DeleteClientCreator(ctx, msg)
+		s.Require().NoError(err)
+	})
+
+	s.Run("creator still works when consensus authority is set", func() {
+		s.SetupTest()
+		path := ibctesting.NewPath(s.chainA, s.chainB)
+		path.SetupClients()
+		clientID := path.EndpointA.ClientID
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		creator := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientCreator(ctx, clientID)
+		msg := clienttypes.NewMsgDeleteClientCreator(clientID, creator.String())
+		_, err := s.chainA.App.GetIBCKeeper().DeleteClientCreator(ctx, msg)
+		s.Require().NoError(err)
+	})
+}
+
+func (s *KeeperTestSuite) TestRecoverClientAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		_, err := s.chainA.App.GetIBCKeeper().RecoverClient(s.chainA.GetContext(), &clienttypes.MsgRecoverClient{
+			Signer:             keeperAuthority,
+			SubjectClientId:    "07-tendermint-0",
+			SubstituteClientId: "07-tendermint-1",
+		})
+		// May error for other reasons, but should not be unauthorized
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		_, err = s.chainA.App.GetIBCKeeper().RecoverClient(s.chainA.GetContext(), &clienttypes.MsgRecoverClient{
+			Signer:             overrideAuthority,
+			SubjectClientId:    "07-tendermint-0",
+			SubstituteClientId: "07-tendermint-1",
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err := s.chainA.App.GetIBCKeeper().RecoverClient(ctx, &clienttypes.MsgRecoverClient{
+			Signer:             overrideAuthority,
+			SubjectClientId:    "07-tendermint-0",
+			SubstituteClientId: "07-tendermint-1",
+		})
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		_, err = s.chainA.App.GetIBCKeeper().RecoverClient(ctx, &clienttypes.MsgRecoverClient{
+			Signer:             keeperAuthority,
+			SubjectClientId:    "07-tendermint-0",
+			SubstituteClientId: "07-tendermint-1",
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestIBCSoftwareUpgradeAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	plan := upgradetypes.Plan{
+		Name:   "authority-test",
+		Info:   "test info",
+		Height: 1000,
+	}
+
+	s.Run("fallback to keeper authority", func() {
+		cs, err := clienttypes.PackClientState(&ibctm.ClientState{})
+		s.Require().NoError(err)
+
+		_, err = s.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(s.chainA.GetContext(), &clienttypes.MsgIBCSoftwareUpgrade{
+			Signer:              keeperAuthority,
+			Plan:                plan,
+			UpgradedClientState: cs,
+		})
+		// May error for other reasons, but should not be unauthorized
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		_, err = s.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(s.chainA.GetContext(), &clienttypes.MsgIBCSoftwareUpgrade{
+			Signer:              overrideAuthority,
+			Plan:                plan,
+			UpgradedClientState: cs,
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		cs, err := clienttypes.PackClientState(&ibctm.ClientState{})
+		s.Require().NoError(err)
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err = s.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(ctx, &clienttypes.MsgIBCSoftwareUpgrade{
+			Signer:              overrideAuthority,
+			Plan:                plan,
+			UpgradedClientState: cs,
+		})
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		_, err = s.chainA.App.GetIBCKeeper().IBCSoftwareUpgrade(ctx, &clienttypes.MsgIBCSoftwareUpgrade{
+			Signer:              keeperAuthority,
+			Plan:                plan,
+			UpgradedClientState: cs,
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestUpdateClientParamsAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientParams(s.chainA.GetContext(), &clienttypes.MsgUpdateParams{
+			Signer: keeperAuthority,
+			Params: clienttypes.DefaultParams(),
+		})
+		s.Require().NoError(err)
+
+		_, err = s.chainA.App.GetIBCKeeper().UpdateClientParams(s.chainA.GetContext(), &clienttypes.MsgUpdateParams{
+			Signer: overrideAuthority,
+			Params: clienttypes.DefaultParams(),
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err := s.chainA.App.GetIBCKeeper().UpdateClientParams(ctx, &clienttypes.MsgUpdateParams{
+			Signer: overrideAuthority,
+			Params: clienttypes.DefaultParams(),
+		})
+		s.Require().NoError(err)
+
+		_, err = s.chainA.App.GetIBCKeeper().UpdateClientParams(ctx, &clienttypes.MsgUpdateParams{
+			Signer: keeperAuthority,
+			Params: clienttypes.DefaultParams(),
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestUpdateConnectionParamsAuthority() {
+	keeperAuthority := s.chainA.App.GetIBCKeeper().GetAuthority()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		_, err := s.chainA.App.GetIBCKeeper().UpdateConnectionParams(s.chainA.GetContext(), &connectiontypes.MsgUpdateParams{
+			Signer: keeperAuthority,
+			Params: connectiontypes.DefaultParams(),
+		})
+		s.Require().NoError(err)
+
+		_, err = s.chainA.App.GetIBCKeeper().UpdateConnectionParams(s.chainA.GetContext(), &connectiontypes.MsgUpdateParams{
+			Signer: overrideAuthority,
+			Params: connectiontypes.DefaultParams(),
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		_, err := s.chainA.App.GetIBCKeeper().UpdateConnectionParams(ctx, &connectiontypes.MsgUpdateParams{
+			Signer: overrideAuthority,
+			Params: connectiontypes.DefaultParams(),
+		})
+		s.Require().NoError(err)
+
+		_, err = s.chainA.App.GetIBCKeeper().UpdateConnectionParams(ctx, &connectiontypes.MsgUpdateParams{
+			Signer: keeperAuthority,
+			Params: connectiontypes.DefaultParams(),
+		})
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
 }

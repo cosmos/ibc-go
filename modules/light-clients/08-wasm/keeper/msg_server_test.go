@@ -9,8 +9,11 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
@@ -426,4 +429,120 @@ func (s *KeeperTestSuite) TestMsgRemoveChecksum() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestStoreCodeAuthority() {
+	keeperAuthority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		s.SetupWasmWithMockVM()
+
+		msg := types.NewMsgStoreCode(keeperAuthority, wasmtesting.Code)
+		_, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+
+		msg = types.NewMsgStoreCode(overrideAuthority, wasmtesting.Code)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		s.SetupWasmWithMockVM()
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := types.NewMsgStoreCode(overrideAuthority, wasmtesting.Code)
+		_, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+		s.Require().NoError(err)
+
+		msg = types.NewMsgStoreCode(keeperAuthority, wasmtesting.Code)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.StoreCode(ctx, msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestRemoveChecksumAuthority() {
+	keeperAuthority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		s.SetupWasmWithMockVM()
+
+		// Store code first so we have a checksum to remove
+		storeMsg := types.NewMsgStoreCode(keeperAuthority, wasmtesting.Code)
+		res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), storeMsg)
+		s.Require().NoError(err)
+
+		msg := types.NewMsgRemoveChecksum(keeperAuthority, res.Checksum)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.RemoveChecksum(s.chainA.GetContext(), msg)
+		s.Require().NoError(err)
+
+		msg = types.NewMsgRemoveChecksum(overrideAuthority, res.Checksum)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.RemoveChecksum(s.chainA.GetContext(), msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		s.SetupWasmWithMockVM()
+
+		storeMsg := types.NewMsgStoreCode(keeperAuthority, wasmtesting.Code)
+		res, err := GetSimApp(s.chainA).WasmClientKeeper.StoreCode(s.chainA.GetContext(), storeMsg)
+		s.Require().NoError(err)
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := types.NewMsgRemoveChecksum(overrideAuthority, res.Checksum)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.RemoveChecksum(ctx, msg)
+		s.Require().NoError(err)
+
+		msg = types.NewMsgRemoveChecksum(keeperAuthority, res.Checksum)
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.RemoveChecksum(ctx, msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestMigrateContractAuthority() {
+	keeperAuthority := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+
+	s.Run("fallback to keeper authority", func() {
+		s.SetupWasmWithMockVM()
+
+		msg := types.NewMsgMigrateContract(keeperAuthority, defaultWasmClientID, []byte("checksum"), []byte("{}"))
+		_, err := GetSimApp(s.chainA).WasmClientKeeper.MigrateContract(s.chainA.GetContext(), msg)
+		// May error for other reasons (e.g. client not found), but not unauthorized
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		msg = types.NewMsgMigrateContract(overrideAuthority, defaultWasmClientID, []byte("checksum"), []byte("{}"))
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.MigrateContract(s.chainA.GetContext(), msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		s.SetupWasmWithMockVM()
+
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := types.NewMsgMigrateContract(overrideAuthority, defaultWasmClientID, []byte("checksum"), []byte("{}"))
+		_, err := GetSimApp(s.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
+		if err != nil {
+			s.Require().NotErrorIs(err, sdkerrors.ErrUnauthorized)
+		}
+
+		msg = types.NewMsgMigrateContract(keeperAuthority, defaultWasmClientID, []byte("checksum"), []byte("{}"))
+		_, err = GetSimApp(s.chainA).WasmClientKeeper.MigrateContract(ctx, msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
 }
