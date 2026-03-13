@@ -16,7 +16,6 @@ import (
 	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
 	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
@@ -122,26 +121,26 @@ func (s *KeeperTestSuite) TestSubmitTx() {
 	}{
 		{
 			"success", func() {
-			},
+		},
 			nil,
 		},
 		{
 			"failure - owner address is empty", func() {
-				msg.Owner = ""
-			},
+			msg.Owner = ""
+		},
 			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"failure - active channel does not exist for connection ID", func() {
-				msg.Owner = TestOwnerAddress
-				msg.ConnectionId = "connection-100"
-			},
+			msg.Owner = TestOwnerAddress
+			msg.ConnectionId = "connection-100"
+		},
 			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-				msg.Owner = "invalid-owner"
-			},
+			msg.Owner = "invalid-owner"
+		},
 			icatypes.ErrActiveChannelNotFound,
 		},
 	}
@@ -220,22 +219,22 @@ func (s *KeeperTestSuite) TestUpdateParams() {
 		{
 			"failure: malformed signer address",
 			types.NewMsgUpdateParams(ibctesting.InvalidID, types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: empty signer address",
 			types.NewMsgUpdateParams("", types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: whitespace signer address",
 			types.NewMsgUpdateParams("    ", types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 		{
 			"failure: unauthorized signer address",
 			types.NewMsgUpdateParams(ibctesting.TestAccAddress, types.DefaultParams()),
-			ibcerrors.ErrUnauthorized,
+			sdkerrors.ErrUnauthorized,
 		},
 	}
 
