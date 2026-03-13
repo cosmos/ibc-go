@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
 )
 
 // getOrCreateICS27Account retrieves an existing ICS27 account or creates a new one if it doesn't exist.

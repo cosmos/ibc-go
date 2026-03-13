@@ -9,8 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	wasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {

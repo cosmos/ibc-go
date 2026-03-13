@@ -5,13 +5,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/internal/events"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/internal/events"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 var (

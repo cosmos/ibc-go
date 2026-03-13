@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ibc.core.client.v2;
 
-option go_package = "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types";
+option go_package = "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types";
 
 // Config is a **per-client** configuration struct that sets which relayers are allowed to relay v2 IBC messages
 // for a given client.

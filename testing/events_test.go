@@ -9,13 +9,13 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	mockv1 "github.com/cosmos/ibc-go/v10/testing/mock"
-	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	mockv1 "github.com/cosmos/ibc-go/v11/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
 func TestParseV1PacketsFromEvents(t *testing.T) {

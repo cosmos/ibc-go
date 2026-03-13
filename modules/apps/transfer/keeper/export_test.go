@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	internaltypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/types"
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	internaltypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/internal/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 )
 
 // SetDenomTrace is a wrapper around setDenomTrace for testing purposes.

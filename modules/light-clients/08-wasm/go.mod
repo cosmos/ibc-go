@@ -1,11 +1,8 @@
-module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10
+module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11
 
 go 1.25.8
 
-replace (
-	github.com/cosmos/ibc-go/v10 => ../../../
-	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-)
+replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
 	cosmossdk.io/api v1.0.0
@@ -13,7 +10,7 @@ require (
 	cosmossdk.io/collections v1.4.0
 	cosmossdk.io/core v1.1.0
 	cosmossdk.io/errors v1.1.0
-	cosmossdk.io/log/v2 v2.0.2-0.20260311135820-ea452a1660fd
+	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee
 	cosmossdk.io/math v1.5.3
 	cosmossdk.io/store v1.10.0-rc.2.0.20260311135820-ea452a1660fd
 	cosmossdk.io/tools/confix v0.1.2
@@ -21,9 +18,9 @@ require (
 	github.com/OffchainLabs/prysm/v6 v6.1.4
 	github.com/cometbft/cometbft v0.39.0-beta.3
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260311135820-ea452a1660fd
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260311165803-2c527014f3ee
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/v10 v10.3.0
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260311202756-5eb894108ae3
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.10.0

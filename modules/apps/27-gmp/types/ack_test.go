@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 func TestNewAcknowledgement(t *testing.T) {

@@ -42,8 +42,8 @@ import (
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp/params"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the

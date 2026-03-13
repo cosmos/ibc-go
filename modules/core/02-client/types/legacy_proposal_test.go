@@ -6,9 +6,9 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *TypesTestSuite) TestValidateBasic() {

@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
 // InitGenesis

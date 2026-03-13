@@ -8,8 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
