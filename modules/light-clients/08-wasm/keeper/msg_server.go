@@ -9,18 +9,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 var _ types.MsgServer = (*Keeper)(nil)
 
 // StoreCode defines a rpc handler method for MsgStoreCode
 func (k *Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode, k.GetVM().StoreCode)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to store wasm bytecode")
@@ -37,11 +36,11 @@ func (k *Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*typ
 func (k *Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveChecksum) (*types.MsgRemoveChecksumResponse,
 	error,
 ) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 
 	if !k.HasChecksum(ctx, msg.Checksum) {
 		return nil, types.ErrWasmChecksumNotFound
@@ -62,11 +61,11 @@ func (k *Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveCheck
 
 // MigrateContract defines a rpc handler method for MsgMigrateContract
 func (k *Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 
 	err := k.migrateContractCode(ctx, msg.ClientId, msg.Checksum, msg.Msg)
 	if err != nil {

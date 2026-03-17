@@ -13,7 +13,7 @@ import (
 )
 
 func (s *MerkleTestSuite) TestVerifyMembership() {
-	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	s.kvStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := s.store.Commit()
 
 	res, err := s.store.Query(&storetypes.RequestQuery{
@@ -74,7 +74,7 @@ func (s *MerkleTestSuite) TestVerifyMembership() {
 }
 
 func (s *MerkleTestSuite) TestVerifyNonMembership() {
-	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	s.kvStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := s.store.Commit()
 
 	// Get Proof

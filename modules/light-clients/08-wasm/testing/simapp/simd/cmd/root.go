@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -51,7 +50,7 @@ import (
 func NewRootCmd() *cobra.Command {
 	// we "pre"-instantiate the application for getting the injected/configured encoding configuration
 	// note, this is not necessary when using app wiring, as depinject can be directly used (see root_v2.go)
-	tempApp := simapp.NewBinarySimApp(log.NewNopLogger(), dbm.NewMemDB(), nil, true, simtestutil.NewAppOptionsWithFlagHome(tempDir()), nil)
+	tempApp := simapp.NewBinarySimApp(log.NewNopLogger(), dbm.NewMemDB(), true, simtestutil.NewAppOptionsWithFlagHome(tempDir()), nil)
 	encodingConfig := params.EncodingConfig{
 		InterfaceRegistry: tempApp.InterfaceRegistry(),
 		Codec:             tempApp.AppCodec(),
@@ -306,13 +305,12 @@ func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.Ba
 func newApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	return simapp.NewBinarySimApp(
-		logger, db, traceStore, true,
+		logger, db, true,
 		appOpts, nil,
 		baseappOptions...,
 	)
@@ -322,7 +320,6 @@ func newApp(
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
@@ -348,13 +345,13 @@ func appExport(
 	appOpts = viperAppOpts
 
 	if height != -1 {
-		simApp = simapp.NewBinarySimApp(logger, db, traceStore, false, appOpts, nil)
+		simApp = simapp.NewBinarySimApp(logger, db, false, appOpts, nil)
 
 		if err := simApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		simApp = simapp.NewBinarySimApp(logger, db, traceStore, true, appOpts, nil)
+		simApp = simapp.NewBinarySimApp(logger, db, true, appOpts, nil)
 	}
 
 	return simApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
