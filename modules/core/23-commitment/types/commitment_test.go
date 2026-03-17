@@ -7,7 +7,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/legacy/rootmulti"
+	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 )
 
@@ -29,7 +29,7 @@ func (s *MerkleTestSuite) SetupTest() {
 	err := s.store.LoadVersion(0)
 	s.Require().NoError(err)
 
-	s.kvStore = s.store.RootCacheMultiStore().GetKVStore(s.storeKey)
+	s.kvStore = s.store.GetKVStore(s.storeKey)
 }
 
 func TestMerkleTestSuite(t *testing.T) {
