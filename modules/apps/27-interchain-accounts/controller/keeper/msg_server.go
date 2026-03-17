@@ -83,7 +83,7 @@ func (s msgServer) SendTx(goCtx context.Context, msg *types.MsgSendTx) (*types.M
 func (k *Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	k.SetParams(ctx, msg.Params)

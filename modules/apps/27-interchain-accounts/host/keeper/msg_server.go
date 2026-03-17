@@ -65,7 +65,7 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(m.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, m.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	m.SetParams(ctx, msg.Params)

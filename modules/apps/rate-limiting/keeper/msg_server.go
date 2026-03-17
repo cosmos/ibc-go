@@ -30,7 +30,7 @@ func (k msgServer) AddRateLimit(goCtx context.Context, msg *types.MsgAddRateLimi
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.authority, msg.Signer); err != nil {
 		return nil, err
 	}
 	if err := k.Keeper.AddRateLimit(ctx, msg); err != nil {
@@ -48,7 +48,7 @@ func (k msgServer) UpdateRateLimit(goCtx context.Context, msg *types.MsgUpdateRa
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.authority, msg.Signer); err != nil {
 		return nil, err
 	}
 	if err := k.Keeper.UpdateRateLimit(ctx, msg); err != nil {
@@ -66,7 +66,7 @@ func (k msgServer) RemoveRateLimit(goCtx context.Context, msg *types.MsgRemoveRa
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.authority, msg.Signer); err != nil {
 		return nil, err
 	}
 	_, found := k.GetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId)
@@ -86,7 +86,7 @@ func (k msgServer) ResetRateLimit(goCtx context.Context, msg *types.MsgResetRate
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := ctx.ValidateAuthority(k.authority, msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.authority, msg.Signer); err != nil {
 		return nil, err
 	}
 	if err := k.Keeper.ResetRateLimit(ctx, msg.Denom, msg.ChannelOrClientId); err != nil {

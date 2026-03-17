@@ -17,7 +17,7 @@ var _ types.MsgServer = (*Keeper)(nil)
 func (k *Keeper) StoreCode(goCtx context.Context, msg *types.MsgStoreCode) (*types.MsgStoreCodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	checksum, err := k.storeWasmCode(ctx, msg.WasmByteCode, k.GetVM().StoreCode)
@@ -38,7 +38,7 @@ func (k *Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveCheck
 ) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func (k *Keeper) RemoveChecksum(goCtx context.Context, msg *types.MsgRemoveCheck
 func (k *Keeper) MigrateContract(goCtx context.Context, msg *types.MsgMigrateContract) (*types.MsgMigrateContractResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 

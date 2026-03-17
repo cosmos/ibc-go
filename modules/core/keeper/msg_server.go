@@ -126,7 +126,7 @@ func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrad
 func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	if err := k.ClientKeeper.RecoverClient(ctx, msg.SubjectClientId, msg.SubstituteClientId); err != nil {
@@ -140,7 +140,7 @@ func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecove
 func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
@@ -624,7 +624,7 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	k.ClientKeeper.SetParams(ctx, msg.Params)
@@ -636,7 +636,7 @@ func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgU
 func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		return nil, err
 	}
 	k.ConnectionKeeper.SetParams(ctx, msg.Params)
@@ -649,7 +649,7 @@ func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority or client creator %s is authorized to update params for %s, got %s",
 				creator, msg.ClientId, msg.Signer,
@@ -671,7 +671,7 @@ func (k *Keeper) DeleteClientCreator(goCtx context.Context, msg *clienttypes.Msg
 	}
 
 	// Check authorization
-	if err := ctx.ValidateAuthority(k.GetAuthority(), msg.Signer); err != nil {
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
 		if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
 			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority or client creator %s is authorized to delete creator for %s, got %s",
 				creator, msg.ClientId, msg.Signer,
