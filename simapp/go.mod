@@ -12,11 +12,11 @@ require (
 	cosmossdk.io/client/v2 v2.0.0-beta.10.0.20260311135820-ea452a1660fd
 	cosmossdk.io/core v1.1.0
 	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee
-	cosmossdk.io/store v1.10.0-rc.2.0.20260317170954-269f52885b45
+	cosmossdk.io/store v1.10.0-rc.2.0.20260317181318-04d6434235dc
 	cosmossdk.io/tools/confix v0.1.2
 	github.com/cometbft/cometbft v0.39.0-beta.4.0.20260316203831-ddfd4f71bb85
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317170954-269f52885b45
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317181318-04d6434235dc
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/v11 v11.0.0
 	github.com/spf13/cast v1.10.0

@@ -10,8 +10,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/iavl"
-	"cosmossdk.io/store/rootmulti"
+	"cosmossdk.io/store/legacy/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,10 +87,9 @@ func (s *TypesTestSuite) SetupTest() {
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
 	s.Require().NoError(err)
-	iavlStore, ok := store.GetCommitStore(storeKey).(*iavl.Store)
-	s.Require().True(ok)
+	kvStore := store.RootCacheMultiStore().GetKVStore(storeKey)
 
-	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
+	kvStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
 	res, err := store.Query(&storetypes.RequestQuery{
