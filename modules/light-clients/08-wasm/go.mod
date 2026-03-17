@@ -12,13 +12,13 @@ require (
 	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee
 	cosmossdk.io/math v1.5.3
-	cosmossdk.io/store v1.10.0-rc.2.0.20260313151442-6e41a8884fb5
+	cosmossdk.io/store v1.10.0-rc.2.0.20260317003316-0e1104c385ce
 	cosmossdk.io/tools/confix v0.1.2
 	github.com/CosmWasm/wasmvm/v2 v2.3.2
 	github.com/OffchainLabs/prysm/v6 v6.1.4
-	github.com/cometbft/cometbft v0.39.0-beta.3
+	github.com/cometbft/cometbft v0.39.0-beta.4
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260313151442-6e41a8884fb5
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317003316-0e1104c385ce
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/v11 v11.0.0-20260311202756-5eb894108ae3
 	github.com/golang/protobuf v1.5.4

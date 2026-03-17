@@ -306,13 +306,12 @@ func genesisCommand(encodingConfig params.EncodingConfig, basicManager module.Ba
 func newApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	return simapp.NewBinarySimApp(
-		logger, db, traceStore, true,
+		logger, db, true,
 		appOpts, nil,
 		baseappOptions...,
 	)
@@ -322,7 +321,6 @@ func newApp(
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
@@ -348,13 +346,13 @@ func appExport(
 	appOpts = viperAppOpts
 
 	if height != -1 {
-		simApp = simapp.NewBinarySimApp(logger, db, traceStore, false, appOpts, nil)
+		simApp = simapp.NewBinarySimApp(logger, db, false, appOpts, nil)
 
 		if err := simApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		simApp = simapp.NewBinarySimApp(logger, db, traceStore, true, appOpts, nil)
+		simApp = simapp.NewBinarySimApp(logger, db, true, appOpts, nil)
 	}
 
 	return simApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)

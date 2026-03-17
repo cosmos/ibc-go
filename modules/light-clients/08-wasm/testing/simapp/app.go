@@ -3,7 +3,6 @@ package simapp
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"maps"
 	"math/rand"
 	"os"
@@ -210,34 +209,31 @@ func init() {
 func NewUnitTestSimApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	mockVM ibcwasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	wasmDir := path.Join("ibc_08-wasm_client_data", strconv.Itoa(rand.Intn(10000)))
-	return newSimApp(logger, db, traceStore, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
+	return newSimApp(logger, db, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
 }
 
 func NewBinarySimApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	mockVM ibcwasmtypes.WasmEngine,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *SimApp {
 	wasmDir := "ibc_08-wasm_client_data"
-	return newSimApp(logger, db, traceStore, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
+	return newSimApp(logger, db, loadLatest, appOpts, mockVM, wasmDir, baseAppOptions...)
 }
 
 // NewSimApp returns a reference to an initialized SimApp.
 func newSimApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	loadLatest bool,
 	appOpts servertypes.AppOptions,
 	mockVM ibcwasmtypes.WasmEngine,
@@ -289,7 +285,6 @@ func newSimApp(
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 
 	bApp := baseapp.NewBaseApp(appName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
-	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())

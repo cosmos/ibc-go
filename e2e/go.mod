@@ -16,8 +16,8 @@ require (
 	cosmossdk.io/api v1.0.0
 	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/math v1.5.3
-	github.com/cometbft/cometbft v0.39.0-beta.4.0.20260316203831-ddfd4f71bb85
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317170954-269f52885b45
+	github.com/cometbft/cometbft v0.39.0-beta.4
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317003316-0e1104c385ce
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
 	github.com/cosmos/ibc-go/v11 v11.0.0-20260311202756-5eb894108ae3
@@ -48,7 +48,7 @@ require (
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
-	cosmossdk.io/store v1.10.0-rc.2.0.20260317170954-269f52885b45 // indirect
+	cosmossdk.io/store v1.10.0-rc.2.0.20260317003316-0e1104c385ce // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect

@@ -7,7 +7,6 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/iavl"
 	"cosmossdk.io/store/rootmulti"
 	storetypes "cosmossdk.io/store/types"
 )
@@ -15,9 +14,9 @@ import (
 type MerkleTestSuite struct {
 	testifysuite.Suite
 
-	store     *rootmulti.Store
-	storeKey  *storetypes.KVStoreKey
-	iavlStore *iavl.Store
+	store    *rootmulti.Store
+	storeKey *storetypes.KVStoreKey
+	kvStore  storetypes.KVStore
 }
 
 func (s *MerkleTestSuite) SetupTest() {
@@ -30,9 +29,7 @@ func (s *MerkleTestSuite) SetupTest() {
 	err := s.store.LoadVersion(0)
 	s.Require().NoError(err)
 
-	var ok bool
-	s.iavlStore, ok = s.store.GetCommitStore(s.storeKey).(*iavl.Store)
-	s.Require().True(ok)
+	s.kvStore = s.store.GetKVStore(s.storeKey)
 }
 
 func TestMerkleTestSuite(t *testing.T) {
