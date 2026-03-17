@@ -280,9 +280,9 @@ func (s *KeeperTestSuite) TestTimeoutExecuted() {
 		s.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			s.SetupTest() // reset
 			path = ibctesting.NewPath(s.chainA, s.chainB)
-			ctx := s.chainA.GetContext()
 
 			tc.malleate()
+			ctx := s.chainA.GetContext()
 
 			err := s.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, path.EndpointA.GetChannel(), packet)
 			pc := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())

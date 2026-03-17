@@ -987,9 +987,9 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 			path = ibctesting.NewPath(s.chainA, s.chainB)
-			ctx := s.chainA.GetContext()
 
 			tc.malleate()
+			ctx := s.chainA.GetContext()
 
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)

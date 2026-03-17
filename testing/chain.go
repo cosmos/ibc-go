@@ -85,6 +85,11 @@ type TestChain struct {
 	// Short-term solution to override the logic of the standard SendMsgs function.
 	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
 	SendMsgsOverride func(msgs ...sdk.Msg) (*abci.ExecTxResult, error)
+
+	// Tracks whether the next block's finalize state has been initialized.
+	// Direct keeper writes in tests should target this state and only become
+	// committed once NextBlock/SendMsgs completes.
+	nextBlockContextInitialized bool
 }
 
 // NewTestChainWithValSet initializes a new TestChain instance with the given validator set
@@ -213,7 +218,12 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 
 // GetContext returns the current context for the application.
 func (c *TestChain) GetContext() sdk.Context {
-	return c.App.GetBaseApp().NewNextBlockContext(cmtproto.Header{}) // TODO: THIS BREAKS ALL TESTS AS THEY USED TO RELY ON UNCACHED CONTEXT
+	if !c.nextBlockContextInitialized {
+		c.App.GetBaseApp().NewNextBlockContext(c.ProposedHeader)
+		c.nextBlockContextInitialized = true
+	}
+
+	return c.App.GetBaseApp().NewContextLegacy(false, c.ProposedHeader)
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
@@ -323,6 +333,7 @@ func (c *TestChain) NextBlock() {
 func (c *TestChain) commitBlock(res *abci.ResponseFinalizeBlock) {
 	_, err := c.App.Commit()
 	require.NoError(c.TB, err)
+	c.nextBlockContextInitialized = false
 
 	// set the last header to the current header
 	// use nil trusted fields

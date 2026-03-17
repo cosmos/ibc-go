@@ -37,7 +37,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 			t := s.T()
 			wasmClientApp := s.SetupSnapshotterWithMockVM()
 
-			ctx := wasmClientApp.NewNextBlockContext(cmtproto.Header{ // TODO: VERIFY THIS
+			ctx := wasmClientApp.NewNextBlockContext(cmtproto.Header{
 				ChainID: "foo",
 				Height:  wasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
@@ -71,7 +71,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 
 			// setup dest app with snapshot imported
 			destWasmClientApp := simapp.SetupWithEmptyStore(t, s.mockVM)
-			destCtx := destWasmClientApp.NewNextBlockContext(cmtproto.Header{ // TODO: VERIFY THIS
+			destCtx := destWasmClientApp.NewContextLegacy(true, cmtproto.Header{
 				ChainID: "bar",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
@@ -97,7 +97,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 
 			var allDestAppChecksumsInWasmVMStore []byte
 			// check wasm contracts are imported
-			ctx = destWasmClientApp.NewNextBlockContext(cmtproto.Header{ // TODO: VERIFY THIS
+			ctx = destWasmClientApp.NewContextLegacy(true, cmtproto.Header{
 				ChainID: "foo",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
