@@ -58,7 +58,7 @@ func GetSimApp(chain *ibctesting.TestChain) *simapp.SimApp {
 // setupTestingApp provides the duplicated simapp which is specific to the 08-wasm module on chain creation.
 func setupTestingApp() (ibctesting.TestingApp, map[string]json.RawMessage) {
 	db := dbm.NewMemDB()
-	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, nil)
+	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, true, simtestutil.EmptyAppOptions{}, nil)
 	return app, app.DefaultGenesis()
 }
 
@@ -101,7 +101,7 @@ func (s *WasmTestSuite) setupWasmWithMockVM() (ibctesting.TestingApp, map[string
 	})
 
 	db := dbm.NewMemDB()
-	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, nil, true, simtestutil.EmptyAppOptions{}, s.mockVM)
+	app := simapp.NewUnitTestSimApp(log.NewNopLogger(), db, true, simtestutil.EmptyAppOptions{}, s.mockVM)
 
 	return app, app.DefaultGenesis()
 }
