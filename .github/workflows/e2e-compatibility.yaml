@@ -221,6 +221,8 @@ jobs:
       test-file: "e2e/tests/transfer/ibc_v2_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
       chain: "chain-a"
+      # TODO: the standard simd forgot to wire the ibc v2 router, so we use the wasm image even though wasm is not required for the test.
+      chain-image: "ghcr.io/cosmos/ibc-go-wasm-simd"
 
   transfer-ibc-v2-test-b:
     needs:
@@ -231,6 +233,8 @@ jobs:
       test-file: "e2e/tests/transfer/ibc_v2_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
       chain: "chain-b"
+      # TODO: the standard simd forgot to wire the ibc v2 router, so we use the wasm image even though wasm is not required for the test.
+      chain-image: "ghcr.io/cosmos/ibc-go-wasm-simd"
 
   upgrade-genesis-test:
     needs:
