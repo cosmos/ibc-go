@@ -9,9 +9,11 @@ import (
 	"testing"
 	"time"
 
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -133,6 +135,8 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("recv packet on chainB", func(t *testing.T) {
+		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB)
+
 		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainA, packet.SourceClient, packet.Sequence)
 
 		msgRecv := channeltypesv2.NewMsgRecvPacket(
@@ -150,6 +154,8 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("acknowledge on chainA", func(t *testing.T) {
+		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA)
+
 		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainB, packet.DestinationClient, packet.Sequence)
 
 		msgAck := channeltypesv2.NewMsgAcknowledgement(
@@ -206,6 +212,8 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("recv return packet on chainA", func(t *testing.T) {
+		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA)
+
 		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainB, packet.SourceClient, packet.Sequence)
 
 		msgRecv := channeltypesv2.NewMsgRecvPacket(
@@ -223,6 +231,8 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("acknowledge return on chainB", func(t *testing.T) {
+		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB)
+
 		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainA, packet.DestinationClient, packet.Sequence)
 
 		msgAck := channeltypesv2.NewMsgAcknowledgement(
@@ -306,4 +316,74 @@ func (s *TransferTestSuiteIBCV2) queryPacketAcknowledgementProof(ctx context.Con
 	})
 	s.Require().NoError(err)
 	return res.Proof, res.ProofHeight
+}
+
+func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, clientID string, signer ibc.Wallet) {
+	hostedClientState, err := query.ClientState(ctx, hostingChain, clientID)
+	s.Require().NoError(err)
+
+	tmClientState, ok := hostedClientState.(*ibctmtypes.ClientState)
+	s.Require().True(ok)
+
+	trustedHeight := tmClientState.LatestHeight
+
+	counterpartyChain, ok := counterparty.(*cosmos.CosmosChain)
+	s.Require().True(ok)
+
+	targetHeight, err := counterpartyChain.Height(ctx)
+	s.Require().NoError(err)
+
+	if uint64(targetHeight) <= trustedHeight.GetRevisionHeight() {
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, counterpartyChain))
+		targetHeight, err = counterpartyChain.Height(ctx)
+		s.Require().NoError(err)
+	}
+
+	commitRes, err := counterpartyChain.GetNode().Client.Commit(ctx, &targetHeight)
+	s.Require().NoError(err)
+	s.Require().NotNil(commitRes.SignedHeader)
+
+	validatorSet := s.queryValidatorSet(ctx, counterpartyChain, targetHeight)
+	trustedValidators := s.queryValidatorSet(ctx, counterpartyChain, int64(trustedHeight.GetRevisionHeight()))
+
+	validatorSetProto, err := validatorSet.ToProto()
+	s.Require().NoError(err)
+	validatorSetProto.TotalVotingPower = validatorSet.TotalVotingPower()
+
+	trustedValidatorSetProto, err := trustedValidators.ToProto()
+	s.Require().NoError(err)
+	trustedValidatorSetProto.TotalVotingPower = trustedValidators.TotalVotingPower()
+
+	tmHeader := &ibctmtypes.Header{
+		SignedHeader:      commitRes.SignedHeader.ToProto(),
+		ValidatorSet:      validatorSetProto,
+		TrustedHeight:     trustedHeight,
+		TrustedValidators: trustedValidatorSetProto,
+	}
+
+	msgUpdateClient, err := clienttypes.NewMsgUpdateClient(clientID, tmHeader, signer.FormattedAddress())
+	s.Require().NoError(err)
+
+	txResp := s.BroadcastMessages(ctx, hostingChain, signer, msgUpdateClient)
+	s.AssertTxSuccess(txResp)
+}
+
+func (s *TransferTestSuiteIBCV2) queryValidatorSet(ctx context.Context, chain *cosmos.CosmosChain, height int64) *cmttypes.ValidatorSet {
+	validators := make([]*cmttypes.Validator, 0)
+	page := 1
+	perPage := 100
+
+	for {
+		validatorsRes, err := chain.GetNode().Client.Validators(ctx, &height, &page, &perPage)
+		s.Require().NoError(err)
+
+		validators = append(validators, validatorsRes.Validators...)
+		if len(validators) >= validatorsRes.Total {
+			break
+		}
+
+		page++
+	}
+
+	return cmttypes.NewValidatorSet(validators)
 }
