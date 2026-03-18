@@ -4,7 +4,6 @@ package transfer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -114,12 +113,9 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 			"",
 		)
 
-		data, err := json.Marshal(packetData)
-		s.Require().NoError(err)
-
 		payload := channeltypesv2.NewPayload(
 			transfertypes.PortID, transfertypes.PortID,
-			transfertypes.V1, transfertypes.EncodingJSON, data,
+			transfertypes.V1, transfertypes.EncodingJSON, packetData.GetBytes(),
 		)
 
 		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
@@ -131,6 +127,7 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSend)
 		s.AssertTxSuccess(txResp)
 
+		var err error
 		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -203,12 +200,9 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 			"",
 		)
 
-		data, err := json.Marshal(packetData)
-		s.Require().NoError(err)
-
 		payload := channeltypesv2.NewPayload(
 			transfertypes.PortID, transfertypes.PortID,
-			transfertypes.V1, transfertypes.EncodingJSON, data,
+			transfertypes.V1, transfertypes.EncodingJSON, packetData.GetBytes(),
 		)
 
 		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
@@ -220,6 +214,7 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 		txResp := s.BroadcastMessages(ctx, chainB, userBWallet, msgSend)
 		s.AssertTxSuccess(txResp)
 
+		var err error
 		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -338,12 +333,9 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Fails_InvalidAddress() {
 			"",
 		)
 
-		data, err := json.Marshal(packetData)
-		s.Require().NoError(err)
-
 		payload := channeltypesv2.NewPayload(
 			transfertypes.PortID, transfertypes.PortID,
-			transfertypes.V1, transfertypes.EncodingJSON, data,
+			transfertypes.V1, transfertypes.EncodingJSON, packetData.GetBytes(),
 		)
 
 		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
@@ -355,6 +347,7 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Fails_InvalidAddress() {
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSend)
 		s.AssertTxSuccess(txResp)
 
+		var err error
 		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
@@ -483,12 +476,9 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Timeout() {
 			"",
 		)
 
-		data, err := json.Marshal(packetData)
-		s.Require().NoError(err)
-
 		payload := channeltypesv2.NewPayload(
 			transfertypes.PortID, transfertypes.PortID,
-			transfertypes.V1, transfertypes.EncodingJSON, data,
+			transfertypes.V1, transfertypes.EncodingJSON, packetData.GetBytes(),
 		)
 
 		timeoutTimestamp := uint64(time.Now().Add(10 * time.Second).Unix())
@@ -500,6 +490,7 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Timeout() {
 		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSend)
 		s.AssertTxSuccess(txResp)
 
+		var err error
 		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
