@@ -270,6 +270,152 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 	})
 }
 
+func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Fails_InvalidAddress() {
+	t := s.T()
+	ctx := context.TODO()
+
+	chainA, chainB := s.GetChains()
+	chainACosmos, ok := chainA.(*cosmos.CosmosChain)
+	s.Require().True(ok)
+	chainBCosmos, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
+	chainADenom := chainA.Config().Denom
+
+	rlyWalletA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	rlyWalletB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userAWallet := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userBWallet := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks")
+
+	var (
+		clientIDA string
+		clientIDB string
+		packet    channeltypesv2.Packet
+		ack       channeltypesv2.Acknowledgement
+	)
+
+	t.Run("create tendermint clients", func(t *testing.T) {
+		clientIDA = s.createTendermintClient(ctx, chainA, chainB, rlyWalletA)
+		clientIDB = s.createTendermintClient(ctx, chainB, chainA, rlyWalletB)
+	})
+
+	t.Run("register counterparties", func(t *testing.T) {
+		prefix := commitmenttypesv2.NewMerklePath([]byte("ibc"), []byte(""))
+
+		msgRegisterA := clientv2types.NewMsgRegisterCounterparty(
+			clientIDA,
+			prefix.KeyPath,
+			clientIDB,
+			rlyWalletA.FormattedAddress(),
+		)
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWalletA, msgRegisterA)
+		s.AssertTxSuccess(txResp)
+
+		msgRegisterB := clientv2types.NewMsgRegisterCounterparty(
+			clientIDB,
+			prefix.KeyPath,
+			clientIDA,
+			rlyWalletB.FormattedAddress(),
+		)
+		txResp = s.BroadcastMessages(ctx, chainB, rlyWalletB, msgRegisterB)
+		s.AssertTxSuccess(txResp)
+	})
+
+	t.Run("send ibc v2 transfer to invalid receiver", func(t *testing.T) {
+		token := transfertypes.Token{
+			Denom:  transfertypes.NewDenom(chainADenom),
+			Amount: strconv.FormatInt(testvalues.IBCTransferAmount, 10),
+		}
+		packetData := transfertypes.NewFungibleTokenPacketData(
+			token.Denom.Path(),
+			token.Amount,
+			userAWallet.FormattedAddress(),
+			testvalues.InvalidAddress,
+			"",
+		)
+
+		data, err := json.Marshal(packetData)
+		s.Require().NoError(err)
+
+		payload := channeltypesv2.NewPayload(
+			transfertypes.PortID, transfertypes.PortID,
+			transfertypes.V1, transfertypes.EncodingJSON, data,
+		)
+
+		timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
+		msgSend := channeltypesv2.NewMsgSendPacket(
+			clientIDA, timeoutTimestamp,
+			userAWallet.FormattedAddress(), payload,
+		)
+
+		txResp := s.BroadcastMessages(ctx, chainA, userAWallet, msgSend)
+		s.AssertTxSuccess(txResp)
+
+		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
+		s.Require().NoError(err)
+		s.Require().NotNil(packet)
+	})
+
+	t.Run("tokens escrowed on chainA", func(t *testing.T) {
+		actual, err := s.GetChainANativeBalance(ctx, userAWallet)
+		s.Require().NoError(err)
+
+		expected := testvalues.StartingTokenAmount - testvalues.IBCTransferAmount
+		s.Require().Equal(expected, actual)
+	})
+
+	t.Run("recv packet returns universal error ack", func(t *testing.T) {
+		targetHeight := s.manualRelayTargetHeight(ctx, chainACosmos, chainB, clientIDB)
+		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB, targetHeight)
+
+		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainA, packet.SourceClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
+
+		msgRecv := channeltypesv2.NewMsgRecvPacket(
+			packet, proof, proofHeight, rlyWalletB.FormattedAddress(),
+		)
+
+		txResp := s.BroadcastMessages(ctx, chainB, rlyWalletB, msgRecv)
+		s.AssertTxSuccess(txResp)
+
+		ackBz, err := ibctesting.ParseAckV2FromEvents(txResp.Events)
+		s.Require().NoError(err)
+		s.Require().NotNil(ackBz)
+
+		s.Require().NoError(proto.Unmarshal(ackBz, &ack))
+		s.Require().False(ack.Success())
+		s.Require().Len(ack.AppAcknowledgements, 1)
+		s.Require().Equal(channeltypesv2.ErrorAcknowledgement[:], ack.AppAcknowledgements[0])
+	})
+
+	t.Run("acknowledge on chainA and refund sender", func(t *testing.T) {
+		targetHeight := s.manualRelayTargetHeight(ctx, chainBCosmos, chainA, clientIDA)
+		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA, targetHeight)
+
+		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainB, packet.DestinationClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
+
+		msgAck := channeltypesv2.NewMsgAcknowledgement(
+			packet, ack, proof, proofHeight, rlyWalletA.FormattedAddress(),
+		)
+
+		txResp := s.BroadcastMessages(ctx, chainA, rlyWalletA, msgAck)
+		s.AssertTxSuccess(txResp)
+	})
+
+	t.Run("sender refunded and receiver gets no tokens", func(t *testing.T) {
+		senderBalance, err := s.GetChainANativeBalance(ctx, userAWallet)
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.StartingTokenAmount, senderBalance)
+
+		ibcToken := testsuite.GetIBCToken(chainADenom, transfertypes.PortID, clientIDB)
+		receiverBalance, err := query.Balance(ctx, chainB, userBWallet.FormattedAddress(), ibcToken.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().Zero(receiverBalance.Int64())
+	})
+}
+
 func (s *TransferTestSuiteIBCV2) createTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, signer ibc.Wallet) string {
 	latestBlock, err := query.GRPCQuery[cmtservice.GetLatestBlockResponse](ctx, counterparty, &cmtservice.GetLatestBlockRequest{})
 	s.Require().NoError(err)
