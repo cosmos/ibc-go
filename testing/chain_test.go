@@ -75,3 +75,18 @@ func TestJailProposerValidator(t *testing.T) {
 	// check that the valset in chain A has a new proposer
 	require.False(t, propAddr.Equals(sdk.ConsAddress(chainA.Vals.Proposer.Address)))
 }
+
+func TestGetContextCommitsNextBlockState(t *testing.T) {
+	coord := ibctesting.NewCoordinator(t, 1)
+	chain := coord.GetChain(ibctesting.GetChainID(1))
+
+	initialSequence := chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext())
+
+	chain.GetSimApp().IBCKeeper.ChannelKeeper.SetNextChannelSequence(chain.GetContext(), initialSequence+10)
+
+	require.Equal(t, initialSequence+10, chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext()))
+
+	coord.CommitBlock(chain)
+
+	require.Equal(t, initialSequence+10, chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext()))
+}

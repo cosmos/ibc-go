@@ -763,7 +763,7 @@ func newSimApp(
 			panic(fmt.Errorf("error loading last version: %w", err))
 		}
 
-		ctx := app.NewUncachedContext(true, cmtproto.Header{})
+		ctx := app.NewContextLegacy(true, cmtproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
