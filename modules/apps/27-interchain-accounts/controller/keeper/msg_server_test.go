@@ -121,26 +121,26 @@ func (s *KeeperTestSuite) TestSubmitTx() {
 	}{
 		{
 			"success", func() {
-		},
+			},
 			nil,
 		},
 		{
 			"failure - owner address is empty", func() {
-			msg.Owner = ""
-		},
+				msg.Owner = ""
+			},
 			icatypes.ErrInvalidAccountAddress,
 		},
 		{
 			"failure - active channel does not exist for connection ID", func() {
-			msg.Owner = TestOwnerAddress
-			msg.ConnectionId = "connection-100"
-		},
+				msg.Owner = TestOwnerAddress
+				msg.ConnectionId = "connection-100"
+			},
 			icatypes.ErrActiveChannelNotFound,
 		},
 		{
 			"failure - active channel does not exist for port ID", func() {
-			msg.Owner = "invalid-owner"
-		},
+				msg.Owner = "invalid-owner"
+			},
 			icatypes.ErrActiveChannelNotFound,
 		},
 	}
