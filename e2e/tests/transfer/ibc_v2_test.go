@@ -10,15 +10,17 @@ import (
 	"testing"
 	"time"
 
-	rpcclient "github.com/cometbft/cometbft/rpc/client"
-	cmttypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/cosmos/interchaintest/v10/chain/cosmos"
 	"github.com/cosmos/interchaintest/v10/ibc"
 	test "github.com/cosmos/interchaintest/v10/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
+
+	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
@@ -549,9 +551,9 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Timeout() {
 func (s *TransferTestSuiteIBCV2) createTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, signer ibc.Wallet) string {
 	latestBlock, err := query.GRPCQuery[cmtservice.GetLatestBlockResponse](ctx, counterparty, &cmtservice.GetLatestBlockRequest{})
 	s.Require().NoError(err)
-	s.Require().NotNil(latestBlock.Block)
+	s.Require().NotNil(latestBlock.SdkBlock)
 
-	header := latestBlock.Block.Header
+	header := latestBlock.SdkBlock.Header
 
 	stakingParams, err := query.GRPCQuery[stakingtypes.QueryParamsResponse](ctx, counterparty, &stakingtypes.QueryParamsRequest{})
 	s.Require().NoError(err)
@@ -674,7 +676,7 @@ func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hos
 	trustedValidatorSetProto.TotalVotingPower = trustedValidators.TotalVotingPower()
 
 	tmHeader := &ibctmtypes.Header{
-		SignedHeader:      commitRes.SignedHeader.ToProto(),
+		SignedHeader:      commitRes.ToProto(),
 		ValidatorSet:      validatorSetProto,
 		TrustedHeight:     trustedHeight,
 		TrustedValidators: trustedValidatorSetProto,
