@@ -217,13 +217,32 @@ func NewTestChain(t *testing.T, coord *Coordinator, chainID string) *TestChain {
 }
 
 // GetContext returns the current context for the application.
+// If called between blocks (after Commit, before FinalizeBlock), it lazily
+// initializes the finalize state via NewNextBlockContext so that direct keeper
+// writes target the state that will be committed in the next block.
+// If called during FinalizeBlock (e.g. inside a contract callback), it returns
+// the already-active finalize state without replacing it.
 func (c *TestChain) GetContext() sdk.Context {
 	if !c.nextBlockContextInitialized {
+		// Try to get the existing finalize state first. If FinalizeBlock is
+		// in progress, the state already exists and we must not replace it
+		// with NewNextBlockContext.
+		if ctx, ok := c.tryGetContextLegacy(); ok {
+			return ctx
+		}
 		c.App.GetBaseApp().NewNextBlockContext(c.ProposedHeader)
 		c.nextBlockContextInitialized = true
 	}
 
 	return c.App.GetBaseApp().NewContextLegacy(false, c.ProposedHeader)
+}
+
+// tryGetContextLegacy attempts to get a context from the finalize state.
+// Returns false if the finalize state is not initialized (e.g. between blocks).
+func (c *TestChain) tryGetContextLegacy() (sdk.Context, bool) {
+	defer func() { recover() }() //nolint:errcheck // catch nil pointer panic
+	ctx := c.App.GetBaseApp().NewContextLegacy(false, c.ProposedHeader)
+	return ctx, true
 }
 
 // GetSimApp returns the SimApp to allow usage ofnon-interface fields.
