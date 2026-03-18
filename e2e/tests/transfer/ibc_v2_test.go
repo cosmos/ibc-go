@@ -217,7 +217,7 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 		txResp := s.BroadcastMessages(ctx, chainB, userBWallet, msgSend)
 		s.AssertTxSuccess(txResp)
 
-		packet, err := ibctesting.ParseV2PacketFromEvents(txResp.Events)
+		packet, err = ibctesting.ParseV2PacketFromEvents(txResp.Events)
 		s.Require().NoError(err)
 		s.Require().NotNil(packet)
 	})
