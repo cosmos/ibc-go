@@ -31,7 +31,7 @@ func (ClientState) CheckForMisbehaviour(ctx sdk.Context, cdc codec.BinaryCodec, 
 		if existingConsState, found := GetConsensusState(clientStore, cdc, tmHeader.GetHeight()); found {
 			// This header has already been submitted and the necessary state is already stored
 			// in client store, thus we can return early without further validation.
-			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) { //nolint:gosimple
+			if reflect.DeepEqual(existingConsState, tmHeader.ConsensusState()) {
 				return false
 			}
 

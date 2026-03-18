@@ -212,6 +212,26 @@ jobs:
       test-file: "e2e/tests/transfer/send_receive_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
 
+  transfer-ibc-v2-test-a:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/ibc_v2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
+
+  transfer-ibc-v2-test-b:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/ibc_v2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
+
   upgrade-genesis-test:
     needs:
       - build-release-images

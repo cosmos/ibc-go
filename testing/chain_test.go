@@ -29,9 +29,9 @@ func TestChangeValSet(t *testing.T) {
 	val, err := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
 	require.NoError(t, err)
 
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
+	_, _ = chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
 		amount, types.Unbonded, val[1], true)
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
+	_, _ = chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
 		amount2, types.Unbonded, val[3], true)
 
 	coord.CommitBlock(chainA)
