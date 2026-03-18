@@ -614,7 +614,7 @@ func (s *TransferTestSuiteIBCV2) queryPacketReceiptProof(ctx context.Context, ch
 	return proof, proofHeight
 }
 
-func (s *TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chain ibc.Chain, key []byte, targetHeight int64) ([]byte, clienttypes.Height, error) {
+func (*TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chain ibc.Chain, key []byte, targetHeight int64) ([]byte, clienttypes.Height, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		return nil, clienttypes.Height{}, fmt.Errorf("expected *cosmos.CosmosChain, got %T", chain)
