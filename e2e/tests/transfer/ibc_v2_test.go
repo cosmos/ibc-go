@@ -51,6 +51,10 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	ctx := context.TODO()
 
 	chainA, chainB := s.GetChains()
+	chainACosmos, ok := chainA.(*cosmos.CosmosChain)
+	s.Require().True(ok)
+	chainBCosmos, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 	chainADenom := chainA.Config().Denom
 
 	rlyWalletA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
@@ -138,9 +142,11 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("recv packet on chainB", func(t *testing.T) {
-		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB)
+		targetHeight := s.manualRelayTargetHeight(ctx, chainACosmos, chainB, clientIDB)
+		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB, targetHeight)
 
-		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainA, packet.SourceClient, packet.Sequence)
+		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainA, packet.SourceClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
 
 		msgRecv := channeltypesv2.NewMsgRecvPacket(
 			packet, proof, proofHeight, rlyWalletB.FormattedAddress(),
@@ -157,9 +163,11 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("acknowledge on chainA", func(t *testing.T) {
-		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA)
+		targetHeight := s.manualRelayTargetHeight(ctx, chainBCosmos, chainA, clientIDA)
+		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA, targetHeight)
 
-		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainB, packet.DestinationClient, packet.Sequence)
+		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainB, packet.DestinationClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
 
 		msgAck := channeltypesv2.NewMsgAcknowledgement(
 			packet, ack, proof, proofHeight, rlyWalletA.FormattedAddress(),
@@ -215,9 +223,11 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("recv return packet on chainA", func(t *testing.T) {
-		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA)
+		targetHeight := s.manualRelayTargetHeight(ctx, chainBCosmos, chainA, clientIDA)
+		s.updateTendermintClient(ctx, chainA, chainB, clientIDA, rlyWalletA, targetHeight)
 
-		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainB, packet.SourceClient, packet.Sequence)
+		proof, proofHeight := s.queryPacketCommitmentProof(ctx, chainB, packet.SourceClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
 
 		msgRecv := channeltypesv2.NewMsgRecvPacket(
 			packet, proof, proofHeight, rlyWalletA.FormattedAddress(),
@@ -234,9 +244,11 @@ func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() 
 	})
 
 	t.Run("acknowledge return on chainB", func(t *testing.T) {
-		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB)
+		targetHeight := s.manualRelayTargetHeight(ctx, chainACosmos, chainB, clientIDB)
+		s.updateTendermintClient(ctx, chainB, chainA, clientIDB, rlyWalletB, targetHeight)
 
-		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainA, packet.DestinationClient, packet.Sequence)
+		proof, proofHeight := s.queryPacketAcknowledgementProof(ctx, chainA, packet.DestinationClient, packet.Sequence, targetHeight)
+		s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
 
 		msgAck := channeltypesv2.NewMsgAcknowledgement(
 			packet, ack, proof, proofHeight, rlyWalletB.FormattedAddress(),
@@ -303,27 +315,30 @@ func (s *TransferTestSuiteIBCV2) createTendermintClient(ctx context.Context, hos
 	return createRes.ClientId
 }
 
-func (s *TransferTestSuiteIBCV2) queryPacketCommitmentProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64) ([]byte, clienttypes.Height) {
+func (s *TransferTestSuiteIBCV2) queryPacketCommitmentProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64, targetHeight int64) ([]byte, clienttypes.Height) {
 	proofKey := hostv2.PacketCommitmentKey(clientID, sequence)
-	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey)
+	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey, targetHeight)
 	s.Require().NoError(err)
 	return proof, proofHeight
 }
 
-func (s *TransferTestSuiteIBCV2) queryPacketAcknowledgementProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64) ([]byte, clienttypes.Height) {
+func (s *TransferTestSuiteIBCV2) queryPacketAcknowledgementProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64, targetHeight int64) ([]byte, clienttypes.Height) {
 	proofKey := hostv2.PacketAcknowledgementKey(clientID, sequence)
-	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey)
+	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey, targetHeight)
 	s.Require().NoError(err)
 	return proof, proofHeight
 }
 
-func (s *TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chain ibc.Chain, key []byte) ([]byte, clienttypes.Height, error) {
+func (s *TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chain ibc.Chain, key []byte, targetHeight int64) ([]byte, clienttypes.Height, error) {
 	cosmosChain, ok := chain.(*cosmos.CosmosChain)
 	if !ok {
 		return nil, clienttypes.Height{}, fmt.Errorf("expected *cosmos.CosmosChain, got %T", chain)
 	}
+	if targetHeight <= 1 {
+		return nil, clienttypes.Height{}, fmt.Errorf("targetHeight must be > 1, got %d", targetHeight)
+	}
 
-	res, err := cosmosChain.GetNode().Client.ABCIQueryWithOptions(ctx, "store/ibc/key", key, rpcclient.ABCIQueryOptions{Prove: true})
+	res, err := cosmosChain.GetNode().Client.ABCIQueryWithOptions(ctx, "store/ibc/key", key, rpcclient.ABCIQueryOptions{Height: targetHeight - 1, Prove: true})
 	if err != nil {
 		return nil, clienttypes.Height{}, err
 	}
@@ -347,7 +362,7 @@ func (s *TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chai
 	return proofBz, proofHeight, nil
 }
 
-func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, clientID string, signer ibc.Wallet) {
+func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, clientID string, signer ibc.Wallet, targetHeight int64) {
 	hostedClientState, err := query.ClientState(ctx, hostingChain, clientID)
 	s.Require().NoError(err)
 
@@ -358,15 +373,7 @@ func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hos
 
 	counterpartyChain, ok := counterparty.(*cosmos.CosmosChain)
 	s.Require().True(ok)
-
-	targetHeight, err := counterpartyChain.Height(ctx)
-	s.Require().NoError(err)
-
-	if uint64(targetHeight) <= trustedHeight.GetRevisionHeight() {
-		s.Require().NoError(test.WaitForBlocks(ctx, 1, counterpartyChain))
-		targetHeight, err = counterpartyChain.Height(ctx)
-		s.Require().NoError(err)
-	}
+	s.Require().Greater(uint64(targetHeight), trustedHeight.GetRevisionHeight())
 
 	commitRes, err := counterpartyChain.GetNode().Client.Commit(ctx, &targetHeight)
 	s.Require().NoError(err)
@@ -395,6 +402,26 @@ func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hos
 
 	txResp := s.BroadcastMessages(ctx, hostingChain, signer, msgUpdateClient)
 	s.AssertTxSuccess(txResp)
+}
+
+func (s *TransferTestSuiteIBCV2) manualRelayTargetHeight(ctx context.Context, sourceChain *cosmos.CosmosChain, hostingChain ibc.Chain, clientID string) int64 {
+	hostedClientState, err := query.ClientState(ctx, hostingChain, clientID)
+	s.Require().NoError(err)
+
+	tmClientState, ok := hostedClientState.(*ibctmtypes.ClientState)
+	s.Require().True(ok)
+
+	targetHeight, err := sourceChain.Height(ctx)
+	s.Require().NoError(err)
+
+	if uint64(targetHeight) <= tmClientState.LatestHeight.GetRevisionHeight() {
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, sourceChain))
+		targetHeight, err = sourceChain.Height(ctx)
+		s.Require().NoError(err)
+	}
+
+	s.Require().Greater(uint64(targetHeight), tmClientState.LatestHeight.GetRevisionHeight())
+	return targetHeight
 }
 
 func (s *TransferTestSuiteIBCV2) queryValidatorSet(ctx context.Context, chain *cosmos.CosmosChain, height int64) *cmttypes.ValidatorSet {
