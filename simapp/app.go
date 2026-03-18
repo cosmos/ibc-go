@@ -218,8 +218,9 @@ func NewSimApp(
 		},
 	})
 	if err != nil {
-    panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 	
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
