@@ -5,10 +5,12 @@ package transfer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
+	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -27,6 +29,7 @@ import (
 	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibctmtypes "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 )
@@ -301,21 +304,47 @@ func (s *TransferTestSuiteIBCV2) createTendermintClient(ctx context.Context, hos
 }
 
 func (s *TransferTestSuiteIBCV2) queryPacketCommitmentProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64) ([]byte, clienttypes.Height) {
-	res, err := query.GRPCQuery[channeltypesv2.QueryPacketCommitmentResponse](ctx, chain, &channeltypesv2.QueryPacketCommitmentRequest{
-		ClientId: clientID,
-		Sequence: sequence,
-	})
+	proofKey := hostv2.PacketCommitmentKey(clientID, sequence)
+	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey)
 	s.Require().NoError(err)
-	return res.Proof, res.ProofHeight
+	return proof, proofHeight
 }
 
 func (s *TransferTestSuiteIBCV2) queryPacketAcknowledgementProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64) ([]byte, clienttypes.Height) {
-	res, err := query.GRPCQuery[channeltypesv2.QueryPacketAcknowledgementResponse](ctx, chain, &channeltypesv2.QueryPacketAcknowledgementRequest{
-		ClientId: clientID,
-		Sequence: sequence,
-	})
+	proofKey := hostv2.PacketAcknowledgementKey(clientID, sequence)
+	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey)
 	s.Require().NoError(err)
-	return res.Proof, res.ProofHeight
+	return proof, proofHeight
+}
+
+func (s *TransferTestSuiteIBCV2) queryProofForIBCStore(ctx context.Context, chain ibc.Chain, key []byte) ([]byte, clienttypes.Height, error) {
+	cosmosChain, ok := chain.(*cosmos.CosmosChain)
+	if !ok {
+		return nil, clienttypes.Height{}, fmt.Errorf("expected *cosmos.CosmosChain, got %T", chain)
+	}
+
+	res, err := cosmosChain.GetNode().Client.ABCIQueryWithOptions(ctx, "store/ibc/key", key, rpcclient.ABCIQueryOptions{Prove: true})
+	if err != nil {
+		return nil, clienttypes.Height{}, err
+	}
+	if res.Response.Code != 0 {
+		return nil, clienttypes.Height{}, fmt.Errorf("abci query failed with code %d: %s", res.Response.Code, res.Response.Log)
+	}
+
+	merkleProof, err := commitmenttypes.ConvertProofs(res.Response.ProofOps)
+	if err != nil {
+		return nil, clienttypes.Height{}, err
+	}
+
+	proofBz, err := merkleProof.Marshal()
+	if err != nil {
+		return nil, clienttypes.Height{}, err
+	}
+
+	revision := clienttypes.ParseChainID(chain.Config().ChainID)
+	proofHeight := clienttypes.NewHeight(revision, uint64(res.Response.Height)+1)
+
+	return proofBz, proofHeight, nil
 }
 
 func (s *TransferTestSuiteIBCV2) updateTendermintClient(ctx context.Context, hostingChain, counterparty ibc.Chain, clientID string, signer ibc.Wallet) {
