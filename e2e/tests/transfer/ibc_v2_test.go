@@ -46,7 +46,7 @@ func (s *TransferTestSuiteIBCV2) SetupSuite() {
 	s.SetupChains(context.TODO(), 2, nil)
 }
 
-func (s *TransferTestSuiteIBCV2) TestMsgTransfer_Tendermint_IBCv2_ManualRelay() {
+func (s *TransferTestSuiteIBCV2) TestMsgTransfer_IBCv2_Succeeds() {
 	t := s.T()
 	ctx := context.TODO()
 
