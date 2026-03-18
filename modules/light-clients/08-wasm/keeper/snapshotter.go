@@ -129,7 +129,7 @@ func (ws *WasmSnapshotter) processAllItems(
 	payloadReader snapshot.ExtensionPayloadReader,
 	cb func(sdk.Context, *Keeper, []byte) error,
 ) error {
-	ctx := sdk.NewContext(ws.cms.RootCacheMultiStore(), cmtproto.Header{Height: int64(height)}, false, nil) // TODO: is this correct?
+	ctx := sdk.NewContext(ws.cms.RootCacheMultiStore(), cmtproto.Header{Height: int64(height)}, false, nil)
 	for {
 		payload, err := payloadReader()
 		if errors.Is(err, io.EOF) {
