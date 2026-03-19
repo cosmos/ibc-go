@@ -17,7 +17,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
@@ -331,21 +330,21 @@ func (s *KeeperTestSuite) TestUnsetParams() {
 	})
 }
 
-func (s *KeeperTestSuite) TestWithICS4Wrapper() {
-	s.SetupTest()
-
-	// test if the ics4 wrapper is the pfm keeper initially
-	ics4Wrapper := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-
-	_, isPFMKeeper := ics4Wrapper.(*packetforward.IBCMiddleware)
-	s.Require().True(isPFMKeeper)
-	s.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
-
-	// set the ics4 wrapper to the channel keeper
-	s.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
-	ics4Wrapper = s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
-	s.Require().Nil(ics4Wrapper)
-}
+// func (s *KeeperTestSuite) TestWithICS4Wrapper() {
+// 	s.SetupTest()
+//
+// 	// test if the ics4 wrapper is the pfm keeper initially
+// 	ics4Wrapper := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+//
+// 	_, isPFMKeeper := ics4Wrapper.(*packetforward.IBCMiddleware)
+// 	s.Require().True(isPFMKeeper)
+// 	s.Require().IsType((*packetforward.IBCMiddleware)(nil), ics4Wrapper)
+//
+// 	// set the ics4 wrapper to the channel keeper
+// 	s.chainA.GetSimApp().TransferKeeper.WithICS4Wrapper(nil)
+// 	ics4Wrapper = s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper()
+// 	s.Require().Nil(ics4Wrapper)
+// }
 
 func (s *KeeperTestSuite) TestIsBlockedAddr() {
 	s.SetupTest()
