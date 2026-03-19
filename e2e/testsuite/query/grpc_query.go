@@ -39,7 +39,7 @@ func PopulateQueryReqToPath(ctx context.Context, chain ibc.Chain) error {
 
 			for _, method := range service.GetMethod() {
 				// trim the first character from input which is a dot
-				queryReqToPath[method.GetInputType()[1:]] = fileDescriptor.GetPackage() + "." + service.GetName() + "/" + method.GetName()
+				queryReqToPath[method.GetInputType()[1:]] = "/" + fileDescriptor.GetPackage() + "." + service.GetName() + "/" + method.GetName()
 			}
 		}
 	}
