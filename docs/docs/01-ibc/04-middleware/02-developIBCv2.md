@@ -25,7 +25,7 @@ middleware developers must use the same serialization and deserialization method
 For middleware builders this means:
 
 ```go
-import transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+import transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 transfertypes.ModuleCdc.[Must]MarshalJSON
 func MarshalAsIBCDoes(ack channeltypes.Acknowledgement) ([]byte, error) {
 	return transfertypes.ModuleCdc.MarshalJSON(&ack)
