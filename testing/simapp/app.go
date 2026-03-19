@@ -402,21 +402,9 @@ func NewSimApp(
 	mockBlockUpgradeMw := ibcmock.NewBlockUpgradeMiddleware(&mockModule, mockBlockUpgradeIBCModule.IBCApp)
 	ibcRouter.AddRoute(ibcmock.MockBlockUpgrade, mockBlockUpgradeMw)
 
-	// Create Transfer Stack
-	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> channel.SendPacket
-
-	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> transfer.OnRecvPacket
-
-	// create IBC module from bottom to top of stack
-	// - Transfer
-	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
+	// Create Transfer Module and add to IBC Router
 	transferApp := transfer.NewIBCModule(app.TransferKeeper)
-	transferStack.Base(transferApp)
-
-	// Add transfer stack to IBC Router
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferApp)
 
 	// Create Interchain Accounts Stack
 	// SendPacket, since it is originating from the application to core IBC:
