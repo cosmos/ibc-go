@@ -17,10 +17,10 @@ require (
 	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/math v1.5.3
 	github.com/cometbft/cometbft v0.39.0-beta.4
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317181318-04d6434235dc
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260319135650-b49c43b9aeb3
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
-	github.com/cosmos/ibc-go/v11 v11.0.0-20260318214810-ef053a4e73b3
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260319141929-a8c7e937b369
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260313171931-b7a239a6a48f
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.0
@@ -110,6 +110,7 @@ require (
 	github.com/cosmos/btree v1.0.0 // indirect
 	github.com/cosmos/cosmos-db v1.1.3 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
+	github.com/cosmos/cosmos-sdk/store/v2 v2.0.0-beta.1.0.20260319135650-b49c43b9aeb3 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.6 // indirect
@@ -352,9 +353,9 @@ require (
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.24.0 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
-	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect

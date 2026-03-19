@@ -2,9 +2,9 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
