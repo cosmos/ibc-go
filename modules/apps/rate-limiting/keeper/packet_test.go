@@ -702,8 +702,8 @@ func (s *KeeperTestSuite) TestSendPacket_Allowed() {
 	s.Require().NoError(err)
 
 	// We need the transfer keeper's ICS4Wrapper which *is* the ratelimiting middleware
-	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(*ratelimiting.IBCMiddleware)
-	s.Require().Truef(ok, "PFM's ICS4Wrapper should be the Rate Limit Middleware. Found %T", s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper())
+	middleware, ok := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper().(*ratelimiting.IBCMiddleware)
+	s.Require().Truef(ok, "Transfer keeper's ICS4Wrapper should be the Rate Limit Middleware. Found %T", s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper())
 
 	// Directly call the middleware's SendPacket
 	seq, err := middleware.SendPacket(
@@ -761,8 +761,8 @@ func (s *KeeperTestSuite) TestSendPacket_Denied() {
 	s.Require().NoError(err)
 
 	// Get the middleware instance
-	middleware, ok := s.chainA.GetSimApp().PFMKeeper.ICS4Wrapper().(*ratelimiting.IBCMiddleware)
-	s.Require().Truef(ok, "Packet forward middleware keeper's ICS4Wrapper should be the RateLimit middleware. Found: %T", middleware)
+	middleware, ok := s.chainA.GetSimApp().TransferKeeper.GetICS4Wrapper().(*ratelimiting.IBCMiddleware)
+	s.Require().Truef(ok, "Transfer keeper's ICS4Wrapper should be the RateLimit middleware. Found: %T", middleware)
 
 	// Directly call the middleware's SendPacket
 	_, err = middleware.SendPacket(

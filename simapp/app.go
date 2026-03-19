@@ -99,9 +99,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
-	packetforwardkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
@@ -172,7 +169,6 @@ type SimApp struct {
 	TransferKeeper        *ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	PFMKeeper             *packetforwardkeeper.Keeper
 	RateLimitKeeper       *ratelimitkeeper.Keeper
 	GMPKeeper             *gmpkeeper.Keeper
 
@@ -259,7 +255,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		authzkeeper.StoreKey, consensusparamtypes.StoreKey, packetforwardtypes.StoreKey, ratelimittypes.StoreKey, gmptypes.StoreKey,
+		authzkeeper.StoreKey, consensusparamtypes.StoreKey, ratelimittypes.StoreKey, gmptypes.StoreKey,
 	)
 
 	// register streaming services
@@ -387,9 +383,6 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Packet Forward Middleware keeper
-	app.PFMKeeper = packetforwardkeeper.NewKeeper(appCodec, app.AccountKeeper.AddressCodec(), runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]), app.TransferKeeper, app.IBCKeeper.ChannelKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
 	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, app.AccountKeeper.AddressCodec(), runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
 
 	// Create IBC Router
@@ -411,7 +404,6 @@ func NewSimApp(
 	// create IBC module from bottom to top of stack
 	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 	transferStack.Base(transfer.NewIBCModule(app.TransferKeeper)).
-		Next(packetforward.NewIBCMiddleware(app.PFMKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp)).
 		Next(ratelimiting.NewIBCMiddleware(app.RateLimitKeeper))
 
 	// Add transfer stack to IBC Router
@@ -491,7 +483,6 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		gmp.NewAppModule(app.GMPKeeper),
-		packetforward.NewAppModule(app.PFMKeeper),
 		ratelimiting.NewAppModule(app.RateLimitKeeper),
 
 		// IBC light clients
@@ -530,7 +521,6 @@ func NewSimApp(
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
-		packetforwardtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
@@ -541,7 +531,6 @@ func NewSimApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
-		packetforwardtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
@@ -558,7 +547,7 @@ func NewSimApp(
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
-		packetforwardtypes.ModuleName, icatypes.ModuleName, gmptypes.ModuleName, feegrant.ModuleName, upgradetypes.ModuleName,
+		icatypes.ModuleName, gmptypes.ModuleName, feegrant.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName, ratelimittypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
