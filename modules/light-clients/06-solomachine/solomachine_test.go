@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"

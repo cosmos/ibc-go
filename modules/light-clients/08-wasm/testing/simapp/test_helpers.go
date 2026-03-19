@@ -10,8 +10,8 @@ import (
 
 	"cosmossdk.io/log/v2"
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/snapshots"
+	snapshottypes "github.com/cosmos/cosmos-sdk/store/v2/snapshots/types"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"

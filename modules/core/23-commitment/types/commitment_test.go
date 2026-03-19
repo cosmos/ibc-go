@@ -7,8 +7,8 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/legacy/rootmulti"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/legacy/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 )
 
 type MerkleTestSuite struct {

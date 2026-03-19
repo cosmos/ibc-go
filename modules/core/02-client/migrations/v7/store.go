@@ -5,7 +5,7 @@ import (
 
 	corestore "cosmossdk.io/core/store"
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

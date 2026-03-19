@@ -21,7 +21,8 @@ require (
 	github.com/OffchainLabs/prysm/v6 v6.1.4
 	github.com/cometbft/cometbft v0.39.0-beta.4
 	github.com/cosmos/cosmos-db v1.1.3
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317181318-04d6434235dc
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260319135650-b49c43b9aeb3
+	github.com/cosmos/cosmos-sdk/store/v2 v2.0.0-beta.1.0.20260319135650-b49c43b9aeb3
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/v11 v11.0.0-20260318214810-ef053a4e73b3
 	github.com/golang/protobuf v1.5.4

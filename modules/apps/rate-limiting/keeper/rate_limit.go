@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/store/prefix"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"

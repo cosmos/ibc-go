@@ -6,8 +6,8 @@ import (
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
-	"cosmossdk.io/store/legacy/cachekv"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/legacy/cachekv"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 )
 
 var (

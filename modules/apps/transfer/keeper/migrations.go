@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -10,8 +10,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/legacy/rootmulti"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/legacy/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
