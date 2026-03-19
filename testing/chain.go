@@ -483,7 +483,7 @@ func CommitHeader(proposedHeader cmttypes.Header, valSet *cmttypes.ValidatorSet,
 	// Thus we iterate over the ordered validator set and construct a signer array
 	// from the signer map in the same order.
 	signerArr := make([]cmttypes.PrivValidator, len(valSet.Validators))
-	for i, v := range valSet.Validators { //nolint:staticcheck // need to check for nil validator set
+	for i, v := range valSet.Validators {
 		signerArr[i] = signers[v.Address.String()]
 	}
 
@@ -523,7 +523,7 @@ func (c *TestChain) CreateTMClientHeader(chainID string, blockHeight int64, trus
 		AppHash:            c.ProposedHeader.AppHash,
 		LastResultsHash:    unusedHash,
 		EvidenceHash:       unusedHash,
-		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck
+		ProposerAddress:    cmtValSet.Proposer.Address, //nolint:staticcheck // will not be nil
 	}
 
 	signedHeader, err := CommitHeader(proposedHeader, cmtValSet, signers)
