@@ -20,7 +20,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260319135650-b49c43b9aeb3
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
-	github.com/cosmos/ibc-go/v11 v11.0.0-20260318214810-ef053a4e73b3
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260319141929-a8c7e937b369
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260313171931-b7a239a6a48f
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.0
