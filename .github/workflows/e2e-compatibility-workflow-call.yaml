@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: all
+      chain-image:
+        description: 'The chain image repository to use for compatibility tests.'
+        required: false
+        type: string
+        default: ghcr.io/cosmos/ibc-go-simd
 
 jobs:
   load-test-matrix:
@@ -60,6 +65,7 @@ jobs:
           # Note: this is significant as the standard behaviour when running e2es on PRs
           # is that there is a set of env vars that are the same for each run. e.g. the same docker image is used
           # for every test. With compatibility tests, each test may be running different combinations of images.
+          CHAIN_IMAGE: '${{ inputs.chain-image }}'
           CHAIN_A_TAG: '${{ matrix.chain-a }}'
           CHAIN_B_TAG: '${{ matrix.chain-b }}'
           RELAYER_ID: '${{ matrix.relayer-type }}'
