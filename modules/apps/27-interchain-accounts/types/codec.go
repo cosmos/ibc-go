@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 // ModuleCdc references the global interchain accounts module codec. Note, the codec

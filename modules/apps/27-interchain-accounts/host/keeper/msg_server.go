@@ -10,8 +10,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 var _ types.MsgServer = (*msgServer)(nil)
@@ -63,11 +63,11 @@ func (m msgServer) ModuleQuerySafe(goCtx context.Context, msg *types.MsgModuleQu
 
 // UpdateParams updates the host submodule's params.
 func (m msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	if m.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", m.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, m.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	m.SetParams(ctx, msg.Params)
 
 	return &types.MsgUpdateParamsResponse{}, nil

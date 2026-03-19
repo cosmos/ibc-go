@@ -15,8 +15,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
 var (

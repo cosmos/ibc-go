@@ -14,11 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	gmp "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	gmp "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func TestBuildAddressPredictable(t *testing.T) {

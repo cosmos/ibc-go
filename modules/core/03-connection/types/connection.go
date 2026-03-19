@@ -3,9 +3,9 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 // MaxMerklePrefixLength defines the maximum length of the counterparty prefix in bytes. (This is an arbitrarily chosen value)

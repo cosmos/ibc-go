@@ -8,14 +8,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	internalerrors "github.com/cosmos/ibc-go/v10/modules/core/internal/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/internal/telemetry"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	internalerrors "github.com/cosmos/ibc-go/v11/modules/core/internal/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/internal/telemetry"
 )
 
 var (
@@ -124,11 +124,11 @@ func (k *Keeper) UpgradeClient(goCtx context.Context, msg *clienttypes.MsgUpgrad
 
 // RecoverClient defines a rpc handler method for MsgRecoverClient.
 func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecoverClient) (*clienttypes.MsgRecoverClientResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	if err := k.ClientKeeper.RecoverClient(ctx, msg.SubjectClientId, msg.SubstituteClientId); err != nil {
 		return nil, errorsmod.Wrap(err, "client recovery failed")
 	}
@@ -138,11 +138,11 @@ func (k *Keeper) RecoverClient(goCtx context.Context, msg *clienttypes.MsgRecove
 
 // IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
 func (k *Keeper) IBCSoftwareUpgrade(goCtx context.Context, msg *clienttypes.MsgIBCSoftwareUpgrade) (*clienttypes.MsgIBCSoftwareUpgradeResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	upgradedClientState, err := clienttypes.UnpackClientState(msg.UpgradedClientState)
 	if err != nil {
 		return nil, errorsmod.Wrapf(clienttypes.ErrInvalidClientType, "cannot unpack client state: %s", err)
@@ -622,11 +622,11 @@ func (k *Keeper) Acknowledgement(goCtx context.Context, msg *channeltypes.MsgAck
 
 // UpdateClientParams defines a rpc handler method for MsgUpdateParams.
 func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgUpdateParams) (*clienttypes.MsgUpdateParamsResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	k.ClientKeeper.SetParams(ctx, msg.Params)
 
 	return &clienttypes.MsgUpdateParamsResponse{}, nil
@@ -634,11 +634,11 @@ func (k *Keeper) UpdateClientParams(goCtx context.Context, msg *clienttypes.MsgU
 
 // UpdateConnectionParams defines a rpc handler method for MsgUpdateParams for the 03-connection submodule.
 func (k *Keeper) UpdateConnectionParams(goCtx context.Context, msg *connectiontypes.MsgUpdateParams) (*connectiontypes.MsgUpdateParamsResponse, error) {
-	if k.GetAuthority() != msg.Signer {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "expected %s, got %s", k.GetAuthority(), msg.Signer)
-	}
-
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		return nil, err
+	}
 	k.ConnectionKeeper.SetParams(ctx, msg.Params)
 
 	return &connectiontypes.MsgUpdateParamsResponse{}, nil
@@ -649,10 +649,12 @@ func (k *Keeper) UpdateClientConfig(goCtx context.Context, msg *clientv2types.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	creator := k.ClientKeeper.GetClientCreator(ctx, msg.ClientId)
-	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to update params for %s, got %s",
-			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
-		)
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority or client creator %s is authorized to update params for %s, got %s",
+				creator, msg.ClientId, msg.Signer,
+			)
+		}
 	}
 
 	k.ClientV2Keeper.SetConfig(ctx, msg.ClientId, msg.Config)
@@ -669,10 +671,12 @@ func (k *Keeper) DeleteClientCreator(goCtx context.Context, msg *clienttypes.Msg
 	}
 
 	// Check authorization
-	if k.GetAuthority() != msg.Signer && !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
-		return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority %s or client creator %s is authorized to delete creator for %s, got %s",
-			k.GetAuthority(), creator, msg.ClientId, msg.Signer,
-		)
+	if err := sdk.ValidateAuthority(ctx, k.GetAuthority(), msg.Signer); err != nil {
+		if !creator.Equals(sdk.MustAccAddressFromBech32(msg.Signer)) {
+			return nil, errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "authority or client creator %s is authorized to delete creator for %s, got %s",
+				creator, msg.ClientId, msg.Signer,
+			)
+		}
 	}
 
 	k.ClientKeeper.DeleteClientCreator(ctx, msg.ClientId)

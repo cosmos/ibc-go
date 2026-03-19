@@ -10,18 +10,18 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	callbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
-	ibcmockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	callbacksv2 "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/v2"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
+	ibcmockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {

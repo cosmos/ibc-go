@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	test "github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	test "github.com/cosmos/interchaintest/v11/testutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	testifysuite "github.com/stretchr/testify/suite"
 
@@ -22,14 +22,14 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	gmptypes "github.com/cosmos/ibc-go/v10/modules/apps/27-gmp/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	"github.com/cosmos/ibc-go/v10/modules/light-clients/attestations"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	gmptypes "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const (

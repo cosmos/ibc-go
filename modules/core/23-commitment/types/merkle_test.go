@@ -8,12 +8,12 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	"github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"
 )
 
 func (s *MerkleTestSuite) TestVerifyMembership() {
-	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	s.kvStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := s.store.Commit()
 
 	res, err := s.store.Query(&storetypes.RequestQuery{
@@ -74,7 +74,7 @@ func (s *MerkleTestSuite) TestVerifyMembership() {
 }
 
 func (s *MerkleTestSuite) TestVerifyNonMembership() {
-	s.iavlStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
+	s.kvStore.Set([]byte("MYKEY"), []byte("MYVALUE"))
 	cid := s.store.Commit()
 
 	// Get Proof

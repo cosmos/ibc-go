@@ -55,6 +55,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### API Breaking
 
+* [\#8820](https://github.com/cosmos/ibc-go/pull/8820) Bump ibc-go to v11 and use `sdk.ValidateAuthority` in msg_server handlers.
 * (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
 * (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
 * (core/02-client) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) Remove deprecated `SubmitMisbehaviour` message handler

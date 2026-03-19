@@ -10,9 +10,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/unknownproto"
 
-	callbacktypes "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	callbacktypes "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var (

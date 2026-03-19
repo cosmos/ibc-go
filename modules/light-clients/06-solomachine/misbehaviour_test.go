@@ -3,9 +3,9 @@ package solomachine_test
 import (
 	"errors"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *SoloMachineTestSuite) TestMisbehaviour() {

@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types";
 
 // PacketDirection defines whether the transfer packet is being sent from
 // this chain or is being received on this chain
