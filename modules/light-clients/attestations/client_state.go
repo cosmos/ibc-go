@@ -7,9 +7,9 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	commitmenttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"

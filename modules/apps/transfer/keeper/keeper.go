@@ -9,11 +9,11 @@ import (
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log/v2"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 

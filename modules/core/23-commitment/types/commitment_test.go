@@ -7,6 +7,7 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log/v2"
+
 	"github.com/cosmos/cosmos-sdk/store/v2/legacy/rootmulti"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 )
