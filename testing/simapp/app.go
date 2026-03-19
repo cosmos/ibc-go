@@ -89,9 +89,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
-	ratelimitkeeper "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
-	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
@@ -160,7 +157,6 @@ type SimApp struct {
 	GMPKeeper             *gmpkeeper.Keeper
 	TransferKeeper        *ibctransferkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	RateLimitKeeper       *ratelimitkeeper.Keeper
 
 	// make IBC modules public for test purposes
 	// these modules are never directly routed to by the IBC Router
@@ -254,7 +250,6 @@ func NewSimApp(
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, gmptypes.StoreKey,
 		ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey,
-		ratelimittypes.StoreKey,
 	)
 
 	// register streaming services
@@ -388,8 +383,6 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, app.AccountKeeper.AddressCodec(), runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, authtypes.NewModuleAddress(govtypes.ModuleName).String())
-
 	// Mock Module Stack
 
 	// Mock Module setup for testing IBC and also acts as the interchain accounts authentication module
@@ -417,12 +410,10 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// create IBC module from bottom to top of stack
-	// - Rate Limit
 	// - Transfer
 	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 	transferApp := transfer.NewIBCModule(app.TransferKeeper)
-	transferStack.Base(transferApp).
-		Next(ratelimiting.NewIBCMiddleware(app.RateLimitKeeper))
+	transferStack.Base(transferApp)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
@@ -507,7 +498,6 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		ratelimiting.NewAppModule(app.RateLimitKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		gmp.NewAppModule(app.GMPKeeper),
 		mockModule,
@@ -552,7 +542,6 @@ func NewSimApp(
 		authz.ModuleName,
 		icatypes.ModuleName,
 		gmptypes.ModuleName,
-		ratelimittypes.ModuleName,
 		ibcmock.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
@@ -574,7 +563,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName, ratelimittypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, ibcmock.ModuleName, upgradetypes.ModuleName, gmptypes.ModuleName,
 		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 	}

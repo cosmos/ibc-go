@@ -99,9 +99,6 @@ import (
 	icahostkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
 	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
 	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
-	ratelimitkeeper "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
-	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
@@ -169,7 +166,6 @@ type SimApp struct {
 	TransferKeeper        *ibctransferkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	RateLimitKeeper       *ratelimitkeeper.Keeper
 	GMPKeeper             *gmpkeeper.Keeper
 
 	// the module manager
@@ -255,7 +251,7 @@ func NewSimApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
-		authzkeeper.StoreKey, consensusparamtypes.StoreKey, ratelimittypes.StoreKey, gmptypes.StoreKey,
+		authzkeeper.StoreKey, consensusparamtypes.StoreKey, gmptypes.StoreKey,
 	)
 
 	// register streaming services
@@ -383,28 +379,23 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	app.RateLimitKeeper = ratelimitkeeper.NewKeeper(appCodec, app.AccountKeeper.AddressCodec(), runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper, app.BankKeeper, govAuthority)
-
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouterV2 := ibcapi.NewRouter()
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> Pf.SendPacket -> RateLim.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> RateLim.OnRecvPacket -> Pf.OnRecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
-	// - RateLimit
-	// - PacketForward
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
 	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
-	transferStack.Base(transfer.NewIBCModule(app.TransferKeeper)).
-		Next(ratelimiting.NewIBCMiddleware(app.RateLimitKeeper))
+	transferStack.Base(transfer.NewIBCModule(app.TransferKeeper))
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack.Build())
@@ -483,7 +474,6 @@ func NewSimApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		gmp.NewAppModule(app.GMPKeeper),
-		ratelimiting.NewAppModule(app.RateLimitKeeper),
 
 		// IBC light clients
 		ibctm.NewAppModule(tmLightClientModule),
@@ -525,7 +515,6 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		icatypes.ModuleName,
-		ratelimittypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderEndBlockers(
 		govtypes.ModuleName,
@@ -535,7 +524,6 @@ func NewSimApp(
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
 		icatypes.ModuleName,
-		ratelimittypes.ModuleName,
 		banktypes.ModuleName,
 	)
 
@@ -548,7 +536,7 @@ func NewSimApp(
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName,
 		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, gmptypes.ModuleName, feegrant.ModuleName, upgradetypes.ModuleName,
-		vestingtypes.ModuleName, consensusparamtypes.ModuleName, ratelimittypes.ModuleName,
+		vestingtypes.ModuleName, consensusparamtypes.ModuleName,
 	}
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
 	app.ModuleManager.SetOrderExportGenesis(genesisModuleOrder...)
