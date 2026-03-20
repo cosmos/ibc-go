@@ -33,8 +33,8 @@ func NewPayload(sourcePort, destPort, version, encoding string, value []byte) Pa
 
 // ValidateBasic validates that a Packet satisfies the basic requirements.
 func (p Packet) ValidateBasic() error {
-	if len(p.Payloads) == 0 {
-		return errorsmod.Wrapf(ErrInvalidPayload, "payload length must be greater than 0")
+	if len(p.Payloads) != 1 {
+		return errorsmod.Wrapf(ErrInvalidPayload, "payload length is %d, must be 1", len(p.Payloads))
 	}
 
 	totalPayloadsSize := 0
