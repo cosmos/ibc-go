@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"bytes"
 	"errors"
 	"time"
 
@@ -33,13 +32,6 @@ func (s *KeeperTestSuite) TestMsgSendPacket() {
 		{
 			name:     "success",
 			malleate: func() {},
-			expError: nil,
-		},
-		{
-			name: "success multiple payloads",
-			malleate: func() {
-				payloads = append(payloads, payloads[0])
-			},
 			expError: nil,
 		},
 		{
@@ -88,19 +80,6 @@ func (s *KeeperTestSuite) TestMsgSendPacket() {
 				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx sdk.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
 					return mockv1.MockApplicationCallbackError
 				}
-			},
-			expError: mockv1.MockApplicationCallbackError,
-		},
-		{
-			name: "failure: multiple payload application callback error",
-			malleate: func() {
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnSendPacket = func(ctx sdk.Context, sourceID string, destinationID string, sequence uint64, data types.Payload, signer sdk.AccAddress) error {
-					if bytes.Equal(mockv1.MockFailPacketData, data.Value) {
-						return mockv1.MockApplicationCallbackError
-					}
-					return nil
-				}
-				payloads = append(payloads, mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
 			},
 			expError: mockv1.MockApplicationCallbackError,
 		},
@@ -208,40 +187,6 @@ func (s *KeeperTestSuite) TestMsgRecvPacket() {
 			expAckWritten: false,
 		},
 		{
-			name: "success: multiple payloads",
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-			malleate: func() {
-				expAck = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{
-						mockv2.MockRecvPacketResult.Acknowledgement,
-						mockv2.MockRecvPacketResult.Acknowledgement,
-					},
-				}
-			},
-			expError:      nil,
-			expAckWritten: true,
-		},
-		{
-			name: "success: multiple payloads with error ack",
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-			malleate: func() {
-				expAck = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{
-						types.ErrorAcknowledgement[:],
-					},
-				}
-			},
-			expError:      nil,
-			expAckWritten: true,
-		},
-		{
 			name:     "success: receive permissioned with msg sender",
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
 
@@ -296,16 +241,6 @@ func (s *KeeperTestSuite) TestMsgRecvPacket() {
 				}
 			},
 			expError: types.ErrInvalidAcknowledgement,
-		},
-		{
-			name: "failure: async payload with other payloads",
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewAsyncMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-			malleate:      func() {},
-			expError:      types.ErrInvalidPacket,
-			expAckWritten: false,
 		},
 	}
 
@@ -401,36 +336,6 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 			payloads: []types.Payload{mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
 		},
 		{
-			name: "success: multiple payloads",
-			malleate: func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{
-						mockv2.MockRecvPacketResult.Acknowledgement,
-						mockv2.MockRecvPacketResult.Acknowledgement,
-					},
-				}
-			},
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-		},
-		{
-			name: "success: multiple payloads with error ack",
-			malleate: func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{
-						types.ErrorAcknowledgement[:],
-					},
-				}
-			},
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-		},
-		{
 			name: "success: relayer permissioned with msg sender",
 			malleate: func() {
 				creator := s.chainA.SenderAccount.GetAddress()
@@ -459,31 +364,6 @@ func (s *KeeperTestSuite) TestMsgAcknowledgement() {
 				}
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
-			expError: mockv1.MockApplicationCallbackError,
-		},
-		{
-			name: "failure: callback fails on one of the multiple payloads",
-			malleate: func() {
-				// create custom callback that fails on one of the payloads in the test case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnAcknowledgementPacket = func(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, data types.Payload, acknowledgement []byte, relayer sdk.AccAddress) error {
-					if data.DestinationPort == mockv2.ModuleNameB {
-						return mockv1.MockApplicationCallbackError
-					}
-					return nil
-				}
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{
-						mockv2.MockRecvPacketResult.Acknowledgement,
-						mockv2.MockRecvPacketResult.Acknowledgement,
-						mockv2.MockRecvPacketResult.Acknowledgement, // this one will not be processed
-					},
-				}
-			},
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameA),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameA),
-			},
 			expError: mockv1.MockApplicationCallbackError,
 		},
 		{
@@ -582,17 +462,6 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
 		},
 		{
-			name: "success: multiple payloads",
-			malleate: func() {
-				s.Require().NoError(path.EndpointA.UpdateClient())
-			},
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
-			expError: nil,
-		},
-		{
 			name: "success: relayer permissioned with msg sender",
 			malleate: func() {
 				creator := s.chainA.SenderAccount.GetAddress()
@@ -625,25 +494,6 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 				s.Require().NoError(path.EndpointA.UpdateClient())
 			},
 			payloads: []types.Payload{mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
-			expError: mockv1.MockApplicationCallbackError,
-		},
-		{
-			name: "failure: callback fails on one of the multiple payloads",
-			malleate: func() {
-				// create custom callback that fails on one of the payloads in the test case.
-				path.EndpointA.Chain.GetSimApp().MockModuleV2A.IBCApp.OnTimeoutPacket = func(ctx sdk.Context, sourceChannel string, destinationChannel string, sequence uint64, data types.Payload, relayer sdk.AccAddress) error {
-					if bytes.Equal(mockv1.MockFailPacketData, data.Value) {
-						return mockv1.MockApplicationCallbackError
-					}
-					return nil
-				}
-				s.Require().NoError(path.EndpointA.UpdateClient())
-			},
-			payloads: []types.Payload{
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-				mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB),
-			},
 			expError: mockv1.MockApplicationCallbackError,
 		},
 		{

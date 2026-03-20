@@ -23,9 +23,8 @@ func NewAcknowledgement(appAcknowledgements ...[]byte) Acknowledgement {
 
 // Validate performs a basic validation of the acknowledgement
 func (ack Acknowledgement) Validate() error {
-	// acknowledgement list should be non-empty
-	if len(ack.AppAcknowledgements) == 0 {
-		return errorsmod.Wrap(ErrInvalidAcknowledgement, "app acknowledgements must be non-empty")
+	if len(ack.AppAcknowledgements) != 1 {
+		return errorsmod.Wrapf(ErrInvalidAcknowledgement, "app acknowledgements length is %d, must be 1", len(ack.AppAcknowledgements))
 	}
 
 	for _, a := range ack.AppAcknowledgements {

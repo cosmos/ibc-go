@@ -22,11 +22,6 @@ func (s *TypesTestSuite) Test_ValidateAcknowledgement() {
 			nil,
 		},
 		{
-			"success: more than one app acknowledgements",
-			types.NewAcknowledgement([]byte("appAck1"), []byte("appAck2")),
-			nil,
-		},
-		{
 			"failure: empty acknowledgement",
 			types.NewAcknowledgement(),
 			types.ErrInvalidAcknowledgement,

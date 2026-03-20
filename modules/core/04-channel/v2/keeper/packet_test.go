@@ -40,13 +40,6 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			nil,
 		},
 		{
-			"success multiple payloads",
-			func() {
-				packet.Payloads = append(packet.Payloads, packet.Payloads...)
-			},
-			nil,
-		},
-		{
 			"success with later packet",
 			func() {
 				// send the same packet earlier so next packet send should be sequence 2
@@ -68,13 +61,6 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			func() {
 				// invalid data
 				packet.Payloads[0].SourcePort = ""
-			},
-			types.ErrInvalidPacket,
-		},
-		{
-			"multiple payload failed packet validation",
-			func() {
-				packet.Payloads = append(packet.Payloads, types.Payload{})
 			},
 			types.ErrInvalidPacket,
 		},
@@ -231,7 +217,7 @@ func (s *KeeperTestSuite) TestRecvPacket() {
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet with multiple payloads
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload, payload)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			s.Require().NoError(err)
 
 			tc.malleate()
@@ -281,54 +267,6 @@ func (s *KeeperTestSuite) TestWriteAcknowledgement() {
 				}
 			},
 			nil,
-		},
-		{
-			"success multiple payloads",
-			func() {
-				packet.Payloads = append(packet.Payloads, payload)
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
-				}
-			},
-			nil,
-		},
-		{
-			"success multiple payloads with error ack",
-			func() {
-				packet.Payloads = append(packet.Payloads, payload)
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{types.ErrorAcknowledgement[:]},
-				}
-			},
-			nil,
-		},
-		{
-			"failure: multiple payloads length doesn't match ack length",
-			func() {
-				packet.Payloads = append(packet.Payloads, payload, payload)
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
-				}
-			},
-			types.ErrInvalidAcknowledgement,
-		},
-		{
-			"failure: single payload length doesn't match ack",
-			func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, mockv2.MockRecvPacketResult.Acknowledgement},
-				}
-			},
-			types.ErrInvalidAcknowledgement,
-		},
-		{
-			"failure: invalid acknowledgement, error acknowledgement with success acknowledgement together",
-			func() {
-				ack = types.Acknowledgement{
-					AppAcknowledgements: [][]byte{mockv2.MockRecvPacketResult.Acknowledgement, types.ErrorAcknowledgement[:]},
-				}
-			},
-			types.ErrInvalidAcknowledgement,
 		},
 		{
 			"failure: client not found",
@@ -425,8 +363,6 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 		ack    = types.Acknowledgement{
 			AppAcknowledgements: [][]byte{
 				mockv2.MockRecvPacketResult.Acknowledgement,
-				mockv2.MockRecvPacketResult.Acknowledgement,
-				mockv2.MockRecvPacketResult.Acknowledgement,
 			},
 		}
 		freezeClient bool
@@ -501,7 +437,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
 			// send packet with multiple payloads
-			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload, payload, payload)
+			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			s.Require().NoError(err)
 
 			err = path.EndpointB.MsgRecvPacket(packet)
@@ -548,17 +484,6 @@ func (s *KeeperTestSuite) TestTimeoutPacket() {
 			"success",
 			func() {
 				// send packet
-				_, _, err := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(s.chainA.GetContext(), packet.SourceClient,
-					packet.TimeoutTimestamp, packet.Payloads)
-				s.Require().NoError(err, "send packet failed")
-			},
-			nil,
-		},
-		{
-			"success multiple payloads",
-			func() {
-				// send packet with multiple payloads
-				packet.Payloads = append(packet.Payloads, packet.Payloads...)
 				_, _, err := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.SendPacketTest(s.chainA.GetContext(), packet.SourceClient,
 					packet.TimeoutTimestamp, packet.Payloads)
 				s.Require().NoError(err, "send packet failed")
