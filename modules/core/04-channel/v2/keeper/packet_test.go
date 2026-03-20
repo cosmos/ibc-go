@@ -216,7 +216,7 @@ func (s *KeeperTestSuite) TestRecvPacket() {
 
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// send packet with multiple payloads
+			// send packet
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			s.Require().NoError(err)
 
@@ -436,7 +436,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 
 			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
 
-			// send packet with multiple payloads
+			// send packet
 			packet, err = path.EndpointA.MsgSendPacket(timeoutTimestamp, payload)
 			s.Require().NoError(err)
 
