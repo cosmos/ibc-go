@@ -320,15 +320,15 @@ func (im *IBCMiddleware) OnTimeoutPacket(
 	}
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
+	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return err
+		return nil
 	}
 
 	cbData, isCbPacket, err := types.GetCallbackData(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
-	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if !isCbPacket {
 		return nil
 	}
