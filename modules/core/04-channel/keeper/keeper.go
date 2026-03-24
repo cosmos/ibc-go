@@ -318,9 +318,10 @@ func (k *Keeper) IteratePacketSequence(ctx sdk.Context, iterator db.Iterator, cb
 }
 
 // GetAllPacketSendSeqs returns all stored next send sequences.
-func (k *Keeper) GetAllPacketSendSeqs(ctx sdk.Context) (seqs []types.PacketSequence) {
+func (k *Keeper) GetAllPacketSendSeqs(ctx sdk.Context) []types.PacketSequence {
 	store := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	iterator := storetypes.KVStorePrefixIterator(store, []byte(host.KeyNextSeqSendPrefix))
+	var seqs []types.PacketSequence
 	k.IteratePacketSequence(ctx, iterator, func(portID, channelID string, nextSendSeq uint64) bool {
 		ps := types.NewPacketSequence(portID, channelID, nextSendSeq)
 		seqs = append(seqs, ps)
