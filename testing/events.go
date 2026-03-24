@@ -226,6 +226,23 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 	return nil, errors.New("acknowledgement event attribute not found")
 }
 
+// ParseAckV2FromEvents parses events emitted from a MsgRecvPacket and returns the
+// acknowledgement for v2 packets.
+func ParseAckV2FromEvents(events []abci.Event) ([]byte, error) {
+	for _, ev := range events {
+		if ev.Type == channeltypesv2.EventTypeWriteAck {
+			if attribute, found := attributeByKey(ev.Attributes, channeltypesv2.AttributeKeyEncodedAckHex); found {
+				value, err := hex.DecodeString(attribute.Value)
+				if err != nil {
+					return nil, err
+				}
+				return value, nil
+			}
+		}
+	}
+	return nil, errors.New("acknowledgement event attribute not found")
+}
+
 // ParseProposalIDFromEvents parses events emitted from MsgSubmitProposal and returns proposalID
 func ParseProposalIDFromEvents(events []abci.Event) (uint64, error) {
 	for _, event := range events {
