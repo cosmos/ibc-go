@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/simulation"
 	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
 	"github.com/cosmos/ibc-go/v11/testing/simapp"
 )
 
@@ -37,7 +36,7 @@ func TestDecodeStore(t *testing.T) {
 				Value: cdc.MustMarshal(&channel),
 			},
 			{
-				Key:   hostv2.NextSequenceSendKey(channelID),
+				Key:   host.NextSequenceSendKey(portID, channelID),
 				Value: sdk.Uint64ToBigEndian(1),
 			},
 			{

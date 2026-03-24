@@ -53,21 +53,20 @@ func (k *Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types
 		return nil, errorsmod.Wrapf(err, "failed to validate %s packet data", types.V1)
 	}
 
-	// if the channel does not exist, or we are using channel aliasing then use IBC V2 protocol
-	// otherwise use IBC V1 protocol
-	channel, hasChannel := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
-	isIBCV2 := !hasChannel || msg.UseAliasing
+	// if a channel exists with source channel, then use IBC V1 protocol
+	// otherwise use IBC V2 protocol
+	channel, isIBCV1 := k.channelKeeper.GetChannel(ctx, msg.SourcePort, msg.SourceChannel)
 
 	var sequence uint64
-	if isIBCV2 {
-		// otherwise try to send an IBC V2 packet, if the sourceChannel is not a IBC V2 client
-		// then core IBC will return a CounterpartyNotFound error
-		sequence, err = k.transferV2Packet(ctx, msg.Encoding, msg.SourceChannel, msg.TimeoutTimestamp, packetData)
-	} else {
+	if isIBCV1 {
 		// if a V1 channel exists for the source channel, then use IBC V1 protocol
 		sequence, err = k.transferV1Packet(ctx, msg.SourceChannel, token, msg.TimeoutHeight, msg.TimeoutTimestamp, sender, packetData)
 		// telemetry for transfer occurs here, in IBC V2 this is done in the onSendPacket callback
 		telemetry.ReportTransfer(msg.SourcePort, msg.SourceChannel, channel.Counterparty.PortId, channel.Counterparty.ChannelId, token)
+	} else {
+		// otherwise try to send an IBC V2 packet, if the sourceChannel is not a IBC V2 client
+		// then core IBC will return a CounterpartyNotFound error
+		sequence, err = k.transferV2Packet(ctx, msg.Encoding, msg.SourceChannel, msg.TimeoutTimestamp, packetData)
 	}
 	if err != nil {
 		return nil, err
