@@ -2,10 +2,7 @@ module github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11
 
 go 1.25.8
 
-replace (
-	github.com/cosmos/ibc-go/v10 => ../../../
-	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-)
+replace github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 
 require (
 	cosmossdk.io/api v1.0.0
@@ -23,7 +20,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.3
 	github.com/cosmos/cosmos-sdk/store/v2 v2.0.0-rc.0
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/ibc-go/v11 v11.0.0-20260318214810-ef053a4e73b3
+	github.com/cosmos/ibc-go/v11 v11.0.0-20260325172943-4f9ef9d030d6
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.10.0
@@ -45,7 +42,6 @@ require (
 	cloud.google.com/go/storage v1.60.0 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
-	cosmossdk.io/store v1.10.0-rc.2.0.20260317184211-2c58078d0561 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
