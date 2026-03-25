@@ -13,7 +13,6 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
 	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/client"
 )
 
@@ -180,7 +179,7 @@ func QueryNextSequenceSend(
 }
 
 func queryNextSequenceSendABCI(clientCtx client.Context, portID, channelID string) (*types.QueryNextSequenceSendResponse, error) {
-	key := hostv2.NextSequenceSendKey(channelID)
+	key := host.NextSequenceSendKey(portID, channelID)
 
 	value, proofBz, proofHeight, err := ibcclient.QueryTendermintProof(clientCtx, key)
 	if err != nil {
