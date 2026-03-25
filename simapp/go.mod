@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/api v1.0.0
 	cosmossdk.io/client/v2 v2.0.0-beta.10.0.20260311135820-ea452a1660fd
 	cosmossdk.io/core v1.1.0
-	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee
+	cosmossdk.io/log/v2 v2.1.0-rc.0
 	cosmossdk.io/store v1.10.0-rc.2.0.20260317184211-2c58078d0561
 	cosmossdk.io/tools/confix v0.1.2
 	github.com/cometbft/cometbft v0.39.0-beta.4
