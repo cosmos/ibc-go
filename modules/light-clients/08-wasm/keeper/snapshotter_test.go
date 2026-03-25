@@ -7,6 +7,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
@@ -37,9 +38,10 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 			t := s.T()
 			wasmClientApp := s.SetupSnapshotterWithMockVM()
 
+			height := wasmClientApp.LastBlockHeight() + 1
 			ctx := wasmClientApp.NewNextBlockContext(cmtproto.Header{
 				ChainID: "foo",
-				Height:  wasmClientApp.LastBlockHeight() + 1,
+				Height:  height,
 				Time:    time.Now(),
 			})
 
@@ -59,7 +61,11 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 				s.Require().NoError(err)
 			}
 
-			// create snapshot
+			// flush finalize state to CMS and commit
+			_, err = wasmClientApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+				Height: height,
+			})
+			s.Require().NoError(err)
 			res, err := wasmClientApp.Commit()
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
