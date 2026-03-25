@@ -7,7 +7,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
@@ -62,10 +61,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 			}
 
 			// flush finalize state to CMS and commit
-			_, err = wasmClientApp.FinalizeBlock(&abci.RequestFinalizeBlock{
-				Height: height,
-			})
-			s.Require().NoError(err)
+			wasmClientApp.SimWriteState()
 			res, err := wasmClientApp.Commit()
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
