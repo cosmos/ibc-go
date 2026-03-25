@@ -10,9 +10,9 @@ import (
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/internal/types"

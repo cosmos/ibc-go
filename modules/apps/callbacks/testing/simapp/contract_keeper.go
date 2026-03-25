@@ -3,8 +3,7 @@ package simapp
 import (
 	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
-
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	callbacktypes "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"

@@ -37,9 +37,10 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 			t := s.T()
 			wasmClientApp := s.SetupSnapshotterWithMockVM()
 
+			height := wasmClientApp.LastBlockHeight() + 1
 			ctx := wasmClientApp.NewNextBlockContext(cmtproto.Header{
 				ChainID: "foo",
-				Height:  wasmClientApp.LastBlockHeight() + 1,
+				Height:  height,
 				Time:    time.Now(),
 			})
 
@@ -59,7 +60,8 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 				s.Require().NoError(err)
 			}
 
-			// create snapshot
+			// flush finalize state to CMS and commit
+			wasmClientApp.SimWriteState()
 			res, err := wasmClientApp.Commit()
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
