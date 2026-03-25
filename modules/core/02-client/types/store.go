@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	corestore "cosmossdk.io/core/store"
-	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"

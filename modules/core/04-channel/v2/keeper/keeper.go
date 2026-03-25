@@ -5,10 +5,10 @@ import (
 
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log/v2"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientv2keeper "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/keeper"

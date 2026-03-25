@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/crypto/secp256k1"
