@@ -10,8 +10,8 @@ import (
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"cosmossdk.io/log/v2"
-	"cosmossdk.io/store/legacy/rootmulti"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"

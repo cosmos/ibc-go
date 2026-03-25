@@ -16,8 +16,8 @@ require (
 	cosmossdk.io/api v1.0.0
 	cosmossdk.io/errors v1.1.0
 	cosmossdk.io/math v1.5.3
-	github.com/cometbft/cometbft v0.39.0-beta.4
-	github.com/cosmos/cosmos-sdk v0.54.0-rc.1.0.20260317181318-04d6434235dc
+	github.com/cometbft/cometbft v0.39.0-rc3
+	github.com/cosmos/cosmos-sdk v0.54.0-rc.3
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
 	github.com/cosmos/ibc-go/v11 v11.0.0-20260318214810-ef053a4e73b3
@@ -46,7 +46,7 @@ require (
 	cosmossdk.io/collections v1.4.0 // indirect
 	cosmossdk.io/core v1.1.0 // indirect
 	cosmossdk.io/depinject v1.2.1 // indirect
-	cosmossdk.io/log/v2 v2.0.2-0.20260311165803-2c527014f3ee // indirect
+	cosmossdk.io/log/v2 v2.1.0-rc.0 // indirect
 	cosmossdk.io/schema v1.1.0 // indirect
 	cosmossdk.io/store v1.10.0-rc.2.0.20260317184211-2c58078d0561 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
@@ -110,6 +110,7 @@ require (
 	github.com/cosmos/btree v1.0.0 // indirect
 	github.com/cosmos/cosmos-db v1.1.3 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5 // indirect
+	github.com/cosmos/cosmos-sdk/store/v2 v2.0.0-rc.0 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.6 // indirect
