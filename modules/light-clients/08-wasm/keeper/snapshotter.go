@@ -6,9 +6,9 @@ import (
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
-	snapshot "cosmossdk.io/store/snapshots/types"
-	storetypes "cosmossdk.io/store/types"
 
+	snapshot "github.com/cosmos/cosmos-sdk/store/v2/snapshots/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -27,12 +27,12 @@ const SnapshotFormat = 1
 // NOTE: The following ExtensionSnapshotter has been adapted from CosmWasm's x/wasm:
 // https://github.com/CosmWasm/wasmd/blob/v0.43.0/x/wasm/keeper/snapshotter.go
 type WasmSnapshotter struct {
-	cms    storetypes.RootMultiStore
+	cms    storetypes.MultiStore
 	keeper *Keeper
 }
 
 // NewWasmSnapshotter creates and returns a new snapshot.ExtensionSnapshotter implementation for the 08-wasm module.
-func NewWasmSnapshotter(cms storetypes.RootMultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
+func NewWasmSnapshotter(cms storetypes.MultiStore, keeper *Keeper) snapshot.ExtensionSnapshotter {
 	return &WasmSnapshotter{
 		cms:    cms,
 		keeper: keeper,
@@ -129,7 +129,7 @@ func (ws *WasmSnapshotter) processAllItems(
 	payloadReader snapshot.ExtensionPayloadReader,
 	cb func(sdk.Context, *Keeper, []byte) error,
 ) error {
-	ctx := sdk.NewContext(ws.cms.RootCacheMultiStore(), cmtproto.Header{Height: int64(height)}, false, nil)
+	ctx := sdk.NewContext(ws.cms, cmtproto.Header{Height: int64(height)}, false, nil)
 	for {
 		payload, err := payloadReader()
 		if errors.Is(err, io.EOF) {

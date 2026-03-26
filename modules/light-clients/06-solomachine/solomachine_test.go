@@ -7,11 +7,10 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	storetypes "cosmossdk.io/store/types"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
