@@ -329,6 +329,7 @@ func (im *IBCMiddleware) OnTimeoutPacket(
 		packetData, payload.GetVersion(), payload.GetSourcePort(),
 		ctx.GasMeter().GasRemaining(), im.maxCallbackGas, types.SourceCallbackKey,
 	)
+	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if !isCbPacket {
 		return nil
 	}
