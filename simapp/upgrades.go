@@ -5,6 +5,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/simapp/upgrades"
+	gmptypes "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
 )
 
 // registerUpgradeHandlers registers all supported upgrade handlers
@@ -46,9 +47,9 @@ func (app *SimApp) registerUpgradeHandlers() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == upgrades.V8 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrades.V11 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{},
+			Added: []string{gmptypes.StoreKey},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
