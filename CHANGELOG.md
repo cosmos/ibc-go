@@ -67,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
 
 ### Testing API
 
