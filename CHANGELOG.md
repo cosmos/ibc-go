@@ -66,6 +66,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+<<<<<<< HEAD
+=======
+(apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
+
+>>>>>>> 0e8a1170 (fix(callbacks/v2): OnTimeoutPacket blocked by UnmarshalPacketData error (#8856))
 ### Testing API
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
