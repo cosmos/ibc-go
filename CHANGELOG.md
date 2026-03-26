@@ -62,9 +62,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-### Improvements
-
 ### Bug Fixes
+
+(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
 
 ### Testing API
 
