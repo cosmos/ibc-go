@@ -78,6 +78,6 @@ upgrades:
   - planName: "v10"
     tag: "branch-release-v10.5.x"
   - planName: "v11"
-    tag: "v11.0.0-rc.0"
+    tag: "release-v11.0.x"
   - planName: "ibcwasm-v8"
     tag: "v8.0.0-e2e-upgrade"

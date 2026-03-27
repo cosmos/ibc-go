@@ -85,6 +85,6 @@ upgrades:
   - planName: "v10"
     tag: "v10.3.0"
   - planName: "v11"
-    tag: "v11.0.0-rc.0"
+    tag: "release-v11.0.x"
   - planName: "ibcwasm-v8"
     tag: "v8.0.0-e2e-upgrade"
