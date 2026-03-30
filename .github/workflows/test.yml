@@ -78,7 +78,7 @@ jobs:
         run: |
           cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
-      - uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out
