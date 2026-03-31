@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -321,14 +322,16 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 	var packetData types.InternalTransferRepresentation
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expError error
+		msg          string
+		malleate     func()
+		expError     error
+		expErrSubstr string
 	}{
 		{
 			"success: receive",
 			func() {},
 			nil,
+			"",
 		},
 		{
 			"success: receive with memo",
@@ -336,6 +339,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				packetData.Memo = "memo"
 			},
 			nil,
+			"",
 		},
 		{
 			"success: receive with hex receiver address",
@@ -346,6 +350,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				packetData.Receiver = hex.EncodeToString(receiver.Bytes())
 			},
 			nil,
+			"",
 		},
 		{
 			"failure: mint zero coin",
@@ -353,6 +358,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				packetData.Token.Amount = zeroAmount.String()
 			},
 			types.ErrInvalidAmount,
+			"",
 		},
 		{
 			"failure: receiver is module account",
@@ -360,6 +366,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				packetData.Receiver = s.chainB.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
 			},
 			ibcerrors.ErrUnauthorized,
+			"is not allowed to receive funds",
 		},
 		{
 			"failure: receiver is invalid",
@@ -367,6 +374,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				packetData.Receiver = "invalid-address"
 			},
 			ibcerrors.ErrInvalidAddress,
+			"",
 		},
 		{
 			"failure: receive is disabled",
@@ -377,6 +385,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 					})
 			},
 			types.ErrReceiveDisabled,
+			"",
 		},
 	}
 
@@ -425,6 +434,11 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expError)
+				if tc.expErrSubstr != "" {
+					s.Require().True(utf8.ValidString(err.Error()))
+					s.Require().ErrorContains(err, tc.expErrSubstr)
+					s.Require().ErrorContains(err, packetData.Receiver)
+				}
 
 				// Check denom metadata absence for cases where recv fails.
 				_, found := s.chainB.GetSimApp().BankKeeper.GetDenomMetaData(s.chainB.GetContext(), denom.IBCDenom())
@@ -862,9 +876,10 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 	)
 
 	testCases := []struct {
-		msg      string
-		malleate func()
-		expError error
+		msg          string
+		malleate     func()
+		expError     error
+		expErrSubstr string
 	}{
 		{
 			"successful timeout: sender is source of coin",
@@ -882,6 +897,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), coin)
 			},
 			nil,
+			"",
 		},
 		{
 			"successful timeout: sender is not source of coin",
@@ -897,6 +913,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 			},
 			nil,
+			"",
 		},
 		{
 			"failure: funds cannot be refunded because escrow account has no balance for non-native coin",
@@ -910,6 +927,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
 			},
 			sdkerrors.ErrInsufficientFunds,
+			"",
 		},
 		{
 			"failure: funds cannot be refunded because escrow account has no balance for native coin",
@@ -923,6 +941,17 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
 			},
 			sdkerrors.ErrInsufficientFunds,
+			"",
+		},
+		{
+			"failure: sender is module account",
+			func() {
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = sdkmath.OneInt().String()
+				sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+			},
+			ibcerrors.ErrUnauthorized,
+			"is not allowed to receive funds",
 		},
 		{
 			"failure: cannot mint because sender address is invalid",
@@ -932,6 +961,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				sender = "invalid address"
 			},
 			errors.New("decoding bech32 failed"),
+			"",
 		},
 		{
 			"failure: invalid amount",
@@ -940,6 +970,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				amount = "invalid"
 			},
 			types.ErrInvalidAmount,
+			"",
 		},
 	}
 
@@ -982,6 +1013,11 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorContains(err, tc.expError.Error())
+				if tc.expErrSubstr != "" {
+					s.Require().True(utf8.ValidString(err.Error()))
+					s.Require().ErrorContains(err, tc.expErrSubstr)
+					s.Require().ErrorContains(err, sender)
+				}
 			}
 		})
 	}
