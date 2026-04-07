@@ -39,6 +39,36 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
+<<<<<<< HEAD
+=======
+* [\#8774](https://github.com/cosmos/ibc-go/pull/8774) Add length validation to `MsgCreateClient` and `CounterpartyMerklePrefix`.
+
+### Dependencies
+
+* [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**
+* (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
+
+### API Breaking
+
+* [\#8820](https://github.com/cosmos/ibc-go/pull/8820) Bump ibc-go to v11 and use `sdk.ValidateAuthority` in msg_server handlers.
+* (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
+* (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
+* (core/02-client) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) Remove deprecated `SubmitMisbehaviour` message handler
+
+### State Machine Breaking
+
+### Improvements
+
+### Bug Fixes
+
+(apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
+(apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
+
+### Testing API
+
+* [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
+>>>>>>> 37736777 (fix(transfer): use packet sender and receiver string in unauthorized error (#8874))
 
 ## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
 

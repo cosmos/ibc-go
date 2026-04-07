@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -423,8 +424,14 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 				suite.Require().True(found)
 				suite.Require().Equal(metadataFromDenom(denom), actualMetadata)
 			} else {
+<<<<<<< HEAD
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
+=======
+				s.Require().Error(err)
+				s.Require().ErrorIs(err, tc.expError)
+				s.Require().True(utf8.ValidString(err.Error()))
+>>>>>>> 37736777 (fix(transfer): use packet sender and receiver string in unauthorized error (#8874))
 
 				// Check denom metadata absence for cases where recv fails.
 				_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denom.IBCDenom())
@@ -925,6 +932,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
+			"failure: sender is module account",
+			func() {
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = sdkmath.OneInt().String()
+				sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+			},
+			ibcerrors.ErrUnauthorized.Wrapf("%s is not allowed to receive funds", s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()),
+		},
+		{
 			"failure: cannot mint because sender address is invalid",
 			func() {
 				denom = types.NewDenom(sdk.DefaultBondDenom)
@@ -980,8 +996,14 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				suite.Require().True(ok)
 				suite.Require().Equal(amountParsed, deltaAmount, "successful timeout did not trigger refund")
 			} else {
+<<<<<<< HEAD
 				suite.Require().Error(err)
 				suite.Require().ErrorContains(err, tc.expError.Error())
+=======
+				s.Require().Error(err)
+				s.Require().ErrorContains(err, tc.expError.Error())
+				s.Require().True(utf8.ValidString(err.Error()))
+>>>>>>> 37736777 (fix(transfer): use packet sender and receiver string in unauthorized error (#8874))
 			}
 		})
 	}
