@@ -133,7 +133,7 @@ func (k *Keeper) OnRecvPacket(
 	}
 
 	if k.IsBlockedAddr(receiver) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", data.Receiver)
 	}
 
 	token := data.Token
@@ -257,7 +257,7 @@ func (k *Keeper) refundPacketTokens(
 		return err
 	}
 	if k.IsBlockedAddr(sender) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", data.Sender)
 	}
 
 	// escrow address for unescrowing tokens back to sender
