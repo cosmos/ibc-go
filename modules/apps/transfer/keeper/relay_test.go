@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -425,6 +426,7 @@ func (suite *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorIs(err, tc.expError)
+				suite.Require().True(utf8.ValidString(err.Error()))
 
 				// Check denom metadata absence for cases where recv fails.
 				_, found := suite.chainB.GetSimApp().BankKeeper.GetDenomMetaData(suite.chainB.GetContext(), denom.IBCDenom())
@@ -925,6 +927,15 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
+			"failure: sender is module account",
+			func() {
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = sdkmath.OneInt().String()
+				sender = suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+			},
+			ibcerrors.ErrUnauthorized.Wrapf("%s is not allowed to receive funds", suite.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()),
+		},
+		{
 			"failure: cannot mint because sender address is invalid",
 			func() {
 				denom = types.NewDenom(sdk.DefaultBondDenom)
@@ -982,6 +993,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 			} else {
 				suite.Require().Error(err)
 				suite.Require().ErrorContains(err, tc.expError.Error())
+				suite.Require().True(utf8.ValidString(err.Error()))
 			}
 		})
 	}
