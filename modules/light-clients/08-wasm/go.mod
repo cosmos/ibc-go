@@ -20,7 +20,11 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.4
 	github.com/cosmos/cosmos-sdk/store/v2 v2.0.0-rc.1
 	github.com/cosmos/gogoproto v1.7.2
+<<<<<<< HEAD
 	github.com/cosmos/ibc-go/v11 v11.0.0-rc.1
+=======
+	github.com/cosmos/ibc-go/v11 v11.0.0-rc.2
+>>>>>>> 729ef7e8 (chore(deps): bump ibc-go rc (#8892))
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/spf13/cast v1.10.0
