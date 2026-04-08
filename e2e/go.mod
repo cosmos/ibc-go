@@ -20,11 +20,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.54.0-rc.4
 	github.com/cosmos/gogoproto v1.7.2
 	github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
-<<<<<<< HEAD
 	github.com/cosmos/ibc-go/v11 v11.0.0-rc.1
-=======
-	github.com/cosmos/ibc-go/v11 v11.0.0-20260407143704-37736777fff6
->>>>>>> 530c8ccf (chore(deps): update to latest sdk & comet rcs (#8890))
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260325172338-08abe11c26f0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.0
@@ -33,7 +29,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.1
 	golang.org/x/mod v0.34.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -59,7 +55,7 @@ require (
 	github.com/CosmWasm/wasmvm/v2 v2.3.2 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.31.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
