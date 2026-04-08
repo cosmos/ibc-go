@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/api v1.0.0
 	cosmossdk.io/client/v2 v2.11.0-rc.0
 	cosmossdk.io/core v1.1.0
-	cosmossdk.io/log/v2 v2.1.0-rc.0
+	cosmossdk.io/log/v2 v2.1.0-rc.1
 	cosmossdk.io/tools/confix v0.1.2
 	github.com/cometbft/cometbft v0.39.0-rc3
 	github.com/cosmos/cosmos-db v1.1.3
@@ -251,7 +251,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
-	github.com/rs/zerolog v1.34.0 // indirect
+	github.com/rs/zerolog v1.35.0 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.7 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.2 // indirect
