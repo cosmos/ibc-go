@@ -38,14 +38,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+<<<<<<< HEAD
 * [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer.
+=======
+>>>>>>> 657ab4a8 (docs: updated changelog with v10.5.0 and v10.5.1 (#8895))
 * [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
 * [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
 * [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Improvements
 
-* [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
 * [\#8774](https://github.com/cosmos/ibc-go/pull/8774) Add length validation to `MsgCreateClient` and `CounterpartyMerklePrefix`.
 
 ### Dependencies
@@ -64,18 +66,35 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+<<<<<<< HEAD
 (apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
 (apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
+=======
+* (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
+>>>>>>> 657ab4a8 (docs: updated changelog with v10.5.0 and v10.5.1 (#8895))
 
 ### Testing API
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
 
+## [v10.5.1](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - 2026-04-09
+
+### Bug Fixes
+
+* (apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
+
+## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
+
+### Improvements
+
+* [\#8742](https://github.com/cosmos/ibc-go/pull/8742) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA. (backport of [\#8734](https://github.com/cosmos/ibc-go/pull/8734))
+
 ## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
 
 ### Improvements
 
-* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer.
+* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer. (backport of [\#8573](https://github.com/cosmos/ibc-go/pull/8573))
 
 ## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
 
