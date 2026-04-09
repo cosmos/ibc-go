@@ -64,8 +64,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-(apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
-(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
+* (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
 
 ### Testing API
 
@@ -75,7 +75,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-(apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
+* (apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
 
 ## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
 
