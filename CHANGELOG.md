@@ -66,7 +66,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
 (apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
-(apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
 
 ### Testing API
 
@@ -76,13 +75,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-(apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
+(apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
 
 ## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
 
 ### Improvements
 
-* [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA. (backport of [\#8734](https://github.com/cosmos/ibc-go/pull/8734))
+* [\#8742](https://github.com/cosmos/ibc-go/pull/8742) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA. (backport of [\#8734](https://github.com/cosmos/ibc-go/pull/8734))
 
 ## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
 
