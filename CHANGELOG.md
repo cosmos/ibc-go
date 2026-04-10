@@ -36,7 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-09
+## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
 
 ### Features
 
