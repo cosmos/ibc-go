@@ -36,25 +36,36 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
+
 ### Features
 
-* [\#8573](https://github.com/cosmos/ibc-go/pull/8573) Support custom address codecs in transfer.
-* [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
-* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
-* [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
+* (apps/27-gmp) [\#8352](https://github.com/cosmos/ibc-go/pull/8352) feat: added ics27-2 gmp application
+* (light-clients/attestation) [\#8717](https://github.com/cosmos/ibc-go/pull/8717) feat: attestation light client
 
 ### Improvements
 
-* [\#8734](https://github.com/cosmos/ibc-go/pull/8734) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA.
+* [\#8528](https://github.com/cosmos/ibc-go/pull/8528) Middleware Wiring Improvements
+* (light-clients/attestation) [\#8799](https://github.com/cosmos/ibc-go/pull/8799) feat(attestations): add domain separation to signature verification
 * [\#8774](https://github.com/cosmos/ibc-go/pull/8774) Add length validation to `MsgCreateClient` and `CounterpartyMerklePrefix`.
+* [\#8833](https://github.com/cosmos/ibc-go/pull/8833) chore: clear out no-lints with fixes
+* (light-clients/attestation) [\#8819](https://github.com/cosmos/ibc-go/pull/8819) feat(attestations): added basic misbehaviour check
+* (light-clients/attestation) [\#8817](https://github.com/cosmos/ibc-go/pull/8817) imp(attestations): allow zero height client state
+* (apps/27-gmp) [\#8816](https://github.com/cosmos/ibc-go/pull/8816) imp: added Msg response length check
+* (light-clients/attestation) [\#8815](https://github.com/cosmos/ibc-go/pull/8815) imp(attestations): added early quorum-size check
+* (apps/27-gmp) [\#8810](https://github.com/cosmos/ibc-go/pull/8810) imp(27-gmp): limited the sender size
 
 ### Dependencies
 
-* [\#8451](https://github.com/cosmos/ibc-go/pull/8451) Bump **go** to **1.24**
+* [\#8893](https://github.com/cosmos/ibc-go/pull/8893) chore(deps): bump ibc-go rc (backport of [\#8892](https://github.com/cosmos/ibc-go/pull/8892))
+* [\#8891](https://github.com/cosmos/ibc-go/pull/8891) chore(deps): update to latest sdk & comet rcs (backport of [\#8890](https://github.com/cosmos/ibc-go/pull/8890))
+* [\#8864](https://github.com/cosmos/ibc-go/pull/8864) chore(deps): bump sdk dependencies to latest rcs (backport of [\#8863](https://github.com/cosmos/ibc-go/pull/8864))
+* [\#8820](https://github.com/cosmos/ibc-go/pull/8820) imp!: bump ibc-go to v11 and use sdk.ValidateAuthority
 * (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
 
 ### API Breaking
 
+* (core) [\#8516](https://github.com/cosmos/ibc-go/pull/8516) chore: rm misbehaviour endpoint
 * [\#8820](https://github.com/cosmos/ibc-go/pull/8820) Bump ibc-go to v11 and use `sdk.ValidateAuthority` in msg_server handlers.
 * (apps) [\#8476](https://github.com/cosmos/ibc-go/pull/8476) Remove `ParamSubspace` from all `Keeper` constructors
 * (light-clients/08-wasm) [\#8511](https://github.com/cosmos/ibc-go/pull/8511) Remove deprecated `Checksums` type
@@ -64,18 +75,33 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-(apps/callbacks) [\#8856](https://github.com/cosmos/ibc-go/pull/8856) OnTimeoutPacket blocked by UnmarshalPacketData error
-(apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
+* (light-clients/attestation) [\#8723](https://github.com/cosmos/ibc-go/pull/8723) fix(attestations): add Solidity compatibility for signature and ABI encoding 
+* (apps/27-gmp) [\#8811](https://github.com/cosmos/ibc-go/pull/8811) fix(27-gmp): InitGenesis populates Accounts but not AccountsByAddress (#8811)
+* (apps/callbacks) [\#8870](https://github.com/cosmos/ibc-go/pull/8870) OnTimeoutPacket blocked by UnmarshalPacketData error (backport of [\#8856](https://github.com/cosmos/ibc-go/pull/8856))
+* (core/02-client) [\#8448](https://github.com/cosmos/ibc-go/pull/8448) fix: support amino encoding on MsgRecoverClient
 
 ### Testing API
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
+* (e2e) [\#8486](https://github.com/cosmos/ibc-go/pull/8486) chore: switch to cosmos/interchaintest
+
+## [v10.5.1](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - 2026-04-09
+
+### Bug Fixes
+
+* (apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
+
+## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
+
+### Improvements
+
+* [\#8742](https://github.com/cosmos/ibc-go/pull/8742) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA. (backport of [\#8734](https://github.com/cosmos/ibc-go/pull/8734))
 
 ## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
 
 ### Improvements
 
-* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer.
+* [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer. (backport of [\#8573](https://github.com/cosmos/ibc-go/pull/8573))
 
 ## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
 
