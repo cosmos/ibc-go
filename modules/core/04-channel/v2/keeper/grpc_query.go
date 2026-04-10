@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -96,9 +95,9 @@ func (q *queryServer) PacketCommitments(goCtx context.Context, req *types.QueryP
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(goCtx)), hostv2.PacketCommitmentPrefixKey(req.ClientId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		keySplit := strings.Split(string(key), "/")
-
-		sequence := sdk.BigEndianToUint64([]byte(keySplit[len(keySplit)-1]))
+		// The prefix store has already stripped the channelID + base prefix,
+		// so the key here is the raw 8-byte big-endian sequence number.
+		sequence := sdk.BigEndianToUint64(key)
 		if sequence == 0 {
 			return types.ErrInvalidPacket
 		}
@@ -180,9 +179,9 @@ func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.Q
 	}
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		keySplit := strings.Split(string(key), "/")
-
-		sequence := sdk.BigEndianToUint64([]byte(keySplit[len(keySplit)-1]))
+		// The prefix store has already stripped the channelID + base prefix,
+		// so the key here is the raw 8-byte big-endian sequence number.
+		sequence := sdk.BigEndianToUint64(key)
 		if sequence == 0 {
 			return types.ErrInvalidPacket
 		}
