@@ -135,8 +135,7 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by callbacks middleware
 | 1.19 | v0.2.0+ibc-go-v7.3 | v7.3 | v0.47 | v0.37 |
 | 1.21 | v0.2.0+ibc-go-v8.0 | v8.0 | v0.50 | v0.38 |
 
->
-Callbacks middleware is merged into ibc-go since v10. There will not be a separate releases for callbacks middleware.
+**Callbacks middleware has been merged into `ibc-go` since v10. There will not be a separate releases for callbacks middleware.**
 
 ### `08-wasm` light client proxy module
 
