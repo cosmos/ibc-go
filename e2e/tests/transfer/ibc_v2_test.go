@@ -35,7 +35,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
-// compatibility:from_version: v10.3.0
+// compatibility:from_version: v10.5.1
 func TestTransferTestSuiteIBCV2(t *testing.T) {
 	testifysuite.Run(t, new(TransferTestSuiteIBCV2))
 }
