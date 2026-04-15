@@ -59,7 +59,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8893](https://github.com/cosmos/ibc-go/pull/8893) chore(deps): bump ibc-go rc (backport of [\#8892](https://github.com/cosmos/ibc-go/pull/8892))
 * [\#8891](https://github.com/cosmos/ibc-go/pull/8891) chore(deps): update to latest sdk & comet rcs (backport of [\#8890](https://github.com/cosmos/ibc-go/pull/8890))
-* [\#8864](https://github.com/cosmos/ibc-go/pull/8864) chore(deps): bump sdk dependencies to latest rcs (backport of [\#8863](https://github.com/cosmos/ibc-go/pull/8864))
+* [\#8864](https://github.com/cosmos/ibc-go/pull/8864) chore(deps): bump sdk dependencies to latest rcs (backport of [\#8863](https://github.com/cosmos/ibc-go/pull/8863))
 * [\#8820](https://github.com/cosmos/ibc-go/pull/8820) imp!: bump ibc-go to v11 and use sdk.ValidateAuthority
 * (light-clients/08-wasm)[\#8500](https://github.com/cosmos/ibc-go/pull/8500) Bump **github.com/prysmaticlabs/prysm/v5** to **github.com/OffchainLabs/prysm/v6@v6.0.4**
 
