@@ -51,10 +51,6 @@ func (l LightClientModule) Initialize(ctx sdk.Context, clientID string, clientSt
 
 	clientStore := l.storeProvider.ClientStore(ctx, clientID)
 
-	if clientState.LatestHeight == 0 {
-		return errorsmod.Wrap(clienttypes.ErrInvalidClient, "initial height must be non-zero")
-	}
-
 	initialHeight := clienttypes.NewHeight(0, clientState.LatestHeight)
 	setConsensusState(clientStore, l.cdc, &consensusState, initialHeight)
 	setClientState(clientStore, l.cdc, &clientState)
