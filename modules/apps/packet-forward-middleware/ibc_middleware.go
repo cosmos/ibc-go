@@ -100,18 +100,6 @@ func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel s
 	return denom.IBCDenom()
 }
 
-// getBoolFromAny returns the bool value is any is a valid bool, otherwise false.
-func getBoolFromAny(value any) bool {
-	if value == nil {
-		return false
-	}
-	boolVal, ok := value.(bool)
-	if !ok {
-		return false
-	}
-	return boolVal
-}
-
 // GetReceiver returns the receiver address for a given channel and original sender.
 // it overrides the receiver address to be a hash of the channel/origSender so that
 // the receiver address is deterministic and can be used to identify the sender on the
@@ -176,9 +164,6 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 
 	metadata := packetMetadata.Forward
 
-	goCtx := ctx.Context()
-	nonrefundable := getBoolFromAny(goCtx.Value(types.NonrefundableKey{}))
-
 	if err := metadata.Validate(); err != nil {
 		logger.Error("packetForwardMiddleware OnRecvPacket forward metadata is invalid", "error", err)
 		return newErrorAcknowledgement(err)
@@ -221,7 +206,7 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 		retries = im.retriesOnTimeout
 	}
 
-	err = im.keeper.ForwardTransferPacket(ctx, nil, packet, data.Sender, overrideReceiver, metadata, token, retries, timeout, []metrics.Label{}, nonrefundable)
+	err = im.keeper.ForwardTransferPacket(ctx, nil, packet, data.Sender, overrideReceiver, metadata, token, retries, timeout, []metrics.Label{})
 	if err != nil {
 		logger.Error("packetForwardMiddleware OnRecvPacket error forwarding packet", "error", err)
 		return newErrorAcknowledgement(err)

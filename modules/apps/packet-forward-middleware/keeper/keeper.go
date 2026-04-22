@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
@@ -94,69 +93,6 @@ func (*Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+ibcexported.ModuleName+"-"+types.ModuleName)
 }
 
-// moveFundsToUserRecoverableAccount will move the funds from the escrow account to the user recoverable account
-// this is only used when the maximum timeouts have been reached or there is an acknowledgement error and the packet is nonrefundable,
-// i.e. an operation has occurred to make the original packet funds inaccessible to the user, e.g. a swap.
-// We cannot refund the funds back to the original chain, so we move them to an account on this chain that the user can access.
-func (k *Keeper) moveFundsToUserRecoverableAccount(ctx sdk.Context, packet channeltypes.Packet, token transfertypes.Token, inFlightPacket *types.InFlightPacket) error {
-	amount, ok := sdkmath.NewIntFromString(token.GetAmount())
-	if !ok {
-		return fmt.Errorf("failed to parse amount from packet data for forward recovery: %s", token.GetAmount())
-	}
-	denom := token.GetDenom()
-	coin := sdk.NewCoin(denom.IBCDenom(), amount)
-
-	userAccount, err := k.userRecoverableAccount(inFlightPacket)
-	if err != nil {
-		return fmt.Errorf("failed to get user recoverable account: %w", err)
-	}
-
-	if !denom.HasPrefix(packet.SourcePort, packet.SourceChannel) {
-		// mint vouchers back to sender
-		if err := k.bankKeeper.MintCoins(ctx, transfertypes.ModuleName, sdk.NewCoins(coin)); err != nil {
-			return err
-		}
-
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, transfertypes.ModuleName, userAccount, sdk.NewCoins(coin)); err != nil {
-			panic(fmt.Sprintf("unable to send coins from module to account despite previously minting coins to module account: %v", err))
-		}
-		return nil
-	}
-
-	escrowAddress := transfertypes.GetEscrowAddress(packet.SourcePort, packet.SourceChannel)
-
-	if err := k.bankKeeper.SendCoins(ctx, escrowAddress, userAccount, sdk.NewCoins(coin)); err != nil {
-		return fmt.Errorf("failed to send coins from escrow account to user recoverable account: %w", err)
-	}
-
-	// update the total escrow amount for the denom.
-	k.unescrowToken(ctx, coin)
-
-	return nil
-}
-
-// userRecoverableAccount finds an account on this chain that the original sender of the packet can recover funds from.
-// If the destination receiver of the original packet is a valid bech32 address for this chain, we use that address.
-// Otherwise, if the sender of the original packet is a valid bech32 address for another chain, we translate that address to this chain.
-// Note that for the fallback, the coin type of the source chain sender account must be compatible with this chain.
-func (k *Keeper) userRecoverableAccount(inFlightPacket *types.InFlightPacket) (sdk.AccAddress, error) {
-	var originalData transfertypes.FungibleTokenPacketData
-	err := transfertypes.ModuleCdc.UnmarshalJSON(inFlightPacket.PacketData, &originalData)
-	if err == nil { // if NO error
-		sender, err := k.addressCodec.StringToBytes(originalData.Receiver)
-		if err == nil { // if NO error
-			return sender, nil
-		}
-	}
-
-	_, sender, fallbackErr := bech32.DecodeAndConvert(inFlightPacket.OriginalSenderAddress)
-	if fallbackErr == nil { // if NO error
-		return sender, nil
-	}
-
-	return nil, fmt.Errorf("failed to decode bech32 addresses: %w", errors.Join(err, fallbackErr))
-}
-
 func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet channeltypes.Packet, transferDetail transfertypes.InternalTransferRepresentation, inFlightPacket *types.InFlightPacket, ack channeltypes.Acknowledgement) error {
 	// Lookup module by channel capability
 	_, found := k.channelKeeper.GetChannel(ctx, inFlightPacket.RefundPortId, inFlightPacket.RefundChannelId)
@@ -171,21 +107,6 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 	// For forwarded packets, the funds were moved into an escrow account if the denom originated on this chain.
 	// On an ack error or timeout on a forwarded packet, the funds in the escrow account
 	// should be moved to the other escrow account on the other side or burned.
-
-	// If this packet is non-refundable due to some action that took place between the initial ibc transfer and the forward
-	// we write a successful ack containing details on what happened regardless of ack error or timeout
-	if inFlightPacket.Nonrefundable {
-		// We are not allowed to refund back to the source chain.
-		// attempt to move funds to user recoverable account on this chain.
-		if err := k.moveFundsToUserRecoverableAccount(ctx, packet, transferDetail.Token, inFlightPacket); err != nil {
-			return err
-		}
-
-		ackResult := fmt.Sprintf("packet forward failed after point of no return: %s", ack.GetError())
-		newAck := channeltypes.NewResultAcknowledgement([]byte(ackResult))
-
-		return k.ics4Wrapper.WriteAcknowledgement(ctx, inFlightPacket.ChannelPacket(), newAck)
-	}
 
 	amount, ok := sdkmath.NewIntFromString(transferDetail.Token.GetAmount())
 	if !ok {
@@ -252,7 +173,7 @@ func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
 	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 }
 
-func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label, nonrefundable bool) error {
+func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label) error {
 	memo := ""
 
 	// set memo for next transfer with next from this transfer.
@@ -308,7 +229,6 @@ func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.In
 
 			RetriesRemaining: int32(maxRetries),
 			Timeout:          uint64(timeoutDelta.Nanoseconds()),
-			Nonrefundable:    nonrefundable,
 		}
 	} else {
 		inFlightPacket.RetriesRemaining--
@@ -390,7 +310,7 @@ func (k *Keeper) RetryTimeout(ctx sdk.Context, channel, port string, transferDet
 	token := sdk.NewCoin(ibcDenom, amount)
 
 	// srcPacket and srcPacketSender are empty because inFlightPacket is non-nil.
-	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", transferDetail.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil, inFlightPacket.Nonrefundable)
+	return k.ForwardTransferPacket(ctx, inFlightPacket, channeltypes.Packet{}, "", transferDetail.Sender, metadata, token, uint8(inFlightPacket.RetriesRemaining), time.Duration(inFlightPacket.Timeout)*time.Nanosecond, nil)
 }
 
 func (k *Keeper) SetInflightPacket(ctx sdk.Context, channel, port string, sequence uint64, packet *types.InFlightPacket) error {

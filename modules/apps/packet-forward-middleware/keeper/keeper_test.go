@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"fmt"
 	"testing"
 	"time"
 
@@ -59,31 +58,17 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 	var expectedAckBz []byte
 
 	tests := []struct {
-		name          string
-		ack           channeltypes.Acknowledgement
-		malleate      func()
-		nonRefundable bool
+		name     string
+		ack      channeltypes.Acknowledgement
+		malleate func()
 	}{
 		{
-			name:          "Ack success -> propagated to ics4 wrapper",
-			ack:           channeltypes.NewResultAcknowledgement([]byte{1}),
-			nonRefundable: false,
+			name: "Ack success -> propagated to ics4 wrapper",
+			ack:  channeltypes.NewResultAcknowledgement([]byte{1}),
 		},
 		{
-			name: "Ack error + Non refundable -> Asset moved to recoverable account then propagate ack to ics4 wrapper",
+			name: "Ack error + Refundable -> Escrow coin then propagate ack to ics4 wrapper",
 			ack:  channeltypes.NewErrorAcknowledgement(nil),
-			malleate: func() {
-				ack := channeltypes.NewErrorAcknowledgement(nil)
-				ackResult := fmt.Sprintf("packet forward failed after point of no return: %s", ack.GetError())
-				newAck := channeltypes.NewResultAcknowledgement([]byte(ackResult))
-				expectedAckBz = channeltypes.CommitAcknowledgement(newAck.Acknowledgement())
-			},
-			nonRefundable: true,
-		},
-		{
-			name:          "Ack error + Refundable -> Escrow coin then propagate ack to ics4 wrapper",
-			ack:           channeltypes.NewErrorAcknowledgement(nil),
-			nonRefundable: false,
 		},
 	}
 
@@ -133,7 +118,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 
 			fundAcc(ctxB, s.chainB.GetSimApp().BankKeeper, intermediateAcc)
 
-			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), metadata, ibctesting.TestCoin, 2, timeout, nil, tc.nonRefundable)
+			err := pfmKeeperB.ForwardTransferPacket(ctxB, nil, srcPacket, initialSender.String(), intermediateAcc.String(), metadata, ibctesting.TestCoin, 2, timeout, nil)
 			s.Require().NoError(err)
 
 			inflightPacket, err := pfmKeeperB.GetInflightPacket(ctxB, srcPacket)
@@ -212,8 +197,6 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 
 			retries := uint8(2)
 			timeout := time.Duration(1010101010)
-			nonRefundable := false
-
 			metadata := pfmtypes.ForwardMetadata{
 				Receiver: "first-receiver",
 				Port:     path.EndpointA.ChannelConfig.PortID,
@@ -228,7 +211,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 
 			tc.malleate()
 
-			err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+			err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil)
 			s.Require().NoError(err)
 
 			// Get the inflight packer
@@ -238,7 +221,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacket() {
 			s.Require().Equal(inflightPacket.RetriesRemaining, int32(retries))
 
 			// Call the same function again with inflight packet. Num retries should decrease.
-			err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+			err = pfmKeeper.ForwardTransferPacket(ctx, inflightPacket, srcPacket, initialSender, finalReceiver, metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil)
 			s.Require().NoError(err)
 
 			// Get the inflight packer
@@ -274,8 +257,6 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 
 	retries := uint8(2)
 	timeout := time.Duration(1010101010)
-	nonRefundable := false
-
 	// Test with valid metadata.Next - it should be a *PacketMetadata
 	nextPacketMetadata := &pfmtypes.PacketMetadata{
 		Forward: pfmtypes.ForwardMetadata{
@@ -300,7 +281,7 @@ func (s *KeeperTestSuite) TestForwardTransferPacketWithNext() {
 	initialSender := s.chainA.SenderAccount.GetAddress()
 	finalReceiver := s.chainB.SenderAccount.GetAddress()
 
-	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil, nonRefundable)
+	err := pfmKeeper.ForwardTransferPacket(ctx, nil, srcPacket, initialSender.String(), finalReceiver.String(), metadata, sdk.NewInt64Coin("denom", 1000), 2, timeout, nil)
 	s.Require().NoError(err)
 
 	// Verify the inflight packet was created
@@ -332,7 +313,6 @@ func (s *KeeperTestSuite) TestRetryTimeoutErrorGettingNext() {
 	inFlightPacket := &pfmtypes.InFlightPacket{
 		RetriesRemaining: 1,
 		Timeout:          1000,
-		Nonrefundable:    false,
 	}
 
 	err := pfmKeeper.RetryTimeout(ctx, path.EndpointA.ChannelID, path.EndpointA.ChannelConfig.PortID, transferDetail, inFlightPacket)

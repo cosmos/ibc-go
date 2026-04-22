@@ -30,5 +30,7 @@ message InFlightPacket {
   uint64 refund_sequence          = 9;
   int32  retries_remaining        = 10;
   uint64 timeout                  = 11;
-  bool   nonrefundable            = 12;
+
+  reserved 12;
+  reserved "nonrefundable";
 }

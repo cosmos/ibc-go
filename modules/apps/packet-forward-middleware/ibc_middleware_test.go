@@ -1,9 +1,8 @@
 package packetforward_test
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/suite"
+	"testing"
 
 	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
