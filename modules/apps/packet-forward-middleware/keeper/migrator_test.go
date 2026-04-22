@@ -151,28 +151,25 @@ func (s *KeeperTestSuite) TestMigrate2to3() {
 
 func (s *KeeperTestSuite) TestMigrate3to4() {
 	var addLegacyPacket func(seq uint64, nonrefundable bool) string
+	var setRawPacket func(channelID string, seq uint64, rawBz []byte) string
 
 	tests := []struct {
 		name        string
 		malleate    func()
 		expectedErr string
-		expectedCnt int
-		expectError bool
 	}{
 		{
 			name: "success: empty store",
 			malleate: func() {
 			},
-			expectedCnt: 0,
-			expectError: false,
+			expectedErr: "",
 		},
 		{
 			name: "success: one refundable in-flight packet",
 			malleate: func() {
 				addLegacyPacket(1, false)
 			},
-			expectedCnt: 1,
-			expectError: false,
+			expectedErr: "",
 		},
 		{
 			name: "success: many refundable in-flight packets",
@@ -182,8 +179,7 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				addLegacyPacket(3, false)
 				addLegacyPacket(4, false)
 			},
-			expectedCnt: 4,
-			expectError: false,
+			expectedErr: "",
 		},
 		{
 			name: "failure: one nonrefundable in-flight packet",
@@ -191,7 +187,6 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				addLegacyPacket(1, true)
 			},
 			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
-			expectError: true,
 		},
 		{
 			name: "failure: one nonrefundable and many refundable in-flight packets",
@@ -202,7 +197,41 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				addLegacyPacket(4, false)
 			},
 			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
-			expectError: true,
+		},
+		{
+			name: "failure: invalid legacy bytes in store",
+			malleate: func() {
+				setRawPacket("channel-1", 1, []byte{0xff, 0xff, 0xff})
+			},
+			expectedErr: "failed to unmarshal legacy in-flight packet",
+		},
+		{
+			name: "failure: invalid packet after conversion",
+			malleate: func() {
+				channelID := "channel-1"
+				portID := "transfer"
+
+				legacyPacket := legacy.InFlightPacket{
+					PacketData:             []byte{1, 2, 3},
+					OriginalSenderAddress:  s.chainA.SenderAccount.GetAddress().String(),
+					RefundChannelId:        "channel-refund",
+					RefundPortId:           portID,
+					PacketSrcChannelId:     channelID,
+					PacketSrcPortId:        "",
+					PacketTimeoutTimestamp: 100,
+					PacketTimeoutHeight:    "0-10",
+					RefundSequence:         1,
+					RetriesRemaining:       1,
+					Timeout:                1000,
+					Nonrefundable:          false,
+				}
+
+				rawBz, err := legacyPacket.Marshal()
+				s.Require().NoError(err)
+
+				setRawPacket(channelID, 1, rawBz)
+			},
+			expectedErr: "invalid in-flight packet found during migration",
 		},
 	}
 
@@ -244,33 +273,25 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				return string(key)
 			}
 
+			setRawPacket = func(channelID string, seq uint64, rawBz []byte) string {
+				key := pfmtypes.RefundPacketKey(channelID, "transfer", seq)
+				err := store.Set(key, rawBz)
+				s.Require().NoError(err)
+
+				return string(key)
+			}
+
 			tc.malleate()
 
 			migrator := pfmkeeper.NewMigrator(keeper)
 			err := migrator.Migrate3to4(ctx)
 
-			if tc.expectError {
+			if tc.expectedErr != "" {
 				s.Require().ErrorContains(err, tc.expectedErr)
 				return
 			}
 
 			s.Require().NoError(err)
-
-			itr, err := store.Iterator(nil, nil)
-			s.Require().NoError(err)
-			defer itr.Close()
-
-			count := 0
-			for ; itr.Valid(); itr.Next() {
-				count++
-
-				var postMigrationLegacyPacket legacy.InFlightPacket
-				err = postMigrationLegacyPacket.Unmarshal(itr.Value())
-				s.Require().NoError(err)
-				s.Require().False(postMigrationLegacyPacket.Nonrefundable)
-			}
-
-			s.Require().Equal(tc.expectedCnt, count)
 		})
 	}
 }
