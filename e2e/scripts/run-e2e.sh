@@ -102,8 +102,9 @@ function run_suite() {
 }
 
 
-# if the dev configs directory is present, enable fzf completion to select a test config file to use.
-if [[ -d "dev-configs"  ]]; then
+# if the dev configs directory is present and the session is interactive, enable fzf completion
+# to select a test config file to use.
+if [[ -d "dev-configs" && -t 0 && -z "${E2E_CONFIG_PATH:-}" ]]; then
   export E2E_CONFIG_PATH="$(pwd)/dev-configs/$(_select_test_config)"
   echo "Using configuration file at ${E2E_CONFIG_PATH}"
 fi

@@ -10,6 +10,9 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
 	"github.com/spf13/cast"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
@@ -175,6 +178,7 @@ type SimApp struct {
 	ParamsKeeper          paramskeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
@@ -267,7 +271,7 @@ func NewSimApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
+		evidencetypes.StoreKey, packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey,
 	)
 
@@ -389,6 +393,16 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[packetforwardtypes.StoreKey]),
+		nil,
+		app.IBCKeeper.ChannelKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouterV2 := ibcapi.NewRouter()
@@ -404,6 +418,7 @@ func NewSimApp(
 		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	app.PacketForwardKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
@@ -413,10 +428,17 @@ func NewSimApp(
 	// channel.RecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
+	// - Packet Forward Middleware
 	// - Transfer
 
 	// create IBC module from bottom to top of stack
 	var transferStack porttypes.IBCModule = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = packetforward.NewIBCMiddleware(
+		transferStack,
+		app.PacketForwardKeeper,
+		0,
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+	)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -492,6 +514,7 @@ func NewSimApp(
 
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
+		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 
@@ -534,6 +557,7 @@ func NewSimApp(
 		evidencetypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
+		packetforwardtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
@@ -544,6 +568,7 @@ func NewSimApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
+		packetforwardtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
@@ -558,7 +583,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, packetforwardtypes.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
 	}
@@ -753,6 +778,16 @@ func (app *SimApp) InterfaceRegistry() types.InterfaceRegistry {
 
 // TxConfig returns SimApp's TxConfig
 func (app *SimApp) TxConfig() client.TxConfig {
+	return app.txConfig
+}
+
+// GetIBCKeeper returns SimApp's IBC keeper.
+func (app *SimApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+// GetTxConfig returns SimApp's tx config.
+func (app *SimApp) GetTxConfig() client.TxConfig {
 	return app.txConfig
 }
 

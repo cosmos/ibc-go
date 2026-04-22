@@ -23,6 +23,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.3
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/cosmos/gogoproto v1.7.0
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10 v10.1.0
 	github.com/cosmos/ibc-go/v10 v10.3.0
 	github.com/spf13/cast v1.9.2
 	github.com/spf13/cobra v1.10.1
@@ -140,6 +141,7 @@ require (
 	github.com/hdevalence/ed25519consensus v0.2.0 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/huandu/skiplist v1.2.1 // indirect
+	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

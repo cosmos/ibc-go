@@ -232,6 +232,10 @@ func (s *E2ETestSuite) CreatePath(
 	channelOpts ibc.CreateChannelOptions,
 	testName string,
 ) (chainAChannel ibc.ChannelOutput, chainBChannel ibc.ChannelOutput) {
+	if s.channels[testName] == nil {
+		s.channels[testName] = make(map[ibc.Chain][]ibc.ChannelOutput)
+	}
+
 	pathName := s.generatePathName()
 	s.testPaths[testName] = append(s.testPaths[testName], pathName)
 

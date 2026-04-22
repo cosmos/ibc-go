@@ -440,6 +440,10 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainD-1",
 	}
 
+	for len(tc.ChainConfigs) < len(chainIDs) {
+		tc.ChainConfigs = append(tc.ChainConfigs, ChainConfig{})
+	}
+
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
 			tc.ChainConfigs[i].ChainID = chainIDs[i]
