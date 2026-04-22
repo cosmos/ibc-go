@@ -440,6 +440,10 @@ func populateDefaults(tc TestConfig) TestConfig {
 		"chainD-1",
 	}
 
+	for len(tc.ChainConfigs) < len(chainIDs) {
+		tc.ChainConfigs = append(tc.ChainConfigs, ChainConfig{})
+	}
+
 	for i := range tc.ChainConfigs {
 		if tc.ChainConfigs[i].ChainID == "" {
 			tc.ChainConfigs[i].ChainID = chainIDs[i]
@@ -716,7 +720,7 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 		denom := fmt.Sprintf("atom%c", 'a'+i)
 		chainName := tc.GetChainName(i)
 		chainID := tc.GetChainID(i)
-		cfg := newDefaultSimappConfig(tc.ChainConfigs[0], chainName, chainID, denom, tc.CometBFTConfig)
+		cfg := newDefaultSimappConfig(tc.ChainConfigs[i], chainName, chainID, denom, tc.CometBFTConfig)
 		validators, fullNodes := getValidatorsAndFullNodes(i)
 
 		spec := &interchaintest.ChainSpec{
@@ -739,6 +743,11 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 		ChainSpecs:   specs,
 		RelayerCount: numRelayers,
 	}, nil
+}
+
+// NewChainConfig creates an ibc chain configuration from the provided e2e chain config.
+func NewChainConfig(cc ChainConfig, name, chainID, denom string, cometCfg CometBFTConfig) ibc.ChainConfig {
+	return newDefaultSimappConfig(cc, name, chainID, denom, cometCfg)
 }
 
 // newDefaultSimappConfig creates an ibc configuration for simd.

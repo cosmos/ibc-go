@@ -242,3 +242,13 @@ jobs:
     with:
       test-file: "e2e/tests/upgrades/genesis_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  legacy-v10-pfm-upgrade-test:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/upgrades/v10_legacy_pfm_upgrade_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
