@@ -150,54 +150,58 @@ func (s *KeeperTestSuite) TestMigrate2to3() {
 }
 
 func (s *KeeperTestSuite) TestMigrate3to4() {
+	var addLegacyPacket func(seq uint64, nonrefundable bool) string
+
 	tests := []struct {
 		name        string
-		malleate    func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (expectedErrKey string, expectedCount int)
+		malleate    func()
+		expectedErr string
+		expectedCnt int
 		expectError bool
 	}{
 		{
 			name: "success: empty store",
-			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
-				return "", 0
+			malleate: func() {
 			},
+			expectedCnt: 0,
 			expectError: false,
 		},
 		{
 			name: "success: one refundable in-flight packet",
-			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+			malleate: func() {
 				addLegacyPacket(1, false)
-				return "", 1
 			},
+			expectedCnt: 1,
 			expectError: false,
 		},
 		{
 			name: "success: many refundable in-flight packets",
-			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+			malleate: func() {
 				addLegacyPacket(1, false)
 				addLegacyPacket(2, false)
 				addLegacyPacket(3, false)
 				addLegacyPacket(4, false)
-				return "", 4
 			},
+			expectedCnt: 4,
 			expectError: false,
 		},
 		{
 			name: "failure: one nonrefundable in-flight packet",
-			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
-				key := addLegacyPacket(1, true)
-				return key, 0
+			malleate: func() {
+				addLegacyPacket(1, true)
 			},
+			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
 			expectError: true,
 		},
 		{
 			name: "failure: one nonrefundable and many refundable in-flight packets",
-			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
-				key := addLegacyPacket(1, true)
+			malleate: func() {
+				addLegacyPacket(1, true)
 				addLegacyPacket(2, false)
 				addLegacyPacket(3, false)
 				addLegacyPacket(4, false)
-				return key, 0
 			},
+			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
 			expectError: true,
 		},
 	}
@@ -211,7 +215,7 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey))
 			store := storeService.OpenKVStore(ctx)
 
-			addLegacyPacket := func(seq uint64, nonrefundable bool) string {
+			addLegacyPacket = func(seq uint64, nonrefundable bool) string {
 				channelID := fmt.Sprintf("channel-%d", seq)
 				portID := "transfer"
 
@@ -240,13 +244,13 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				return string(key)
 			}
 
-			expectedErrKey, expectedCount := tc.malleate(addLegacyPacket)
+			tc.malleate()
 
 			migrator := pfmkeeper.NewMigrator(keeper)
 			err := migrator.Migrate3to4(ctx)
 
 			if tc.expectError {
-				s.Require().ErrorContains(err, expectedErrKey)
+				s.Require().ErrorContains(err, tc.expectedErr)
 				return
 			}
 
@@ -266,7 +270,7 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				s.Require().False(postMigrationLegacyPacket.Nonrefundable)
 			}
 
-			s.Require().Equal(expectedCount, count)
+			s.Require().Equal(tc.expectedCnt, count)
 		})
 	}
 }
