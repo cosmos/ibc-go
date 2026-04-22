@@ -3,27 +3,26 @@ package keeper_test
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/encoding/protowire"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	pfmkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
 	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
 func (s *KeeperTestSuite) TestMigrate3to4() {
 	tests := []struct {
 		name        string
-		fieldValue  byte
+		nonref      bool
 		expectError bool
 	}{
 		{
-			name:       "migrates packets with nonrefundable false",
-			fieldValue: 0x00,
+			name:   "migrates packets with nonrefundable false",
+			nonref: false,
 		},
 		{
 			name:        "errors on nonrefundable true",
-			fieldValue:  0x01,
+			nonref:      true,
 			expectError: true,
 		},
 	}
@@ -56,16 +55,25 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey))
 			store := storeService.OpenKVStore(ctx)
 
-			rawBz, err := store.Get(key)
+			legacyInFlightPacket := legacy.InFlightPacket{
+				PacketData:             packet.PacketData,
+				OriginalSenderAddress:  packet.OriginalSenderAddress,
+				RefundChannelId:        packet.RefundChannelId,
+				RefundPortId:           packet.RefundPortId,
+				PacketSrcChannelId:     packet.PacketSrcChannelId,
+				PacketSrcPortId:        packet.PacketSrcPortId,
+				PacketTimeoutTimestamp: packet.PacketTimeoutTimestamp,
+				PacketTimeoutHeight:    packet.PacketTimeoutHeight,
+				RefundSequence:         packet.RefundSequence,
+				RetriesRemaining:       packet.RetriesRemaining,
+				Timeout:                packet.Timeout,
+				Nonrefundable:          tc.nonref,
+			}
+
+			rawBz, err := legacyInFlightPacket.Marshal()
 			s.Require().NoError(err)
-			rawBz = append(rawBz, 0x60, tc.fieldValue)
 			err = store.Set(key, rawBz)
 			s.Require().NoError(err)
-
-			found, value, err := readLegacyNonrefundableField(rawBz)
-			s.Require().NoError(err)
-			s.Require().True(found)
-			s.Require().Equal(tc.fieldValue == 0x01, value)
 
 			migrator := pfmkeeper.NewMigrator(keeper)
 			err = migrator.Migrate3to4(ctx)
@@ -80,35 +88,10 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			updatedBz, err := store.Get(key)
 			s.Require().NoError(err)
 
-			found, _, err = readLegacyNonrefundableField(updatedBz)
+			var postMigrationLegacyPacket legacy.InFlightPacket
+			err = postMigrationLegacyPacket.Unmarshal(updatedBz)
 			s.Require().NoError(err)
-			s.Require().False(found)
+			s.Require().False(postMigrationLegacyPacket.Nonrefundable)
 		})
 	}
-}
-
-func readLegacyNonrefundableField(bz []byte) (bool, bool, error) {
-	for len(bz) > 0 {
-		num, typ, n := protowire.ConsumeTag(bz)
-		if n < 0 {
-			return false, false, protowire.ParseError(n)
-		}
-		bz = bz[n:]
-
-		if num == 12 && typ == protowire.VarintType {
-			value, m := protowire.ConsumeVarint(bz)
-			if m < 0 {
-				return false, false, protowire.ParseError(m)
-			}
-			return true, value != 0, nil
-		}
-
-		m := protowire.ConsumeFieldValue(num, typ, bz)
-		if m < 0 {
-			return false, false, protowire.ParseError(m)
-		}
-		bz = bz[m:]
-	}
-
-	return false, false, nil
 }
