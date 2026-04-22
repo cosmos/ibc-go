@@ -26,7 +26,10 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.B
 
 	for ; itr.Valid(); itr.Next() {
 		var legacyInFlightPacket legacy.InFlightPacket
-		legacyInFlightPacket.Unmarshal(itr.Value())
+		err = legacyInFlightPacket.Unmarshal(itr.Value())
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal legacy in-flight packet for key %q: %w", string(itr.Key()), err)
+		}
 
 		if legacyInFlightPacket.Nonrefundable {
 			return fmt.Errorf("nonrefundable in-flight packet found during migration for key %q", string(itr.Key()))
@@ -44,6 +47,10 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.B
 			RefundSequence:         legacyInFlightPacket.RefundSequence,
 			RetriesRemaining:       legacyInFlightPacket.RetriesRemaining,
 			Timeout:                legacyInFlightPacket.Timeout,
+		}
+
+		if err := inFlightPacket.ChannelPacket().ValidateBasic(); err != nil {
+			return fmt.Errorf("invalid in-flight packet found during migration for key %q: %w", string(itr.Key()), err)
 		}
 
 		updatedBz := cdc.MustMarshal(&inFlightPacket)
