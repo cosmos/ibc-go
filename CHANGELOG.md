@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-(apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
+* (apps/transfer) [\#8785](https://github.com/cosmos/ibc-go/pull/8785) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures.
 
 ## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
 
