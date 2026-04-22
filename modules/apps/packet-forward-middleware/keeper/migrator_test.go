@@ -1,19 +1,22 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	pfmkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
 	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
-func (s *KeeperTestSuite) TestMigrator() {
+func (s *KeeperTestSuite) TestMigrate2to3() {
 	retries := uint8(2)
 	var (
 		accA, accB, accC, port string
@@ -142,6 +145,128 @@ func (s *KeeperTestSuite) TestMigrator() {
 				denomEscrowB := transferKeeperB.GetTotalEscrowForDenom(ctxB, totalEscrowB[0].Denom)
 				s.Require().Equal(randSendAmt, denomEscrowB.Amount.Int64())
 			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestMigrate3to4() {
+	tests := []struct {
+		name        string
+		malleate    func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (expectedErrKey string, expectedCount int)
+		expectError bool
+	}{
+		{
+			name: "success: empty store",
+			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+				return "", 0
+			},
+			expectError: false,
+		},
+		{
+			name: "success: one refundable in-flight packet",
+			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+				addLegacyPacket(1, false)
+				return "", 1
+			},
+			expectError: false,
+		},
+		{
+			name: "success: many refundable in-flight packets",
+			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+				addLegacyPacket(1, false)
+				addLegacyPacket(2, false)
+				addLegacyPacket(3, false)
+				addLegacyPacket(4, false)
+				return "", 4
+			},
+			expectError: false,
+		},
+		{
+			name: "failure: one nonrefundable in-flight packet",
+			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+				key := addLegacyPacket(1, true)
+				return key, 0
+			},
+			expectError: true,
+		},
+		{
+			name: "failure: one nonrefundable and many refundable in-flight packets",
+			malleate: func(addLegacyPacket func(seq uint64, nonrefundable bool) string) (string, int) {
+				key := addLegacyPacket(1, true)
+				addLegacyPacket(2, false)
+				addLegacyPacket(3, false)
+				addLegacyPacket(4, false)
+				return key, 0
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			ctx := s.chainA.GetContext()
+			keeper := s.chainA.GetSimApp().PFMKeeper
+			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey))
+			store := storeService.OpenKVStore(ctx)
+
+			addLegacyPacket := func(seq uint64, nonrefundable bool) string {
+				channelID := fmt.Sprintf("channel-%d", seq)
+				portID := "transfer"
+
+				legacyPacket := legacy.InFlightPacket{
+					PacketData:             []byte{1, byte(seq)},
+					OriginalSenderAddress:  s.chainA.SenderAccount.GetAddress().String(),
+					RefundChannelId:        "channel-refund",
+					RefundPortId:           portID,
+					PacketSrcChannelId:     channelID,
+					PacketSrcPortId:        portID,
+					PacketTimeoutTimestamp: 100,
+					PacketTimeoutHeight:    "0-10",
+					RefundSequence:         seq,
+					RetriesRemaining:       1,
+					Timeout:                1000,
+					Nonrefundable:          nonrefundable,
+				}
+
+				rawBz, err := legacyPacket.Marshal()
+				s.Require().NoError(err)
+
+				key := pfmtypes.RefundPacketKey(channelID, portID, seq)
+				err = store.Set(key, rawBz)
+				s.Require().NoError(err)
+
+				return string(key)
+			}
+
+			expectedErrKey, expectedCount := tc.malleate(addLegacyPacket)
+
+			migrator := pfmkeeper.NewMigrator(keeper)
+			err := migrator.Migrate3to4(ctx)
+
+			if tc.expectError {
+				s.Require().ErrorContains(err, expectedErrKey)
+				return
+			}
+
+			s.Require().NoError(err)
+
+			itr, err := store.Iterator(nil, nil)
+			s.Require().NoError(err)
+			defer itr.Close()
+
+			count := 0
+			for ; itr.Valid(); itr.Next() {
+				count++
+
+				var postMigrationLegacyPacket legacy.InFlightPacket
+				err = postMigrationLegacyPacket.Unmarshal(itr.Value())
+				s.Require().NoError(err)
+				s.Require().False(postMigrationLegacyPacket.Nonrefundable)
+			}
+
+			s.Require().Equal(expectedCount, count)
 		})
 	}
 }
