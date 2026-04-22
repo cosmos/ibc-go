@@ -34,12 +34,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v10.5.2](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - 2026-04-22
-
-### Bug Fixes
-
-* (apps/callbacks) [\#8911](https://github.com/cosmos/ibc-go/pull/8911) OnTimeoutPacket blocked by UnmarshalPacketData error (backport of [\#8856](https://github.com/cosmos/ibc-go/pull/8856))
-
 ## [v10.5.1](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - 2026-04-09
 
 ### Bug Fixes
