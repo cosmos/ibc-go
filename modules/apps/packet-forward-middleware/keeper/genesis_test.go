@@ -17,7 +17,6 @@ func (s *KeeperTestSuite) TestGenesis() {
 
 		RetriesRemaining: 2,
 		Timeout:          10101010101,
-		Nonrefundable:    false,
 	}
 
 	key := types.RefundPacketKey(sampleInflight.PacketSrcChannelId, sampleInflight.PacketSrcPortId, sampleInflight.RefundSequence)

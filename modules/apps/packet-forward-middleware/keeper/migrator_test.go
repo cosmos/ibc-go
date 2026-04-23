@@ -1,19 +1,22 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	pfmkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
 	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
-func (s *KeeperTestSuite) TestMigrator() {
+func (s *KeeperTestSuite) TestMigrate2to3() {
 	retries := uint8(2)
 	var (
 		accA, accB, accC, port string
@@ -142,6 +145,153 @@ func (s *KeeperTestSuite) TestMigrator() {
 				denomEscrowB := transferKeeperB.GetTotalEscrowForDenom(ctxB, totalEscrowB[0].Denom)
 				s.Require().Equal(randSendAmt, denomEscrowB.Amount.Int64())
 			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestMigrate3to4() {
+	var addLegacyPacket func(seq uint64, nonrefundable bool) string
+	var setRawPacket func(channelID string, seq uint64, rawBz []byte) string
+
+	tests := []struct {
+		name        string
+		malleate    func()
+		expectedErr string
+	}{
+		{
+			name: "success: empty store",
+			malleate: func() {
+			},
+			expectedErr: "",
+		},
+		{
+			name: "success: one refundable in-flight packet",
+			malleate: func() {
+				addLegacyPacket(1, false)
+			},
+			expectedErr: "",
+		},
+		{
+			name: "success: many refundable in-flight packets",
+			malleate: func() {
+				addLegacyPacket(1, false)
+				addLegacyPacket(2, false)
+				addLegacyPacket(3, false)
+				addLegacyPacket(4, false)
+			},
+			expectedErr: "",
+		},
+		{
+			name: "failure: one nonrefundable in-flight packet",
+			malleate: func() {
+				addLegacyPacket(1, true)
+			},
+			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
+		},
+		{
+			name: "failure: one nonrefundable and many refundable in-flight packets",
+			malleate: func() {
+				addLegacyPacket(1, true)
+				addLegacyPacket(2, false)
+				addLegacyPacket(3, false)
+				addLegacyPacket(4, false)
+			},
+			expectedErr: string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
+		},
+		{
+			name: "failure: invalid legacy bytes in store",
+			malleate: func() {
+				setRawPacket("channel-1", 1, []byte{0xff, 0xff, 0xff})
+			},
+			expectedErr: "failed to unmarshal legacy in-flight packet",
+		},
+		{
+			name: "failure: invalid packet after conversion",
+			malleate: func() {
+				channelID := "channel-1"
+				portID := "transfer"
+
+				legacyPacket := legacy.InFlightPacket{
+					PacketData:             []byte{1, 2, 3},
+					OriginalSenderAddress:  s.chainA.SenderAccount.GetAddress().String(),
+					RefundChannelId:        "channel-refund",
+					RefundPortId:           portID,
+					PacketSrcChannelId:     channelID,
+					PacketSrcPortId:        "",
+					PacketTimeoutTimestamp: 100,
+					PacketTimeoutHeight:    "0-10",
+					RefundSequence:         1,
+					RetriesRemaining:       1,
+					Timeout:                1000,
+					Nonrefundable:          false,
+				}
+
+				rawBz, err := legacyPacket.Marshal()
+				s.Require().NoError(err)
+
+				setRawPacket(channelID, 1, rawBz)
+			},
+			expectedErr: "invalid in-flight packet found during migration",
+		},
+	}
+
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			ctx := s.chainA.GetContext()
+			keeper := s.chainA.GetSimApp().PFMKeeper
+			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey))
+			store := storeService.OpenKVStore(ctx)
+
+			addLegacyPacket = func(seq uint64, nonrefundable bool) string {
+				channelID := fmt.Sprintf("channel-%d", seq)
+				portID := "transfer"
+
+				legacyPacket := legacy.InFlightPacket{
+					PacketData:             []byte{1, byte(seq)},
+					OriginalSenderAddress:  s.chainA.SenderAccount.GetAddress().String(),
+					RefundChannelId:        "channel-refund",
+					RefundPortId:           portID,
+					PacketSrcChannelId:     channelID,
+					PacketSrcPortId:        portID,
+					PacketTimeoutTimestamp: 100,
+					PacketTimeoutHeight:    "0-10",
+					RefundSequence:         seq,
+					RetriesRemaining:       1,
+					Timeout:                1000,
+					Nonrefundable:          nonrefundable,
+				}
+
+				rawBz, err := legacyPacket.Marshal()
+				s.Require().NoError(err)
+
+				key := pfmtypes.RefundPacketKey(channelID, portID, seq)
+				err = store.Set(key, rawBz)
+				s.Require().NoError(err)
+
+				return string(key)
+			}
+
+			setRawPacket = func(channelID string, seq uint64, rawBz []byte) string {
+				key := pfmtypes.RefundPacketKey(channelID, "transfer", seq)
+				err := store.Set(key, rawBz)
+				s.Require().NoError(err)
+
+				return string(key)
+			}
+
+			tc.malleate()
+
+			migrator := pfmkeeper.NewMigrator(keeper)
+			err := migrator.Migrate3to4(ctx)
+
+			if tc.expectedErr != "" {
+				s.Require().ErrorContains(err, tc.expectedErr)
+				return
+			}
+
+			s.Require().NoError(err)
 		})
 	}
 }
