@@ -23,8 +23,6 @@ const (
 	ForwardNextKey     = "next"
 )
 
-type NonrefundableKey struct{}
-
 func RefundPacketKey(channelID, portID string, sequence uint64) []byte {
 	return fmt.Appendf(nil, "%s/%s/%d", channelID, portID, sequence)
 }
