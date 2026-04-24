@@ -51,31 +51,38 @@ func (app *SimApp) registerUpgradeHandlers() {
 		),
 	)
 
+	v11Point1UpgradeHandler := func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		ibcStoreService := runtime.NewKVStoreService(app.keys[ibcexported.StoreKey])
+
+		needsChannelMigration := false
+		store := ibcStoreService.OpenKVStore(sdkCtx)
+		app.IBCKeeper.ChannelKeeper.IterateChannels(sdkCtx, func(ic channeltypes.IdentifiedChannel) bool {
+			bz, err := store.Get(channelmigrationsv11.NextSequenceSendV1Key(ic.PortId, ic.ChannelId))
+			if err != nil {
+				panic(err)
+			}
+			needsChannelMigration = len(bz) > 0
+			return needsChannelMigration
+		})
+
+		if needsChannelMigration {
+			if err := channelmigrationsv11.MigrateStore(sdkCtx, ibcStoreService, app.appCodec, app.IBCKeeper); err != nil {
+				return nil, err
+			}
+		}
+
+		return app.ModuleManager.RunMigrations(ctx, app.configurator, vm)
+	}
+
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgrades.V11_1,
-		func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-			sdkCtx := sdk.UnwrapSDKContext(ctx)
-			ibcStoreService := runtime.NewKVStoreService(app.keys[ibcexported.StoreKey])
+		v11Point1UpgradeHandler,
+	)
 
-			needsChannelMigration := false
-			store := ibcStoreService.OpenKVStore(sdkCtx)
-			app.IBCKeeper.ChannelKeeper.IterateChannels(sdkCtx, func(ic channeltypes.IdentifiedChannel) bool {
-				bz, err := store.Get(channelmigrationsv11.NextSequenceSendV1Key(ic.PortId, ic.ChannelId))
-				if err != nil {
-					panic(err)
-				}
-				needsChannelMigration = len(bz) > 0
-				return needsChannelMigration
-			})
-
-			if needsChannelMigration {
-				if err := channelmigrationsv11.MigrateStore(sdkCtx, ibcStoreService, app.appCodec, app.IBCKeeper); err != nil {
-					return nil, err
-				}
-			}
-
-			return app.ModuleManager.RunMigrations(ctx, app.configurator, vm)
-		},
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V11_1LegacyPFM,
+		v11Point1UpgradeHandler,
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -94,6 +101,14 @@ func (app *SimApp) registerUpgradeHandlers() {
 	if upgradeInfo.Name == upgrades.V11_1 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{ratelimittypes.StoreKey},
+		}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	if upgradeInfo.Name == upgrades.V11_1LegacyPFM && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{gmptypes.StoreKey, ratelimittypes.StoreKey},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))

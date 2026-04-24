@@ -30,7 +30,7 @@ import (
 
 const (
 	legacyV10PFMImageTag        = "compat-v10-with-legacy-pfm"
-	legacyV10PFMUpgradePlanName = "v11.1"
+	legacyV10PFMUpgradePlanName = "v11.1-legacy-pfm"
 )
 
 // compatibility:from_version: main
