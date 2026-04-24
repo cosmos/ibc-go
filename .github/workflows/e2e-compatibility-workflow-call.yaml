@@ -41,9 +41,9 @@ jobs:
   e2e:
     runs-on: depot-ubuntu-24.04-4
     needs: load-test-matrix
-    # Annotations can generate {"include": []}; skip before Actions evaluates the empty matrix.
-    # See https://github.com/dorny/paths-filter/issues/66.
-    if: ${{ needs.load-test-matrix.outputs.test-matrix && fromJSON(needs.load-test-matrix.outputs.test-matrix).include[0] != null }}
+    # this job is skipped if the test-matrix generated is empty. i.e. if the file was not present.
+    # this allows us to not have to handle special case versions which may not have certain tests run against them.
+    if: needs.load-test-matrix.outputs.test-matrix
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.load-test-matrix.outputs.test-matrix) }}

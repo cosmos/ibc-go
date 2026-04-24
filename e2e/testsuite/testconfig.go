@@ -745,11 +745,6 @@ func DefaultChainOptions(chainCount int) (ChainOptions, error) {
 	}, nil
 }
 
-// NewChainConfig creates an ibc chain configuration from the provided e2e chain config.
-func NewChainConfig(cc ChainConfig, name, chainID, denom string, cometCfg CometBFTConfig) ibc.ChainConfig {
-	return newDefaultSimappConfig(cc, name, chainID, denom, cometCfg)
-}
-
 // newDefaultSimappConfig creates an ibc configuration for simd.
 func newDefaultSimappConfig(cc ChainConfig, name, chainID, denom string, cometCfg CometBFTConfig) ibc.ChainConfig {
 	configFileOverrides := make(map[string]any)

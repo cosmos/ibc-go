@@ -115,18 +115,7 @@ func (s *V10LegacyPFMUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *
 
 func withLegacyV10PFMOnChainB() testsuite.ChainOptionConfiguration {
 	return func(options *testsuite.ChainOptions) {
-		tc := testsuite.LoadConfig()
-		chainBSpec := options.ChainSpecs[1]
-		chainBConfig := tc.ChainConfigs[1]
-		chainBConfig.Tag = legacyV10PFMImageTag
-
-		chainBSpec.ChainConfig = testsuite.NewChainConfig(
-			chainBConfig,
-			chainBSpec.ChainConfig.Name,
-			chainBSpec.ChainConfig.ChainID,
-			chainBSpec.ChainConfig.Denom,
-			tc.CometBFTConfig,
-		)
+		options.ChainSpecs[1].ChainConfig.Images[0].Version = legacyV10PFMImageTag
 	}
 }
 
