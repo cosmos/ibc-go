@@ -33,7 +33,8 @@ const (
 	legacyV10PFMUpgradePlanName = "v11.1-legacy-pfm"
 )
 
-// compatibility:from_version: main
+// TestV10LegacyPFMUpgradeTestSuite upgrades a legacy v10 PFM fixture chain to the current target image.
+// It is intended for main/v11.1+ targets that include the v11.1-legacy-pfm upgrade handler.
 func TestV10LegacyPFMUpgradeTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(V10LegacyPFMUpgradeTestSuite))
 }

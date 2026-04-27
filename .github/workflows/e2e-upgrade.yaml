@@ -87,3 +87,42 @@ jobs:
           name: '${{ matrix.test-config.entrypoint }}-${{ matrix.test-config.test }}'
           path: e2e/diagnostics
           retention-days: 5
+
+  # This test upgrades a hardcoded legacy v10 PFM fixture to the current image, so it cannot use
+  # the published-tag-only matrix above.
+  legacy-v10-pfm-upgrade-test:
+    runs-on: depot-ubuntu-24.04-4
+    env:
+      SIMD_TAG: local
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          repository: cosmos/ibc-go
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.9'
+          cache-dependency-path: 'e2e/go.sum'
+      - name: Build current simd image
+        run: |
+          docker build . -t "${{ env.DOCKER_IMAGE_NAME }}:${SIMD_TAG}" --build-arg "IBC_GO_VERSION=${{ github.ref_name }}"
+      - name: Run legacy v10 PFM upgrade test
+        id: e2e_test
+        env:
+          CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
+          CHAIN_A_TAG: '${{ env.SIMD_TAG }}'
+          # Chain B starts from a fixture image with legacy v10 PFM state; chain A/C use the target image built above.
+          CHAIN_B_TAG: 'compat-v10-with-legacy-pfm'
+          CHAIN_C_TAG: '${{ env.SIMD_TAG }}'
+          CHAIN_D_TAG: '${{ env.SIMD_TAG }}'
+          E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
+        run: |
+          cd e2e
+          make e2e-test test=TestV10LegacyPFMUpgradePreservesInFlightPackets
+      - name: Upload Diagnostics
+        uses: actions/upload-artifact@v7
+        if: ${{ failure() }}
+        continue-on-error: true
+        with:
+          name: 'TestV10LegacyPFMUpgradeTestSuite-TestV10LegacyPFMUpgradePreservesInFlightPackets'
+          path: e2e/diagnostics
+          retention-days: 5
