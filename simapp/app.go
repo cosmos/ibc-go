@@ -105,6 +105,7 @@ import (
 	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	ratelimitingv2 "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/v2"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
@@ -434,8 +435,14 @@ func NewSimApp(
 		AddRoute(icacontrollertypes.SubModuleName, icaControllerStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
-	// register the transfer v2 module.
-	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+	// register the transfer v2 module behind the rate-limiting v2 middleware.
+	// The v2 middleware uses the source/destination client identifiers from the
+	// packet directly as the rate-limit lookup key. For aliased v1 channels,
+	// IBC core surfaces the original v1 channel id (e.g. "channel-X") as the
+	// source/destination client, so v2 transfers on those paths share the same
+	// (denom, channelOrClientID) rate-limit keys as classic ICS-20 transfers.
+	transferStackV2 := ratelimitingv2.NewIBCMiddleware(*app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferStackV2)
 
 	// register the gmp module.
 	ibcRouterV2.AddRoute(gmptypes.PortID, gmp.NewIBCModule(app.GMPKeeper))
