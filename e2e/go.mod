@@ -27,7 +27,7 @@ require (
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	golang.org/x/mod v0.35.0
 	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
