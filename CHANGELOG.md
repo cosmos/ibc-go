@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+* (apps/pfm) [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+
 ## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
 
 ### Features
