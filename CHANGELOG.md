@@ -46,7 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
-* (light-clients/08-wasm) [\#8617](https://github.com/cosmos/ibc-go/pull/8617) Bump **wasmvm** to **3.0.2**
+* (light-clients/08-wasm) [\#8922](https://github.com/cosmos/ibc-go/pull/8922) Bump **wasmvm** to **3.0.3**
 
 ### API Breaking
 
