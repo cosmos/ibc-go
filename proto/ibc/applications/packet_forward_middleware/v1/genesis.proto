@@ -4,7 +4,7 @@ package ibc.applications.packet_forward_middleware.v1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types";
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types";
 
 // GenesisState defines the packetforward genesis state
 message GenesisState {
@@ -30,5 +30,6 @@ message InFlightPacket {
   uint64 refund_sequence          = 9;
   int32  retries_remaining        = 10;
   uint64 timeout                  = 11;
-  bool   nonrefundable            = 12;
+  // reserved: deprecated field.
+  reserved 12;
 }

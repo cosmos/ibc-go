@@ -28,7 +28,6 @@ linters:
     - nilnesserr
     - nilnil
     - nonamedreturns
-    - prealloc
     - predeclared
     - reassign
     - recvcheck
@@ -51,10 +50,6 @@ linters:
       # See the rule descriptions here: https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md
       rules:
         # Rules with configuration
-        - name: receiver-naming
-          disabled: false
-          arguments:
-            - max-length: 4
         - name: unhandled-error
           disabled: false
           arguments: # Disable for these ones only
@@ -97,6 +92,8 @@ linters:
           disabled: true
         - name: unused-parameter
           disabled: true
+        - name: package-directory-mismatch
+          disabled: true
   exclusions:
     generated: lax
     presets:
@@ -108,16 +105,12 @@ linters:
       - linters:
           - staticcheck
         text: 'SA1019:' # TODO: This should really be removed!
-      - path: _test\.go
-        linters:
-          - prealloc
       - path: e2e/*
         linters:
-          - prealloc
           - testpackage
-      - path: testing/*
-        linters:
-          - prealloc
+      - linters:
+          - revive
+        text: '^package-naming:'
     paths:
       - third_party$
       - builtin$

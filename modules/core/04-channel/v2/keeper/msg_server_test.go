@@ -7,14 +7,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	mockv1 "github.com/cosmos/ibc-go/v10/testing/mock"
-	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	mockv1 "github.com/cosmos/ibc-go/v11/testing/mock"
+	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
 func (s *KeeperTestSuite) TestMsgSendPacket() {

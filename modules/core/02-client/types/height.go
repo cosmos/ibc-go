@@ -11,8 +11,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var _ exported.Height = (*Height)(nil)

@@ -12,7 +12,7 @@ Learn how to integrate IBC to your application
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
-module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and enable sending fungible token transfers to other chains. An [example app using ibc-go v10 is linked](https://github.com/gjermundgaraba/probe/tree/ibc/v10).
+module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and enable sending fungible token transfers to other chains. There is a [simapp included using ibc-go](https://github.com/cosmos/ibc-go/tree/main/simapp) as a reference.
 
 ## Integrating the IBC module
 
@@ -36,11 +36,11 @@ We need to register the core `ibc` and `transfer` `Keeper`s. To support the use 
 import (
   // other imports
   // ...
-  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
+  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
+  ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
   // ibc v2 imports
-  transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
-  ibccallbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
+  transferv2 "github.com/cosmos/ibc-go/v11/modules/apps/transfer/v2"
+  ibccallbacksv2 "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/v2"
 )
 
 type App struct {
@@ -70,11 +70,11 @@ import (
   // ...
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-  ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
-  "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
-  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-  ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+  ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
+  "github.com/cosmos/ibc-go/v11/modules/apps/transfer"
+  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+  ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 func NewApp(...args) *App {
@@ -107,6 +107,10 @@ func NewApp(...args) *App {
   // ... continues
 }
 ```
+
+:::note Notice
+Starting from ibc-go v11, consensus parameter authority takes precedence over keeper authority for all IBC modules due to [`sdk.ValidateAuthority`](https://github.com/cosmos/cosmos-sdk/blob/d17338af62722f9fa4108d8494b876dff64a4c6e/types/authority.go#L11).
+:::
 
 ### Create Application Stacks with Middleware
 
@@ -165,8 +169,8 @@ Once the `Router` has been set, no new routes can be added.
 import (
   // other imports
   // ...
-  porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types" 
-  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+  porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types" 
+  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {
@@ -208,8 +212,8 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
 
-  ibc "github.com/cosmos/ibc-go/v10/modules/core"
-  "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+  ibc "github.com/cosmos/ibc-go/v11/modules/core"
+  "github.com/cosmos/ibc-go/v11/modules/apps/transfer"
 )
 
 func NewApp(...args) *App {
@@ -249,7 +253,7 @@ import (
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
   // highlight-next-line
-+ ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
++ ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 )
 
 // app.go
@@ -275,7 +279,7 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
   // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
++ ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 // app.go
@@ -319,9 +323,9 @@ import (
   // other imports
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-  ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
-  ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+  ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
+  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {

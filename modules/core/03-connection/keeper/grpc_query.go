@@ -7,15 +7,15 @@ import (
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)

@@ -11,13 +11,13 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const doesnotexist = "doesnotexist"
@@ -1637,7 +1637,7 @@ func (s *KeeperTestSuite) TestQueryUnreceivedAcks() {
 					packetAcks = append(packetAcks, seq)
 
 					if seq%2 == 0 {
-						s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq, []byte("commitement"))
+						s.chainA.App.GetIBCKeeper().ChannelKeeper.SetPacketCommitment(s.chainA.GetContext(), path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, seq, []byte("commitment"))
 						expSeq = append(expSeq, seq)
 					}
 				}

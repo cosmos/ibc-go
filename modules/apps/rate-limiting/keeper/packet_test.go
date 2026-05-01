@@ -16,14 +16,14 @@ import (
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 
-	ratelimiting "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const (
@@ -637,7 +637,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_Denied() {
 	senderIntermedBal := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), sender, sdk.DefaultBondDenom)
 	s.Require().Equal(senderInitialBal.Sub(sendCoin), senderIntermedBal)
 
-	// Manully commit block on Chain A
+	// Manually commit block on Chain A
 	s.coordinator.CommitBlock(s.chainA)
 
 	packet := channeltypes.Packet{

@@ -6,8 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 type action struct {
@@ -123,7 +123,7 @@ func (s *KeeperTestSuite) processCheckRateLimitAndUpdateFlowTestCase(tc checkRat
 			}
 		}
 
-		// Confirm flow is updated properly (or left as is if the theshold was exceeded)
+		// Confirm flow is updated properly (or left as is if the threshold was exceeded)
 		rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 		s.Require().True(found)
 		s.Require().Equal(expectedInflow.Int64(), rateLimit.Flow.Inflow.Int64(), tc.name+" - action: #%d - inflow", i)

@@ -56,3 +56,7 @@ The proto3 JSON encoding presents an alternative encoding technique for `CosmosT
 ```
 
 Here, the `"messages"` array is populated with transactions. Each transaction is represented as a JSON object with the `@type` field denoting the transaction type and the remaining fields representing the transaction's attributes.
+
+:::warning
+When utilizing proto3 JSON encoding, we have extra validations to ensure the integrity of the encoded data. Specifically, after decoding the `CosmosTx` from JSON, we re-encode it back to JSON and compare it with the original input. If non-formatting discrepancies arise, an error is returned. This validation step ensures that the JSON representation remains consistent throughout the encoding and decoding processes. This additional check means that all optional fields must be explicitly set in the JSON input, all enums and integers must be represented as strings.
+:::

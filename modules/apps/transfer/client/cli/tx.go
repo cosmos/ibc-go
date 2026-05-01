@@ -14,8 +14,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 )
 
 const (
@@ -101,12 +101,12 @@ using the {packet-timeout-timestamp} flag. If no timeout value is set then a def
 				}
 
 				// use local clock time as reference time for calculating timeout timestamp.
-				now := time.Now().UnixNano()
-				if now <= 0 {
+				nowNano := time.Now().UnixNano()
+				if nowNano <= 0 {
 					return errors.New("local clock time is not greater than Jan 1st, 1970 12:00 AM")
 				}
 
-				timeoutTimestamp = uint64(now) + timeoutTimestamp
+				timeoutTimestamp = uint64(nowNano) + timeoutTimestamp
 			}
 
 			msg := types.NewMsgTransfer(

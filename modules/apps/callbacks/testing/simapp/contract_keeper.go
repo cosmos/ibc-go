@@ -3,15 +3,14 @@ package simapp
 import (
 	"fmt"
 
-	storetypes "cosmossdk.io/store/types"
-
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	callbacktypes "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	callbacktypes "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 // MockKeeper implements callbacktypes.ContractKeeper

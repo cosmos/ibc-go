@@ -8,19 +8,19 @@ import (
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/mock"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 func (s *KeeperTestSuite) TestQueryClientState() {
@@ -385,7 +385,7 @@ func (s *KeeperTestSuite) TestQueryConsensusStates() {
 			if tc.expErr == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().Equal(len(expConsensusStates), len(res.ConsensusStates))
+				s.Require().Len(res.ConsensusStates, len(expConsensusStates))
 				for i := range expConsensusStates {
 					s.Require().NotNil(res.ConsensusStates[i])
 					s.Require().Equal(expConsensusStates[i], res.ConsensusStates[i])
@@ -478,7 +478,7 @@ func (s *KeeperTestSuite) TestQueryConsensusStateHeights() {
 			if tc.expErr == nil {
 				s.Require().NoError(err)
 				s.Require().NotNil(res)
-				s.Require().Equal(len(expConsensusStateHeights), len(res.ConsensusStateHeights))
+				s.Require().Len(res.ConsensusStateHeights, len(expConsensusStateHeights))
 				for i := range expConsensusStateHeights {
 					s.Require().NotNil(res.ConsensusStateHeights[i])
 					s.Require().Equal(expConsensusStateHeights[i], res.ConsensusStateHeights[i])

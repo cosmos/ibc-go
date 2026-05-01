@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func (s *TypesTestSuite) TestMarshalConsensusStateWithHeight() {

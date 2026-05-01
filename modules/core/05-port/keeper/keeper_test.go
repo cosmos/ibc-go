@@ -7,8 +7,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/05-port/keeper"
-	"github.com/cosmos/ibc-go/v10/testing/simapp"
+	"github.com/cosmos/ibc-go/v11/modules/core/05-port/keeper"
+	"github.com/cosmos/ibc-go/v11/testing/simapp"
 )
 
 type KeeperTestSuite struct {

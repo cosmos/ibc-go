@@ -3,7 +3,7 @@ package errors
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 const codespace = exported.ModuleName
@@ -60,4 +60,7 @@ var (
 
 	// ErrNotFound defines an error when requested entity doesn't exist in the state.
 	ErrNotFound = errorsmod.Register(codespace, 16, "not found")
+
+	// ErrTooLarge defines an error when the entity is too large.
+	ErrTooLarge = errorsmod.Register(codespace, 17, "entity too large")
 )

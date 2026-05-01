@@ -6,7 +6,7 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types";
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types";
 
 // Msg service for rate limit txs
 service Msg {

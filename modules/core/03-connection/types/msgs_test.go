@@ -9,24 +9,22 @@ import (
 	"github.com/stretchr/testify/require"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
-	"cosmossdk.io/store/iavl"
-	"cosmossdk.io/store/metrics"
-	"cosmossdk.io/store/rootmulti"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
+	"github.com/cosmos/cosmos-sdk/store/v2/rootmulti"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v10/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	"github.com/cosmos/ibc-go/v10/testing/simapp"
+	ibc "github.com/cosmos/ibc-go/v11/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/cosmos/ibc-go/v11/testing/simapp"
 )
 
 var (
@@ -59,16 +57,15 @@ func (s *MsgTestSuite) SetupTest() {
 
 	app := simapp.Setup(s.T(), false)
 	db := dbm.NewMemDB()
-	store := rootmulti.NewStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics())
+	store := rootmulti.NewStore(db, log.NewNopLogger())
 	storeKey := storetypes.NewKVStoreKey("iavlStoreKey")
 
 	store.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, nil)
 	err := store.LoadVersion(0)
 	s.Require().NoError(err)
-	iavlStore, ok := store.GetCommitStore(storeKey).(*iavl.Store)
-	s.Require().True(ok)
+	kvStore := store.GetKVStore(storeKey)
 
-	iavlStore.Set([]byte("KEY"), []byte("VALUE"))
+	kvStore.Set([]byte("KEY"), []byte("VALUE"))
 	_ = store.Commit()
 
 	res, err := store.Query(&storetypes.RequestQuery{

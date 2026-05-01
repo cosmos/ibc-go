@@ -3,23 +3,22 @@
 package client
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/cosmos/interchaintest/v10/ibc"
-	test "github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	test "github.com/cosmos/interchaintest/v11/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
-
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	cmtjson "github.com/cometbft/cometbft/libs/json"
@@ -33,11 +32,11 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const (
@@ -463,8 +462,8 @@ func (s *ClientTestSuite) extractChainPrivateKeys(ctx context.Context, chain ibc
 
 	// We sort by address as GetValidatorSetByHeight also sorts by address. When iterating over them, the index
 	// will correspond to the correct ibcmock.PV.
-	sort.SliceStable(filePvs, func(i, j int) bool {
-		return filePvs[i].Address.String() < filePvs[j].Address.String()
+	slices.SortStableFunc(filePvs, func(a, b privval.FilePVKey) int {
+		return cmp.Compare(a.Address.String(), b.Address.String())
 	})
 
 	for _, filePV := range filePvs {

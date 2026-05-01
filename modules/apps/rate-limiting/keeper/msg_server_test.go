@@ -10,11 +10,13 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 var (
@@ -116,7 +118,7 @@ func (s *KeeperTestSuite) TestMsgServer_AddRateLimit() {
 	// Verify that signer == authority required
 	invalidSignerMsg := addRateLimitMsg
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
-	s.addRateLimitWithError(invalidSignerMsg, govtypes.ErrInvalidSigner)
+	s.addRateLimitWithError(invalidSignerMsg, sdkerrors.ErrUnauthorized)
 
 	// Verify that valid signer required
 	invalidSignerMsg.Signer = ibctesting.InvalidID
@@ -148,17 +150,17 @@ func (s *KeeperTestSuite) TestMsgServer_UpdateRateLimit() {
 	// Check ratelimit quota is updated correctly
 	updatedRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
-	s.Require().Equal(updatedRateLimit.Quota, &types.Quota{
+	s.Require().Equal(&types.Quota{
 		MaxPercentSend: updateRateLimitMsg.MaxPercentSend,
 		MaxPercentRecv: updateRateLimitMsg.MaxPercentRecv,
 		DurationHours:  updateRateLimitMsg.DurationHours,
-	})
+	}, updatedRateLimit.Quota)
 
 	// Attempt to update a rate limit that has invalid authority
 	invalidSignerMsg := updateRateLimitMsg
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
-	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+	s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
 
 	// Verify that valid signer required
 	invalidSignerMsg.Signer = ibctesting.InvalidID
@@ -195,7 +197,7 @@ func (s *KeeperTestSuite) TestMsgServer_RemoveRateLimit() {
 	invalidSignerMsg := removeRateLimitMsg
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
-	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+	s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
 
 	// Verify that valid signer required
 	invalidSignerMsg.Signer = ibctesting.InvalidID
@@ -227,20 +229,177 @@ func (s *KeeperTestSuite) TestMsgServer_ResetRateLimit() {
 	// Check ratelimit quota is flow correctly
 	resetRateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
-	s.Require().Equal(resetRateLimit.Flow, &types.Flow{
+	s.Require().Equal(&types.Flow{
 		Inflow:       sdkmath.ZeroInt(),
 		Outflow:      sdkmath.ZeroInt(),
 		ChannelValue: channelValue,
-	})
+	}, resetRateLimit.Flow)
 
 	// Attempt to Remove a rate limit that has invalid authority
 	invalidSignerMsg := resetRateLimitMsg
 	invalidSignerMsg.Signer = s.chainA.SenderAccount.GetAddress().String()
 	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
-	s.Require().ErrorIs(err, govtypes.ErrInvalidSigner)
+	s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
 
 	// Verify that valid signer required
 	invalidSignerMsg.Signer = ibctesting.InvalidID
 	_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &invalidSignerMsg)
 	s.Require().ErrorIs(err, sdkerrors.ErrInvalidAddress)
+}
+
+func (s *KeeperTestSuite) TestAddRateLimitAuthority() {
+	channelValue := sdkmath.NewInt(100)
+	s.createChannelValue(addRateLimitMsg.Denom, channelValue)
+	s.createChannel(addRateLimitMsg.ChannelOrClientId)
+
+	keeperAuthority := authority
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
+
+	s.Run("fallback to keeper authority", func() {
+		msg := addRateLimitMsg
+		msg.Signer = keeperAuthority
+		_, err := msgServer.AddRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().NoError(err)
+
+		// Clean up for next test
+		s.chainA.GetSimApp().RateLimitKeeper.RemoveRateLimit(s.chainA.GetContext(), msg.Denom, msg.ChannelOrClientId)
+
+		msg.Signer = overrideAuthority
+		_, err = msgServer.AddRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := addRateLimitMsg
+		msg.Signer = overrideAuthority
+		_, err := msgServer.AddRateLimit(ctx, &msg)
+		s.Require().NoError(err)
+
+		msg.Signer = keeperAuthority
+		_, err = msgServer.AddRateLimit(ctx, &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestUpdateRateLimitAuthority() {
+	channelValue := sdkmath.NewInt(100)
+	s.createChannelValue(addRateLimitMsg.Denom, channelValue)
+	s.createChannel(addRateLimitMsg.ChannelOrClientId)
+	s.addRateLimitSuccessful(addRateLimitMsg)
+
+	keeperAuthority := authority
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
+
+	s.Run("fallback to keeper authority", func() {
+		msg := updateRateLimitMsg
+		msg.Signer = keeperAuthority
+		_, err := msgServer.UpdateRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().NoError(err)
+
+		msg.Signer = overrideAuthority
+		_, err = msgServer.UpdateRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := updateRateLimitMsg
+		msg.Signer = overrideAuthority
+		_, err := msgServer.UpdateRateLimit(ctx, &msg)
+		s.Require().NoError(err)
+
+		msg.Signer = keeperAuthority
+		_, err = msgServer.UpdateRateLimit(ctx, &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+}
+
+func (s *KeeperTestSuite) TestRemoveRateLimitAuthority() {
+	channelValue := sdkmath.NewInt(100)
+	s.createChannelValue(addRateLimitMsg.Denom, channelValue)
+	s.createChannel(addRateLimitMsg.ChannelOrClientId)
+	s.addRateLimitSuccessful(addRateLimitMsg)
+
+	keeperAuthority := authority
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
+
+	s.Run("fallback to keeper authority", func() {
+		msg := removeRateLimitMsg
+		msg.Signer = overrideAuthority
+		_, err := msgServer.RemoveRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+
+		msg.Signer = keeperAuthority
+		_, err = msgServer.RemoveRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().NoError(err)
+
+		// Re-add for next subtest
+		s.addRateLimitSuccessful(addRateLimitMsg)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := removeRateLimitMsg
+		msg.Signer = keeperAuthority
+		_, err := msgServer.RemoveRateLimit(ctx, &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+
+		msg.Signer = overrideAuthority
+		_, err = msgServer.RemoveRateLimit(ctx, &msg)
+		s.Require().NoError(err)
+	})
+}
+
+func (s *KeeperTestSuite) TestResetRateLimitAuthority() {
+	channelValue := sdkmath.NewInt(100)
+	s.createChannelValue(addRateLimitMsg.Denom, channelValue)
+	s.createChannel(addRateLimitMsg.ChannelOrClientId)
+	s.addRateLimitSuccessful(addRateLimitMsg)
+
+	keeperAuthority := authority
+	overrideAuthority := sdk.AccAddress("override_authority___").String()
+	msgServer := keeper.NewMsgServerImpl(s.chainA.GetSimApp().RateLimitKeeper)
+
+	s.Run("fallback to keeper authority", func() {
+		msg := resetRateLimitMsg
+		msg.Signer = keeperAuthority
+		_, err := msgServer.ResetRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().NoError(err)
+
+		msg.Signer = overrideAuthority
+		_, err = msgServer.ResetRateLimit(s.chainA.GetContext(), &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
+
+	s.Run("consensus params authority takes precedence", func() {
+		sdkCtx := s.chainA.GetContext()
+		ctx := sdkCtx.WithConsensusParams(cmtproto.ConsensusParams{
+			Authority: &cmtproto.AuthorityParams{Authority: overrideAuthority},
+		})
+
+		msg := resetRateLimitMsg
+		msg.Signer = overrideAuthority
+		_, err := msgServer.ResetRateLimit(ctx, &msg)
+		s.Require().NoError(err)
+
+		msg.Signer = keeperAuthority
+		_, err = msgServer.ResetRateLimit(ctx, &msg)
+		s.Require().ErrorIs(err, sdkerrors.ErrUnauthorized)
+	})
 }

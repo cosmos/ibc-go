@@ -9,16 +9,16 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/suite"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 const maxCallbackGas = uint64(1000000)

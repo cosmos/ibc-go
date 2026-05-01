@@ -5,11 +5,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 // TestConnOpenInit - chainA initializes (INIT state) a connection with
@@ -84,7 +84,7 @@ func (s *KeeperTestSuite) TestConnOpenInit() {
 			} else {
 				s.Require().Error(err)
 				s.Contains(err.Error(), expErrorMsgSubstring)
-				s.Require().Equal("", connectionID)
+				s.Require().Empty(connectionID)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})
@@ -170,7 +170,7 @@ func (s *KeeperTestSuite) TestConnOpenTry() {
 				s.Require().Equal(types.FormatConnectionIdentifier(0), connectionID)
 			} else {
 				s.Require().Error(err)
-				s.Require().Equal("", connectionID)
+				s.Require().Empty(connectionID)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})

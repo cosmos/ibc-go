@@ -8,9 +8,9 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)
@@ -50,6 +50,11 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 func (cs ConsensusState) ValidateBasic() error {
 	if cs.Root.Empty() {
 		return errorsmod.Wrap(clienttypes.ErrInvalidConsensus, "root cannot be empty")
+	}
+	if err := cmttypes.ValidateHash(cs.Root.GetHash()); err != nil {
+		if string(cs.Root.GetHash()) != SentinelRoot {
+			return errorsmod.Wrap(err, "root hash is invalid")
+		}
 	}
 	if err := cmttypes.ValidateHash(cs.NextValidatorsHash); err != nil {
 		return errorsmod.Wrap(err, "next validators hash is invalid")

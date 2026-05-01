@@ -6,21 +6,21 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 var (
@@ -1011,7 +1011,7 @@ func (s *TendermintTestSuite) TestRecoverClient() {
 				// assert that status of subject client is now Active
 				lightClientModule, err := s.chainA.App.GetIBCKeeper().ClientKeeper.Route(s.chainA.GetContext(), subjectClientID)
 				s.Require().NoError(err)
-				s.Require().Equal(lightClientModule.Status(s.chainA.GetContext(), subjectClientID), exported.Active)
+				s.Require().Equal(exported.Active, lightClientModule.Status(s.chainA.GetContext(), subjectClientID))
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)
@@ -1171,7 +1171,7 @@ func (s *TendermintTestSuite) TestVerifyUpgradeAndUpdateState() {
 
 				expClientState := path.EndpointA.GetClientState()
 				expClientStateBz := s.chainA.Codec.MustMarshal(expClientState)
-				s.Require().Equal(upgradedClientStateAny.Value, expClientStateBz)
+				s.Require().Equal(expClientStateBz, upgradedClientStateAny.Value)
 
 				expConsensusState := ibctm.NewConsensusState(upgradedConsensusState.Timestamp, commitmenttypes.NewMerkleRoot([]byte(ibctm.SentinelRoot)), upgradedConsensusState.NextValidatorsHash)
 				expConsensusStateBz := s.chainA.Codec.MustMarshal(expConsensusState)

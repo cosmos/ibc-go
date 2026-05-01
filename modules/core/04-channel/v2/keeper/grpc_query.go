@@ -2,22 +2,21 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
@@ -96,9 +95,9 @@ func (q *queryServer) PacketCommitments(goCtx context.Context, req *types.QueryP
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(goCtx)), hostv2.PacketCommitmentPrefixKey(req.ClientId))
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		keySplit := strings.Split(string(key), "/")
-
-		sequence := sdk.BigEndianToUint64([]byte(keySplit[len(keySplit)-1]))
+		// The prefix store has already stripped the channelID + base prefix,
+		// so the key here is the raw 8-byte big-endian sequence number.
+		sequence := sdk.BigEndianToUint64(key)
 		if sequence == 0 {
 			return types.ErrInvalidPacket
 		}
@@ -155,11 +154,11 @@ func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.Q
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	var acks []*types.PacketState // nolint: prealloc
+	var acks []*types.PacketState
 	store := prefix.NewStore(runtime.KVStoreAdapter(q.storeService.OpenKVStore(goCtx)), hostv2.PacketAcknowledgementPrefixKey(req.ClientId))
 
 	// if a list of packet sequences is provided then query for each specific ack and return a list <= len(req.PacketCommitmentSequences)
-	// otherwise, maintain previous behaviour and perform paginated query
+	// otherwise, maintain previous behavior and perform paginated query
 	for _, seq := range req.PacketCommitmentSequences {
 		acknowledgement := q.GetPacketAcknowledgement(ctx, req.ClientId, seq)
 		if len(acknowledgement) == 0 {
@@ -180,9 +179,9 @@ func (q *queryServer) PacketAcknowledgements(goCtx context.Context, req *types.Q
 	}
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key, value []byte) error {
-		keySplit := strings.Split(string(key), "/")
-
-		sequence := sdk.BigEndianToUint64([]byte(keySplit[len(keySplit)-1]))
+		// The prefix store has already stripped the channelID + base prefix,
+		// so the key here is the raw 8-byte big-endian sequence number.
+		sequence := sdk.BigEndianToUint64(key)
 		if sequence == 0 {
 			return types.ErrInvalidPacket
 		}

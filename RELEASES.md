@@ -69,22 +69,23 @@ We reserve the right to drop support for releases if they are deemed unused (for
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v7.10.x`|March 17, 2025|
-|`v8.7.x`|May 10, 2025|
+|`v8.8.x`|May 10, 2025|
+|`v10.5.x`|Mar 10, 2027|
+|`v11.0.x`|Apr 10, 2028|
 
 ### Callbacks middleware
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.2.x+ibc-go-v7.3.x`|March 17, 2025|
 |`v0.2.x+ibc-go-v8.0.x`|May 10, 2025|
 
 ### `08-wasm` light client proxy module
 
 |Release|End of Life Date|
 |-------|----------------|
-|`v0.3.x+ibc-go-v7.4.x-wasmvm-v1.5.x`|March 17, 2025|
 |`v0.4.x+ibc-go-v8.4.x-wasmvm-v2.0.x`|May 10, 2025|
+|`v10.5.x`|Mar 10, 2027|
+|`v11.0.x`|Apr 10, 2028|
 
 ### What pull requests will be included in stable patch-releases?
 
@@ -119,8 +120,11 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
-| 1.19 | v7.10.0 | v0.47.13 | v0.37.5  |
-| 1.21 | v8.7.0 | v0.50.9  | v0.38.11 |
+| 1.19 | v7.10 | v0.47 | v0.37  |
+| 1.21 | v8.7 | v0.50  | v0.38 |
+| 1.23 | v10.1 | v0.50  | v0.38 |
+| 1.23 | v10.5 | v0.53  | v0.38 |
+| 1.25 | v11.0 | v0.54 | v0.39 |
 
 ### Callbacks middleware
 
@@ -128,8 +132,10 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by callbacks middleware
 
 | Go | callbacks | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.19 | v0.2.0+ibc-go-v7.3 | v7.3.0 | v0.47.5 | v0.37.2 |
-| 1.21 | v0.2.0+ibc-go-v8.0 | v8.0.0 | v0.50.1 | v0.38.0 |
+| 1.19 | v0.2.0+ibc-go-v7.3 | v7.3 | v0.47 | v0.37 |
+| 1.21 | v0.2.0+ibc-go-v8.0 | v8.0 | v0.50 | v0.38 |
+
+**Callbacks middleware has been merged into `ibc-go` since v10. There will not be a separate releases for callbacks middleware.**
 
 ### `08-wasm` light client proxy module
 
@@ -137,8 +143,11 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 
 | Go | 08-wasm | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.19 | v0.3.1+ibc-go-v7.4-wasmvm-v1.5 | v7.4.0 | v0.47.8 | v0.37.4 |
-| 1.21 | v0.4.1+ibc-go-v8.4-wasmvm-v2.0 | v8.4.0 | v0.50.7 | v0.38.9 |
+| 1.19 | v0.3.1+ibc-go-v7.4-wasmvm-v1.5 | v7.4 | v0.47 | v0.37 |
+| 1.21 | v0.4.1+ibc-go-v8.4-wasmvm-v2.0 | v8.4 | v0.50 | v0.38 |
+| 1.23 | v10.1 | v10.1 | v0.50 | v0.38 |
+| 1.23 | v10.5 | v10.5 | v0.53 | v0.38 |
+| 1.25 | v11.0 | v11.0 | v0.54 | v0.39 |
 
 ## Graphics
 

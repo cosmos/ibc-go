@@ -11,6 +11,10 @@
 private[.-]*
 private
 
+# local plan docs (not for commit)
+docs/PLAN_*.md
+docs/FAILING_*.md
+
 # Build
 vendor
 build

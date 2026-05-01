@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	sdkmath "cosmossdk.io/math"
 
@@ -17,13 +18,13 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	transferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	transferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 var (
@@ -425,6 +426,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsNotSource() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expError)
+				s.Require().True(utf8.ValidString(err.Error()))
 
 				// Check denom metadata absence for cases where recv fails.
 				_, found := s.chainB.GetSimApp().BankKeeper.GetDenomMetaData(s.chainB.GetContext(), denom.IBCDenom())
@@ -925,6 +927,15 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 			sdkerrors.ErrInsufficientFunds,
 		},
 		{
+			"failure: sender is module account",
+			func() {
+				denom = types.NewDenom(sdk.DefaultBondDenom)
+				amount = sdkmath.OneInt().String()
+				sender = s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()
+			},
+			ibcerrors.ErrUnauthorized.Wrapf("%s is not allowed to receive funds", s.chainA.GetSimApp().AccountKeeper.GetModuleAddress(minttypes.ModuleName).String()),
+		},
+		{
 			"failure: cannot mint because sender address is invalid",
 			func() {
 				denom = types.NewDenom(sdk.DefaultBondDenom)
@@ -982,6 +993,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorContains(err, tc.expError.Error())
+				s.Require().True(utf8.ValidString(err.Error()))
 			}
 		})
 	}

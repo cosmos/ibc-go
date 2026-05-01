@@ -1,21 +1,20 @@
 package keeper_test
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 // TestTimeoutPacket test the TimeoutPacket call on chainA by ensuring the timeout has passed
@@ -226,10 +225,10 @@ func (s *KeeperTestSuite) TestTimeoutPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expErr)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				// only check if expError is set, since not all error codes can be known
 				if expError != nil {
-					s.Require().True(errors.Is(err, expError))
+					s.Require().ErrorIs(err, expError)
 				}
 			}
 		})
@@ -271,7 +270,7 @@ func (s *KeeperTestSuite) TestTimeoutExecuted() {
 
 				// Check channel has been closed
 				channel := path.EndpointA.GetChannel()
-				s.Require().Equal(channel.State, types.CLOSED)
+				s.Require().Equal(types.CLOSED, channel.State)
 			},
 			nil,
 		},
@@ -281,9 +280,9 @@ func (s *KeeperTestSuite) TestTimeoutExecuted() {
 		s.Run(fmt.Sprintf("Case %s, %d/%d tests", tc.msg, i, len(testCases)), func() {
 			s.SetupTest() // reset
 			path = ibctesting.NewPath(s.chainA, s.chainB)
-			ctx := s.chainA.GetContext()
 
 			tc.malleate()
+			ctx := s.chainA.GetContext()
 
 			err := s.chainA.App.GetIBCKeeper().ChannelKeeper.TimeoutExecuted(ctx, path.EndpointA.GetChannel(), packet)
 			pc := s.chainA.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(ctx, packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
@@ -473,7 +472,7 @@ func (s *KeeperTestSuite) TestTimeoutOnClose() {
 				s.Require().Equal(path.EndpointA.GetChannel().Version, channelVersion)
 			} else {
 				s.Require().Error(err)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				s.Require().ErrorIs(err, tc.expErr)
 			}
 		})

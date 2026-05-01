@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func TestChangeValSet(t *testing.T) {
@@ -29,9 +29,9 @@ func TestChangeValSet(t *testing.T) {
 	val, err := chainA.GetSimApp().StakingKeeper.GetValidators(chainA.GetContext(), 4)
 	require.NoError(t, err)
 
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
+	_, _ = chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[1].SenderAccount.GetAddress(),
 		amount, types.Unbonded, val[1], true)
-	chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(), //nolint:errcheck // ignore error for test
+	_, _ = chainA.GetSimApp().StakingKeeper.Delegate(chainA.GetContext(), chainA.SenderAccounts[3].SenderAccount.GetAddress(),
 		amount2, types.Unbonded, val[3], true)
 
 	coord.CommitBlock(chainA)
@@ -74,4 +74,19 @@ func TestJailProposerValidator(t *testing.T) {
 
 	// check that the valset in chain A has a new proposer
 	require.False(t, propAddr.Equals(sdk.ConsAddress(chainA.Vals.Proposer.Address)))
+}
+
+func TestGetContextCommitsNextBlockState(t *testing.T) {
+	coord := ibctesting.NewCoordinator(t, 1)
+	chain := coord.GetChain(ibctesting.GetChainID(1))
+
+	initialSequence := chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext())
+
+	chain.GetSimApp().IBCKeeper.ChannelKeeper.SetNextChannelSequence(chain.GetContext(), initialSequence+10)
+
+	require.Equal(t, initialSequence+10, chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext()))
+
+	coord.CommitBlock(chain)
+
+	require.Equal(t, initialSequence+10, chain.GetSimApp().IBCKeeper.ChannelKeeper.GetNextChannelSequence(chain.GetContext()))
 }

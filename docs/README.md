@@ -84,7 +84,7 @@ make check-docs-link
 This command will run `lychee` (if you don't have it, see the [install docs](https://lychee.cli.rs/installation/)) and check all links in `./docs/docs` (i.e. it will not check versioned docs).
 
 Since a lot of our links are to github, this command easily gets rate limited, so it has been set up with a long retry sequence for links. You may need to run it multiple times to check all links.
-The results (except rate limit responses) are cached for 1 week, so once you have run it, it will not keep checking the same links twice (this is primarly to help with rate limiting).
+The results (except rate limit responses) are cached for 1 week, so once you have run it, it will not keep checking the same links twice (this is primarily to help with rate limiting).
 
 ## Updating the Documentation
 

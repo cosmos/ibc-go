@@ -1,9 +1,11 @@
 package types
 
 import (
+	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -14,8 +16,8 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 )
 
 // NewDenom creates a new Denom instance given the base denomination and a variable number of hops.
@@ -137,7 +139,18 @@ func (d Denoms) Swap(i, j int) { d[i], d[j] = d[j], d[i] }
 
 // Sort is a helper function to sort the set of denomination in-place
 func (d Denoms) Sort() Denoms {
-	sort.Sort(d)
+	slices.SortFunc(d, func(a, b Denom) int {
+		if diff := cmp.Compare(a.Base, b.Base); diff != 0 {
+			return diff
+		}
+
+		if diff := cmp.Compare(len(a.Trace), len(b.Trace)); diff != 0 {
+			return diff
+		}
+
+		return cmp.Compare(a.Path(), b.Path())
+	})
+
 	return d
 }
 

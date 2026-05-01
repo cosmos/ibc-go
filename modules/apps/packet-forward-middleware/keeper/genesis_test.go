@@ -1,6 +1,6 @@
 package keeper_test
 
-import "github.com/cosmos/ibc-go/v10/modules/apps/packet-forward-middleware/types"
+import "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 
 func (s *KeeperTestSuite) TestGenesis() {
 	sampleInflight := types.InFlightPacket{
@@ -17,7 +17,6 @@ func (s *KeeperTestSuite) TestGenesis() {
 
 		RetriesRemaining: 2,
 		Timeout:          10101010101,
-		Nonrefundable:    false,
 	}
 
 	key := types.RefundPacketKey(sampleInflight.PacketSrcChannelId, sampleInflight.PacketSrcPortId, sampleInflight.RefundSequence)

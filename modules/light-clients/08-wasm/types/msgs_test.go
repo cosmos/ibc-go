@@ -10,11 +10,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 func TestMsgStoreCodeValidateBasic(t *testing.T) {

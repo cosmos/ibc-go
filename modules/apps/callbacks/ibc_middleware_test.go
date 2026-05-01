@@ -6,24 +6,24 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v10/modules/apps/callbacks"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	icacontrollertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v11/modules/apps/callbacks"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/internal"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channelkeeper "github.com/cosmos/ibc-go/v11/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
@@ -246,7 +246,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			switch {
 			case expPass:
 				sendPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 				s.Require().Equal(uint64(1), seq)
 
 				expEvent, exists := GetExpectedEvent(
@@ -404,7 +404,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			switch {
 			case tc.expError == nil:
 				err := onAcknowledgementPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case errors.Is(tc.expError, panicError):
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
@@ -419,7 +419,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(sourceCounters, 0)
+				s.Require().Empty(sourceCounters)
 				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
 			case callbackFailed:
@@ -575,7 +575,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			switch expValue := tc.expValue.(type) {
 			case nil:
 				err := onTimeoutPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case error:
 				err := onTimeoutPacket()
 				s.Require().ErrorIs(err, expValue)
@@ -769,7 +769,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(destCounters, 0)
+				s.Require().Empty(destCounters)
 				s.Require().Equal(uint8(0), destStatefulCounter)
 
 			case callbackFailed:

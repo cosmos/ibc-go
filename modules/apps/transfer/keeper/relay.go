@@ -9,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/internal/events"
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/internal/events"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
 // SendTransfer handles transfer sending logic. There are 2 possible cases:
@@ -133,7 +133,7 @@ func (k *Keeper) OnRecvPacket(
 	}
 
 	if k.IsBlockedAddr(receiver) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", receiver)
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", data.Receiver)
 	}
 
 	token := data.Token
@@ -257,7 +257,7 @@ func (k *Keeper) refundPacketTokens(
 		return err
 	}
 	if k.IsBlockedAddr(sender) {
-		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", sender)
+		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", data.Sender)
 	}
 
 	// escrow address for unescrowing tokens back to sender

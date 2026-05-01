@@ -15,7 +15,7 @@ jobs:
     runs-on: depot-ubuntu-24.04-4
     steps:
       - name: Check out PR
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.DEPENDABOT_PUSH_PAT }}

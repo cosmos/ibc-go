@@ -16,7 +16,8 @@ on:
           - release/v7.10.x
           - release/v8.7.x
           - release/v8.8.x
-          - release/v10.4.x
+          - release/v10.5.x
+          - release/v11.0.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -55,17 +56,18 @@ jobs:
         release-branch:
           - release/v7.10.x
           - release/v8.8.x
-          - release/v10.4.x
+          - release/v10.5.x
+          - release/v11.0.x
           - main
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -211,6 +213,26 @@ jobs:
     with:
       test-file: "e2e/tests/transfer/send_receive_test.go"
       release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+
+  transfer-ibc-v2-test-a:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/ibc_v2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-a"
+
+  transfer-ibc-v2-test-b:
+    needs:
+      - build-release-images
+      - determine-image-tag
+    uses: ./.github/workflows/e2e-compatibility-workflow-call.yaml
+    with:
+      test-file: "e2e/tests/transfer/ibc_v2_test.go"
+      release-version: "${{ needs.determine-image-tag.outputs.release-version }}"
+      chain: "chain-b"
 
   upgrade-genesis-test:
     needs:

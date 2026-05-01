@@ -9,14 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	genesistypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	channelkeeper "github.com/cosmos/ibc-go/v10/modules/core/04-channel/keeper"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	genesistypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	channelkeeper "github.com/cosmos/ibc-go/v11/modules/core/04-channel/keeper"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 var (
@@ -192,7 +192,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 }
 
 func (s *KeeperTestSuite) TestNewModuleQuerySafeAllowList() {
-	// Currently, all queries in bank, staking, auth, and circuit are marked safe
+	// Currently, all queries in bank, staking, auth are marked safe
 	// Notably, the gov and distribution modules are not marked safe
 
 	var allowList []string

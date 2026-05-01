@@ -7,15 +7,15 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v10/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 var (
@@ -513,7 +513,7 @@ func (s *KeeperTestSuite) TestRecvPacket() {
 			} else {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, tc.expError)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 			}
 		})
 	}
@@ -625,7 +625,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			s.Require().Error(err)
 			s.Require().ErrorIs(err, errType)
 			s.Require().NotNil(commitment)
-			s.Require().Equal("", channelVersion)
+			s.Require().Empty(channelVersion)
 		}
 	}
 
@@ -633,7 +633,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 		s.Require().Error(err)
 		s.Require().ErrorIs(err, types.ErrNoOpMsg)
 		s.Require().Nil(commitment)
-		s.Require().Equal("", channelVersion)
+		s.Require().Empty(channelVersion)
 	}
 
 	assertSuccess := func(seq func() uint64, msg string) func(commitment []byte, channelVersion string, err error) {
@@ -759,7 +759,7 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			expResult: func(commitment []byte, channelVersion string, err error) {
 				s.Require().Error(err)
 				s.Require().ErrorIs(err, types.ErrInvalidAcknowledgement)
-				s.Require().Equal("", channelVersion)
+				s.Require().Empty(channelVersion)
 				s.Require().NotNil(commitment)
 			},
 		},
@@ -987,9 +987,9 @@ func (s *KeeperTestSuite) TestAcknowledgePacket() {
 			ack = ibcmock.MockAcknowledgement.Acknowledgement()
 
 			path = ibctesting.NewPath(s.chainA, s.chainB)
-			ctx := s.chainA.GetContext()
 
 			tc.malleate()
+			ctx := s.chainA.GetContext()
 
 			packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 			proof, proofHeight := path.EndpointB.QueryProof(packetKey)

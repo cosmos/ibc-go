@@ -9,8 +9,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	coremetrics "github.com/cosmos/ibc-go/v10/modules/core/metrics"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	coremetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
 )
 
 func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel string, token types.Token) {

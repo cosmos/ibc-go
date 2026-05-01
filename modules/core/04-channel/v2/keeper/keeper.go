@@ -4,19 +4,19 @@ import (
 	"bytes"
 
 	corestore "cosmossdk.io/core/store"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/log/v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientv2keeper "github.com/cosmos/ibc-go/v10/modules/core/02-client/v2/keeper"
-	connectionkeeper "github.com/cosmos/ibc-go/v10/modules/core/03-connection/keeper"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	clientv2keeper "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/keeper"
+	connectionkeeper "github.com/cosmos/ibc-go/v11/modules/core/03-connection/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 // Keeper defines the channel keeper v2.

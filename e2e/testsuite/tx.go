@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/interchaintest/v10/chain/cosmos"
-	"github.com/cosmos/interchaintest/v10/ibc"
-	test "github.com/cosmos/interchaintest/v10/testutil"
+	"github.com/cosmos/interchaintest/v11/chain/cosmos"
+	"github.com/cosmos/interchaintest/v11/ibc"
+	test "github.com/cosmos/interchaintest/v11/testutil"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -29,7 +29,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.
@@ -121,7 +121,7 @@ func (s *E2ETestSuite) AssertTxFailure(resp sdk.TxResponse, expectedError *error
 // AssertTxSuccess verifies that an sdk.TxResponse has succeeded.
 func (s *E2ETestSuite) AssertTxSuccess(resp sdk.TxResponse) {
 	errorMsg := addDebuggingInformation(fmt.Sprintf("%+v", resp))
-	s.Require().Equal(resp.Code, uint32(0), errorMsg)
+	s.Require().Equal(uint32(0), resp.Code, errorMsg)
 	s.Require().NotEmpty(resp.TxHash, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasUsed, errorMsg)
 	s.Require().NotEqual(int64(0), resp.GasWanted, errorMsg)

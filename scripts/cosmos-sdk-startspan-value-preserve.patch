@@ -1,0 +1,40 @@
+--- a/types/context.go
++++ b/types/context.go
+@@ -441,9 +441,35 @@ func (c Context) WithIncarnationCache(cache map[string]any) Context {
+ 
+ // StartSpan starts an otel span and returns a new context with the span attached.
+ // Use this instead of calling tracer.Start directly to have the span correctly
+ // attached to this context type.
++//
++// The returned context preserves values from baseCtx (e.g. gas register, tx counter).
++// tracer.Start may return a context that does not properly chain to the parent
++// (e.g. noop tracer), which would cause context.Value to lose app-set values.
+ func (c Context) StartSpan(tracer trace.Tracer, spanName string, opts ...trace.SpanStartOption) (Context, trace.Span) {
+ 	goCtx, span := tracer.Start(c.baseCtx, spanName, opts...)
+-	return c.WithContext(goCtx), span
++	preservedCtx := &valuePreservingContext{inner: goCtx, fallback: c.baseCtx}
++	return c.WithContext(preservedCtx), span
+ }
+ 
++// valuePreservingContext ensures Value() falls back to the original context when
++// the span context does not contain the key, fixing value loss when tracer.Start
++// returns a context that does not chain to the parent.
++type valuePreservingContext struct {
++	inner    context.Context
++	fallback context.Context
++}
++
++func (v *valuePreservingContext) Value(key any) any {
++	if val := v.inner.Value(key); val != nil {
++		return val
++	}
++	return v.fallback.Value(key)
++}
++
++func (v *valuePreservingContext) Done() <-chan struct{}       { return v.inner.Done() }
++func (v *valuePreservingContext) Err() error                  { return v.inner.Err() }
++func (v *valuePreservingContext) Deadline() (time.Time, bool) { return v.inner.Deadline() }
++
+ var (
+ 	_ context.Context    = Context{}
+ 	_ storetypes.Context = Context{}

@@ -7,10 +7,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/keeper"
-	ratelimittypes "github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 type KeeperTestSuite struct {

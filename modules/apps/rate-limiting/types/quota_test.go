@@ -7,7 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 func TestCheckExceedsQuota(t *testing.T) {

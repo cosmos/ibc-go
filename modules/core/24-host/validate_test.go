@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 )
 
 // 195 characters

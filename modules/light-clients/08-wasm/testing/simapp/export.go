@@ -5,9 +5,8 @@ import (
 	"errors"
 	"log"
 
-	storetypes "cosmossdk.io/store/types"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -193,11 +192,9 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		panic(err)
 	}
 
-	// Iterate through validators by power descending, reset bond heights, and
-	// update bond intra-tx counters.
+	// Iterate through validators by power descending and reset bond heights.
 	store := ctx.KVStore(app.keys[stakingtypes.StoreKey])
 	iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
-	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
@@ -214,7 +211,6 @@ func (app *SimApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []
 		if err := app.StakingKeeper.SetValidator(ctx, validator); err != nil {
 			panic(err)
 		}
-		counter++
 	}
 
 	iter.Close()

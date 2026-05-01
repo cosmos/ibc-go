@@ -6,12 +6,11 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v3"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 )
 
 // GetClientState retrieves the client state from the store using the provided KVStore and codec.

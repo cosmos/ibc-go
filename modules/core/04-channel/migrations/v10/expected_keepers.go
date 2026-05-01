@@ -1,11 +1,11 @@
 package v10
 
 import (
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 )
 
 type ChannelKeeper interface {

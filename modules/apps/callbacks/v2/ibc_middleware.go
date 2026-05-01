@@ -9,13 +9,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/internal"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/internal"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var (
@@ -320,8 +320,9 @@ func (im *IBCMiddleware) OnTimeoutPacket(
 	}
 
 	packetData, err := im.app.UnmarshalPacketData(payload)
+	// OnTimeoutPacket is not blocked if the packet does not opt-in to callbacks
 	if err != nil {
-		return err
+		return nil
 	}
 
 	cbData, isCbPacket, err := types.GetCallbackData(

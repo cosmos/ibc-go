@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/rate-limiting/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 // Sets the sequence number of a packet that was just sent
@@ -71,7 +70,10 @@ func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID s
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
-	iterator := storetypes.KVStorePrefixIterator(store, []byte(channelID))
+	channelIDBz := make([]byte, types.PendingSendPacketChannelLength)
+	copy(channelIDBz, channelID)
+
+	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

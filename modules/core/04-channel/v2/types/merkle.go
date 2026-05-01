@@ -3,7 +3,7 @@ package types
 import (
 	"slices"
 
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types/v2"
+	commitmenttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"
 )
 
 // BuildMerklePath takes the merkle path prefix and an ICS24 path

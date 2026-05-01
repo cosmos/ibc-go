@@ -9,9 +9,9 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func (s *KeeperTestSuite) TestSnapshotter() {
@@ -37,9 +37,10 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 			t := s.T()
 			wasmClientApp := s.SetupSnapshotterWithMockVM()
 
-			ctx := wasmClientApp.NewUncachedContext(false, cmtproto.Header{
+			height := wasmClientApp.LastBlockHeight() + 1
+			ctx := wasmClientApp.NewNextBlockContext(cmtproto.Header{
 				ChainID: "foo",
-				Height:  wasmClientApp.LastBlockHeight() + 1,
+				Height:  height,
 				Time:    time.Now(),
 			})
 
@@ -59,7 +60,8 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 				s.Require().NoError(err)
 			}
 
-			// create snapshot
+			// flush finalize state to CMS and commit
+			wasmClientApp.SimWriteState()
 			res, err := wasmClientApp.Commit()
 			s.Require().NoError(err)
 			s.Require().NotNil(res)
@@ -71,7 +73,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 
 			// setup dest app with snapshot imported
 			destWasmClientApp := simapp.SetupWithEmptyStore(t, s.mockVM)
-			destCtx := destWasmClientApp.NewUncachedContext(false, cmtproto.Header{
+			destCtx := destWasmClientApp.NewContextLegacy(true, cmtproto.Header{
 				ChainID: "bar",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),
@@ -97,7 +99,7 @@ func (s *KeeperTestSuite) TestSnapshotter() {
 
 			var allDestAppChecksumsInWasmVMStore []byte
 			// check wasm contracts are imported
-			ctx = destWasmClientApp.NewUncachedContext(false, cmtproto.Header{
+			ctx = destWasmClientApp.NewContextLegacy(true, cmtproto.Header{
 				ChainID: "foo",
 				Height:  destWasmClientApp.LastBlockHeight() + 1,
 				Time:    time.Now(),

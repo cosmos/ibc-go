@@ -5,9 +5,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	mockv1 "github.com/cosmos/ibc-go/v10/testing/mock"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	mockv1 "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 var _ api.IBCModule = (*IBCModule)(nil)

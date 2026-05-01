@@ -2,25 +2,25 @@ package keeper
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
-	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var _ types.QueryServer = (*queryServer)(nil)
@@ -105,7 +105,9 @@ func (q *queryServer) ClientStates(goCtx context.Context, req *types.QueryClient
 		return nil, err
 	}
 
-	sort.Sort(clientStates)
+	slices.SortFunc(clientStates, func(a, b types.IdentifiedClientState) int {
+		return cmp.Compare(a.ClientId, b.ClientId)
+	})
 
 	return &types.QueryClientStatesResponse{
 		ClientStates: clientStates,

@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing/simapp/simd/cmd"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/simd/cmd"
 )
 
 func main() {

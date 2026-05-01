@@ -6,7 +6,7 @@ import (
 
 var (
 	ErrUnknownDataType             = errorsmod.Register(ModuleName, 2, "unknown data type")
-	ErrAccountAlreadyExist         = errorsmod.Register(ModuleName, 3, "account already exist")
+	ErrAccountAlreadyExist         = errorsmod.Register(ModuleName, 3, "account already exists")
 	ErrPortAlreadyBound            = errorsmod.Register(ModuleName, 4, "port is already bound")
 	ErrInvalidChannelFlow          = errorsmod.Register(ModuleName, 5, "invalid message sent to channel end")
 	ErrInvalidOutgoingData         = errorsmod.Register(ModuleName, 6, "invalid outgoing data")

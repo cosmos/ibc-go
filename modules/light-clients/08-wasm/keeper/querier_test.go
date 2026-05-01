@@ -11,12 +11,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 type CustomQuery struct {
@@ -120,7 +120,7 @@ func (s *KeeperTestSuite) TestCustomQuery() {
 			res, err := wasmClientKeeper.WasmQuery(s.chainA.GetContext(), endpoint.ClientID, clientStore, clientState, types.QueryMsg{Status: &types.StatusMsg{}})
 
 			if tc.expError == nil {
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 				s.Require().NotNil(res)
 			} else {
 				s.Require().Nil(res)

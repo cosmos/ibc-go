@@ -3,10 +3,13 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
+
+// MaxMerklePrefixLength defines the maximum length of the counterparty prefix in bytes. (This is an arbitrarily chosen value)
+const MaxMerklePrefixLength = 256
 
 // NewConnectionEnd creates a new ConnectionEnd instance.
 func NewConnectionEnd(state State, clientID string, counterparty Counterparty, versions []*Version, delayPeriod uint64) ConnectionEnd {
@@ -58,6 +61,9 @@ func (c Counterparty) ValidateBasic() error {
 	}
 	if c.Prefix.Empty() {
 		return errorsmod.Wrap(ErrInvalidCounterparty, "counterparty prefix cannot be empty")
+	}
+	if len(c.Prefix.Bytes()) > MaxMerklePrefixLength {
+		return errorsmod.Wrapf(ErrInvalidCounterparty, "counterparty prefix length exceeds maximum length of %d bytes", MaxMerklePrefixLength)
 	}
 	return nil
 }

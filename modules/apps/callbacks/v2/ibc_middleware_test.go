@@ -6,22 +6,22 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	storetypes "cosmossdk.io/store/types"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/testing/simapp"
-	"github.com/cosmos/ibc-go/v10/modules/apps/callbacks/types"
-	callbacksv2 "github.com/cosmos/ibc-go/v10/modules/apps/callbacks/v2"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
-	channelkeeperv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/keeper"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/api"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
-	ibcmockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/testing/simapp"
+	"github.com/cosmos/ibc-go/v11/modules/apps/callbacks/types"
+	callbacksv2 "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/v2"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
+	ibcmockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
 func (s *CallbacksTestSuite) TestNewIBCMiddleware() {
@@ -198,7 +198,7 @@ func (s *CallbacksTestSuite) TestSendPacket() {
 			switch {
 			case expPass:
 				sendPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 
 				expEvent, exists := GetExpectedEvent(
 					ctx, packetData, gasLimit, payload.Version,
@@ -341,7 +341,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 			switch {
 			case tc.expError == nil:
 				err := onAcknowledgementPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case errors.Is(tc.expError, panicError):
 				s.Require().PanicsWithValue(storetypes.ErrorOutOfGas{Descriptor: fmt.Sprintf("ibc %s callback out of gas; commitGasLimit: %d", types.CallbackTypeAcknowledgementPacket, userGasLimit)}, func() {
 					_ = onAcknowledgementPacket()
@@ -356,7 +356,7 @@ func (s *CallbacksTestSuite) TestOnAcknowledgementPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(sourceCounters, 0)
+				s.Require().Empty(sourceCounters)
 				s.Require().Equal(uint8(0), sourceStatefulCounter)
 
 			case callbackFailed:
@@ -507,7 +507,7 @@ func (s *CallbacksTestSuite) TestOnTimeoutPacket() {
 			switch expValue := tc.expValue.(type) {
 			case nil:
 				err := onTimeoutPacket()
-				s.Require().Nil(err)
+				s.Require().NoError(err)
 			case error:
 				err := onTimeoutPacket()
 				s.Require().ErrorIs(err, expValue)
@@ -696,7 +696,7 @@ func (s *CallbacksTestSuite) TestOnRecvPacket() {
 
 			switch tc.expResult {
 			case noExecution:
-				s.Require().Len(destCounters, 0)
+				s.Require().Empty(destCounters)
 				s.Require().Equal(uint8(0), destStatefulCounter)
 
 			case callbackFailed:

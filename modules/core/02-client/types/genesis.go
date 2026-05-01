@@ -1,14 +1,16 @@
 package types
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 var (
@@ -35,7 +37,10 @@ func (ccs ClientsConsensusStates) Swap(i, j int) { ccs[i], ccs[j] = ccs[j], ccs[
 
 // Sort is a helper function to sort the set of ClientsConsensusStates in place
 func (ccs ClientsConsensusStates) Sort() ClientsConsensusStates {
-	sort.Sort(ccs)
+	slices.SortFunc(ccs, func(a, b ClientConsensusStates) int {
+		return cmp.Compare(a.ClientId, b.ClientId)
+	})
+
 	return ccs
 }
 

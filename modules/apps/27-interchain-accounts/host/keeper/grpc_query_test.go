@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
 )
 
 func (s *KeeperTestSuite) TestQueryParams() {

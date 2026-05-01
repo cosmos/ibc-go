@@ -6,16 +6,15 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	client "github.com/cosmos/ibc-go/v10/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
+	client "github.com/cosmos/ibc-go/v11/modules/core/02-client"
+	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
 type ClientTestSuite struct {

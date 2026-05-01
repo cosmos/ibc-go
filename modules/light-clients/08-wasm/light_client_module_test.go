@@ -11,18 +11,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/internal/types"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v10/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v10/modules/core/errors"
-	"github.com/cosmos/ibc-go/v10/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v10/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	ibcmock "github.com/cosmos/ibc-go/v10/testing/mock"
+	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/internal/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
 )
 
 const (
@@ -255,7 +255,7 @@ func (s *WasmTestSuite) TestInitialize() {
 					err := json.Unmarshal(initMsg, &payload)
 					s.Require().NoError(err)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					wrappedClientState, ok := clienttypes.MustUnmarshalClientState(s.chainA.App.AppCodec(), payload.ClientState).(*ibctm.ClientState)
 					s.Require().True(ok)
@@ -693,7 +693,7 @@ func (s *WasmTestSuite) TestVerifyClientMessage() {
 					s.Require().Nil(msg.CheckForMisbehaviour)
 					s.Require().Nil(msg.TimestampAtHeight)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					resp, err := json.Marshal(types.EmptyResult{})
 					s.Require().NoError(err)
@@ -1100,7 +1100,7 @@ func (s *WasmTestSuite) TestUpdateState() {
 					s.Require().Nil(msg.UpdateStateOnMisbehaviour)
 					s.Require().Nil(msg.VerifyUpgradeAndUpdateState)
 
-					s.Require().Equal(env.Contract.Address, wasmClientID)
+					s.Require().Equal(wasmClientID, env.Contract.Address)
 
 					updateStateResp := types.UpdateStateResult{
 						Heights: []clienttypes.Height{},

@@ -6,14 +6,14 @@ import (
 	"io"
 
 	errorsmod "cosmossdk.io/errors"
-	snapshot "cosmossdk.io/store/snapshots/types"
-	storetypes "cosmossdk.io/store/types"
 
+	snapshot "github.com/cosmos/cosmos-sdk/store/v2/snapshots/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 var _ snapshot.ExtensionSnapshotter = &WasmSnapshotter{}

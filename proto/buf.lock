@@ -4,18 +4,18 @@ deps:
   - remote: buf.build
     owner: cosmos
     repository: cosmos-proto
-    commit: 1935555c206d4afb9e94615dfd0fad31
-    digest: shake256:c74d91a3ac7ae07d579e90eee33abf9b29664047ac8816500cf22c081fec0d72d62c89ce0bebafc1f6fec7aa5315be72606717740ca95007248425102c365377
+    commit: 04467658e59e44bbb22fe568206e1f70
+    digest: shake256:73a640bd60e0c523b0f8237ff34eab67c45a38b64bbbde1d80224819d272dbf316ac183526bd245f994af6608b025f5130483d0133c5edd385531326b5990466
   - remote: buf.build
     owner: cosmos
     repository: cosmos-sdk
-    commit: aa25660f4ff746388669ce36b3778442
-    digest: shake256:a20eb29eb7284d9d0b76e94324a6e24e3665d13682bed0d5beac647d7109b7b2f22080301276779a91f394c97dab334da36dfc01d4252d9f869b090bfc8248aa
+    commit: 65fa41963e6a41dd95a35934239029df
+    digest: shake256:f67571e6f86dba07c678908f1734ca5a855416e1ecd903c3ebcae49f93c2a7114cdc64538ee8012cc3bb45e9bfd4345395f43d2ac2c01821ca32e5d734cb4dfd
   - remote: buf.build
     owner: cosmos
     repository: gogo-proto
-    commit: 34d970b699f84aa382f3c29773a60836
-    digest: shake256:3d3bee5229ba579e7d19ffe6e140986a228b48a8c7fe74348f308537ab95e9135210e81812489d42cd8941d33ff71f11583174ccc5972e86e6112924b6ce9f04
+    commit: 88ef6483f90f478fb938c37dde52ece3
+    digest: shake256:89c45df2aa11e0cff97b0d695436713db3d993d76792e9f8dc1ae90e6ab9a9bec55503d48ceedd6b86069ab07d3041b32001b2bfe0227fa725dd515ff381e5ba
   - remote: buf.build
     owner: cosmos
     repository: ics23
@@ -24,5 +24,10 @@ deps:
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    commit: 8d7204855ec14631a499bd7393ce1970
-    digest: shake256:40bf4112960cad01281930beed85829910768e32e80e986791596853eccd42c0cbd9d96690b918f658020d2d427e16f8b6514e2ac7f4a10306fd32e77be44329
+    commit: 004180b77378443887d3b55cabc00384
+    digest: shake256:d26c7c2fd95f0873761af33ca4a0c0d92c8577122b6feb74eb3b0a57ebe47a98ab24a209a0e91945ac4c77204e9da0c2de0020b2cedc27bdbcdea6c431eec69b
+  - remote: buf.build
+    owner: protocolbuffers
+    repository: wellknowntypes
+    commit: 9d16d599a978406980f6e2f081331a93
+    digest: shake256:946278992baee216f7742401780df3727195ffc068a30e21769c7e808d16ee25e9e48e51f938b6ddbe405abe46c45091a56ad90aac1cad0d809d16cbad889ff1

@@ -7,7 +7,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 )
 
 // SetRecvStartSequence is a wrapper around setRecvStartSequence to allow the function to be directly called in tests.

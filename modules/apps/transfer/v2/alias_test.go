@@ -8,14 +8,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v10/modules/core/04-channel/migrations/v11"
-	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v10/testing"
-	mockv2 "github.com/cosmos/ibc-go/v10/testing/mock/v2"
+	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v11"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
 // This test migrates a V1 channel and then does the following:

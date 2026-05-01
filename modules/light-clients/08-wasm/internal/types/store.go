@@ -3,13 +3,11 @@ package types
 import (
 	"bytes"
 	"errors"
-	"io"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 
-	"cosmossdk.io/store/cachekv"
-	"cosmossdk.io/store/tracekv"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/cachekv"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 )
 
 var (
@@ -144,11 +142,6 @@ func (s ClientRecoveryStore) GetStoreType() storetypes.StoreType {
 // CacheWrap implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
 func (s ClientRecoveryStore) CacheWrap() storetypes.CacheWrap {
 	return cachekv.NewStore(s)
-}
-
-// CacheWrapWithTrace implements the storetypes.KVStore interface, it is implemented solely to satisfy the interface.
-func (s ClientRecoveryStore) CacheWrapWithTrace(w io.Writer, tc storetypes.TraceContext) storetypes.CacheWrap {
-	return cachekv.NewStore(tracekv.NewStore(s, w, tc))
 }
 
 // GetStore returns the types to be used for the given key and a boolean flag indicating if that type was found.

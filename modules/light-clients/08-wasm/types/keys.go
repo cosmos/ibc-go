@@ -13,6 +13,7 @@ const (
 	Wasm = ModuleName
 
 	// KeyChecksums is the key under which all checksums are stored
+	//
 	// Deprecated: in favor of collections.KeySet
 	KeyChecksums = "checksums"
 )

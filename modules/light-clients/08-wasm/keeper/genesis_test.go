@@ -6,8 +6,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func (s *KeeperTestSuite) TestInitGenesis() {
@@ -63,7 +63,7 @@ func (s *KeeperTestSuite) TestInitGenesis() {
 				storedHashes = append(storedHashes, hex.EncodeToString(hash))
 			}
 
-			s.Require().Equal(len(expChecksums), len(storedHashes))
+			s.Require().Len(storedHashes, len(expChecksums))
 			s.Require().ElementsMatch(expChecksums, storedHashes)
 		})
 	}
