@@ -25,7 +25,7 @@ options:
 import argparse
 import requests
 
-WASM_IMPORT = "github.com/CosmWasm/wasmvm/v2"
+WASM_IMPORT = "github.com/CosmWasm/wasmvm/v3"
 
 
 def _get_wasm_version(wasm_go_mod_path: str) -> str:
