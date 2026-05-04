@@ -1,5 +1,4 @@
 version: v1
-name: buf.build/cosmos/ibc-prototypes
 deps:
   - buf.build/protocolbuffers/wellknowntypes
   - buf.build/cosmos/cosmos-sdk
