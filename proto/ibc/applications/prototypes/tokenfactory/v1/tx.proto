@@ -1,0 +1,99 @@
+syntax = "proto3";
+package ibc.applications.prototypes.tokenfactory.v1;
+
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/tokenfactory/types";
+
+// Msg defines the tokenfactory module's gRPC message service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // CreateDenom creates a new denom.
+  rpc CreateDenom(MsgCreateDenom) returns (MsgCreateDenomResponse);
+
+  // Mint mints new tokens.
+  rpc Mint(MsgMint) returns (MsgMintResponse);
+
+  // Burn burns tokens.
+  rpc Burn(MsgBurn) returns (MsgBurnResponse);
+
+  // ChangeAdmin transfers admin authority to a new address.
+  rpc ChangeAdmin(MsgChangeAdmin) returns (MsgChangeAdminResponse);
+
+  // RenounceAdmin permanently removes admin authority.
+  rpc RenounceAdmin(MsgRenounceAdmin) returns (MsgRenounceAdminResponse);
+}
+
+// MsgCreateDenom is the message for creating a new denom.
+message MsgCreateDenom {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgCreateDenom";
+
+  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string denom = 2;
+}
+
+// MsgCreateDenomResponse is the response for creating a new denom.
+message MsgCreateDenomResponse {}
+
+// MsgMint is the message for minting new tokens.
+message MsgMint {
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgMint";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string from = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string address = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+}
+
+// MsgMintResponse is the response for minting new tokens.
+message MsgMintResponse {}
+
+// MsgBurn is the message for burning tokens.
+message MsgBurn {
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgBurn";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string from = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+}
+
+// MsgBurnResponse is the response for burning tokens.
+message MsgBurnResponse {}
+
+// MsgChangeAdmin transfers admin authority to a new address.
+message MsgChangeAdmin {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgChangeAdmin";
+
+  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string denom = 2;
+  string new_admin = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
+
+// MsgChangeAdminResponse is the response for changing admin.
+message MsgChangeAdminResponse {}
+
+// MsgRenounceAdmin permanently removes admin authority.
+// After renouncing, no one can mint/burn via MsgMint/MsgBurn.
+message MsgRenounceAdmin {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgRenounceAdmin";
+
+  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string denom = 2;
+}
+
+// MsgRenounceAdminResponse is the response for renouncing admin.
+message MsgRenounceAdminResponse {}

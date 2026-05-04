@@ -1,0 +1,48 @@
+syntax = "proto3";
+package ibc.applications.prototypes.ift.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/ift/types";
+
+// IFTBridge represents a counterparty IFT contract on a different chain
+// connected via an IBC Light Client
+message IFTBridge {
+  // The IBC client identifier on the local chain representing the counterparty
+  // chain
+  string client_id = 1;
+  // The address of the IFT contract on the counterparty chain
+  string counterparty_ift_address = 2;
+  // The identifier of the IFTSendCall constructor to use.
+  // For simple constructors: "evm" or "cosmos"
+  // For Solana: JSON format
+  // {"solana":{"gmp_program_id":"...","mint_pubkey":"..."}}
+  string ift_send_call_constructor = 3;
+}
+
+// PendingTransfer represents a transfer that has been initiated but not yet
+// completed
+message PendingTransfer {
+  // The denom representing the IFT token on this chain
+  string denom = 1;
+  // The IBC client identifier over which the transfer is being made
+  string client_id = 2;
+  // The IBC sequence number associated with the ibc packet
+  uint64 sequence = 3;
+  // The address of the sender who initiated the transfer
+  string sender = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  // The amount of tokens involved in the pending transfer
+  string amount = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Params defines the parameters for the IFT module
+message Params {
+  // Authority is the address that can register/remove bridges (typically
+  // governance)
+  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+}
