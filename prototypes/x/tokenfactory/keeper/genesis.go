@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/types"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/types"
 )
 
 // InitGenesis initializes the tokenfactory module's state from a provided genesis state.

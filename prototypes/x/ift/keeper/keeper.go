@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"

@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/ibc-go/prototypes/x/ift/keeper"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 	"github.com/cosmos/sandbox-ledger/app"
-	"github.com/cosmos/sandbox-ledger/x/ift/keeper"
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"

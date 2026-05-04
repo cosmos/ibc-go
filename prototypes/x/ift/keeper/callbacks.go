@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 
 	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"

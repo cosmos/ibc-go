@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/types"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/types"
 )
 
 // GetParams gets the tokenfactory module's parameters.

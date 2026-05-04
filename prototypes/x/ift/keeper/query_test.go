@@ -3,7 +3,7 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 	"github.com/stretchr/testify/require"
 
 	"cosmossdk.io/collections"
@@ -33,8 +33,6 @@ func TestQuery_IFTBridge(t *testing.T) {
 	require.Equal(t, remoteIFTAddrA, resp.Bridge.CounterpartyIftAddress)
 	require.Equal(t, types.ConstructorEVM, resp.Bridge.IftSendCallConstructor)
 }
-
-
 
 func TestQuery_IFTBridges(t *testing.T) {
 	wfapp, ctx := setupIntegrationApp(t)

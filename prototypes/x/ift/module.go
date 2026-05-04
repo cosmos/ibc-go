@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/sandbox-ledger/x/ift/keeper"
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/keeper"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"

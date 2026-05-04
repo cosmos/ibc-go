@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/ibc-go/prototypes/x/ift/types"
 	solanapb "github.com/cosmos/solidity-ibc-eureka/packages/go-proto/solana"
-	"github.com/cosmos/sandbox-ledger/x/ift/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gagliardetto/solana-go"
 	"github.com/stretchr/testify/require"

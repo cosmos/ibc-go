@@ -6,9 +6,9 @@ import (
 	"time"
 
 	dbm "github.com/cosmos/cosmos-db"
+	ifttypes "github.com/cosmos/ibc-go/prototypes/x/ift/types"
 	"github.com/cosmos/sandbox-ledger/app"
 	"github.com/cosmos/sandbox-ledger/testutil"
-	ifttypes "github.com/cosmos/sandbox-ledger/x/ift/types"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/types"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/types"
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"

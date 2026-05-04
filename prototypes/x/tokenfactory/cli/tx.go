@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/types"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"

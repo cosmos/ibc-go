@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/cli"
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/keeper"
-	"github.com/cosmos/sandbox-ledger/x/tokenfactory/types"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/cli"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/keeper"
+	"github.com/cosmos/ibc-go/prototypes/x/tokenfactory/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
