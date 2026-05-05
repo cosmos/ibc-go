@@ -31,12 +31,12 @@ message PendingTransfer {
   // The IBC sequence number associated with the ibc packet
   uint64 sequence = 3;
   // The address of the sender who initiated the transfer
-  string sender = 4 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string sender = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The amount of tokens involved in the pending transfer
   string amount = 5 [
-    (cosmos_proto.scalar) = "cosmos.Int",
+    (cosmos_proto.scalar)  = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable)   = false
   ];
 }
 
@@ -44,5 +44,5 @@ message PendingTransfer {
 message Params {
   // Authority is the address that can register/remove bridges (typically
   // governance)
-  string authority = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }

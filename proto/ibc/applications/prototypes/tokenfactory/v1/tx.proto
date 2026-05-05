@@ -32,10 +32,10 @@ service Msg {
 // MsgCreateDenom is the message for creating a new denom.
 message MsgCreateDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "tokenfactory/MsgCreateDenom";
+  option (amino.name)           = "tokenfactory/MsgCreateDenom";
 
-  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string denom = 2;
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string denom  = 2;
 }
 
 // MsgCreateDenomResponse is the response for creating a new denom.
@@ -44,14 +44,14 @@ message MsgCreateDenomResponse {}
 // MsgMint is the message for minting new tokens.
 message MsgMint {
   option (cosmos.msg.v1.signer) = "from";
-  option (amino.name) = "tokenfactory/MsgMint";
+  option (amino.name)           = "tokenfactory/MsgMint";
 
-  option (gogoproto.equal) = false;
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string address = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+  string                   from    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string                   address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount  = 3 [(gogoproto.nullable) = false];
 }
 
 // MsgMintResponse is the response for minting new tokens.
@@ -60,13 +60,13 @@ message MsgMintResponse {}
 // MsgBurn is the message for burning tokens.
 message MsgBurn {
   option (cosmos.msg.v1.signer) = "from";
-  option (amino.name) = "tokenfactory/MsgBurn";
+  option (amino.name)           = "tokenfactory/MsgBurn";
 
-  option (gogoproto.equal) = false;
+  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string from = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  cosmos.base.v1beta1.Coin amount = 2 [ (gogoproto.nullable) = false ];
+  string                   from   = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgBurnResponse is the response for burning tokens.
@@ -75,11 +75,11 @@ message MsgBurnResponse {}
 // MsgChangeAdmin transfers admin authority to a new address.
 message MsgChangeAdmin {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "tokenfactory/MsgChangeAdmin";
+  option (amino.name)           = "tokenfactory/MsgChangeAdmin";
 
-  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string denom = 2;
-  string new_admin = 3 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  string sender    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string denom     = 2;
+  string new_admin = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // MsgChangeAdminResponse is the response for changing admin.
@@ -89,10 +89,10 @@ message MsgChangeAdminResponse {}
 // After renouncing, no one can mint/burn via MsgMint/MsgBurn.
 message MsgRenounceAdmin {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "tokenfactory/MsgRenounceAdmin";
+  option (amino.name)           = "tokenfactory/MsgRenounceAdmin";
 
-  string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string denom = 2;
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string denom  = 2;
 }
 
 // MsgRenounceAdminResponse is the response for renouncing admin.

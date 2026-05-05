@@ -8,13 +8,12 @@ option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/tokenf
 
 // GenesisState defines the tokenfactory module's genesis state.
 message GenesisState {
-  Params params = 1 [ (gogoproto.nullable) = false ];
-  repeated GenesisDenom factory_denoms = 2 [ (gogoproto.nullable) = false ];
+  Params                params         = 1 [(gogoproto.nullable) = false];
+  repeated GenesisDenom factory_denoms = 2 [(gogoproto.nullable) = false];
 }
 
 // GenesisDenom defines a genesis denom for the tokenfactory module.
 message GenesisDenom {
-  string denom = 1;
-  DenomAuthorityMetadata authority_metadata = 2
-      [ (gogoproto.nullable) = false ];
+  string                 denom              = 1;
+  DenomAuthorityMetadata authority_metadata = 2 [(gogoproto.nullable) = false];
 }

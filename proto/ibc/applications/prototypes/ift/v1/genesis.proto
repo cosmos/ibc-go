@@ -9,16 +9,15 @@ option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/ift/ty
 // GenesisState defines the IFT module's genesis state.
 message GenesisState {
   // Module parameters
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
   // All registered IFT bridges
-  repeated GenesisBridge bridges = 2 [ (gogoproto.nullable) = false ];
+  repeated GenesisBridge bridges = 2 [(gogoproto.nullable) = false];
   // All pending transfers
-  repeated PendingTransfer pending_transfers = 3
-      [ (gogoproto.nullable) = false ];
+  repeated PendingTransfer pending_transfers = 3 [(gogoproto.nullable) = false];
 }
 
 // GenesisBridge wraps denom with its bridge configuration
 message GenesisBridge {
-  string denom = 1;
-  IFTBridge bridge = 2 [ (gogoproto.nullable) = false ];
+  string    denom  = 1;
+  IFTBridge bridge = 2 [(gogoproto.nullable) = false];
 }

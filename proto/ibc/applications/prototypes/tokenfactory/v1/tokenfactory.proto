@@ -10,5 +10,5 @@ message Params {}
 
 // DenomAuthorityMetadata defines the authority metadata for a denom.
 message DenomAuthorityMetadata {
-  string admin = 1 [ (amino.dont_omitempty) = true ];
+  string admin = 1 [(amino.dont_omitempty) = true];
 }

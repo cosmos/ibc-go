@@ -21,16 +21,13 @@ service Query {
   }
 
   // IFTBridgesByDenom queries all IFT bridges for a specific denom
-  rpc IFTBridgesByDenom(QueryIFTBridgesByDenomRequest)
-      returns (QueryIFTBridgesByDenomResponse) {
+  rpc IFTBridgesByDenom(QueryIFTBridgesByDenomRequest) returns (QueryIFTBridgesByDenomResponse) {
     option (google.api.http).get = "/ibc/applications/prototypes/ift/v1/bridges/{denom}";
   }
 
   // PendingTransfer queries a pending transfer
-  rpc PendingTransfer(QueryPendingTransferRequest)
-      returns (QueryPendingTransferResponse) {
-    option (google.api.http).get =
-        "/ibc/applications/prototypes/ift/v1/pending/{denom}/{client_id}/{sequence}";
+  rpc PendingTransfer(QueryPendingTransferRequest) returns (QueryPendingTransferResponse) {
+    option (google.api.http).get = "/ibc/applications/prototypes/ift/v1/pending/{denom}/{client_id}/{sequence}";
   }
 
   // Params queries the module parameters
@@ -39,45 +36,57 @@ service Query {
   }
 }
 
+// QueryIFTBridgeRequest is the request type for querying an IFT bridge by denom and client ID.
 message QueryIFTBridgeRequest {
-  string denom = 1;
+  string denom     = 1;
   string client_id = 2;
 }
 
+// QueryIFTBridgeResponse is the response type for the IFTBridge query.
 message QueryIFTBridgeResponse {
-  IFTBridge bridge = 1 [ (gogoproto.nullable) = false ];
+  IFTBridge bridge = 1 [(gogoproto.nullable) = false];
 }
 
+// QueryIFTBridgesRequest is the request type for querying all IFT bridges.
 message QueryIFTBridgesRequest {}
 
+// QueryIFTBridgesResponse is the response type for the IFTBridges query.
 message QueryIFTBridgesResponse {
-  repeated DenomBridge bridges = 1 [ (gogoproto.nullable) = false ];
+  repeated DenomBridge bridges = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryIFTBridgesByDenomRequest { string denom = 1; }
-
-message QueryIFTBridgesByDenomResponse {
-  repeated IFTBridge bridges = 1 [ (gogoproto.nullable) = false ];
-}
-
-message QueryPendingTransferRequest {
+// QueryIFTBridgesByDenomRequest is the request type for querying all IFT bridges for a specific denom.
+message QueryIFTBridgesByDenomRequest {
   string denom = 1;
+}
+
+// QueryIFTBridgesByDenomResponse is the response type for the IFTBridgesByDenom query.
+message QueryIFTBridgesByDenomResponse {
+  repeated IFTBridge bridges = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPendingTransferRequest is the request type for querying a pending transfer.
+message QueryPendingTransferRequest {
+  string denom     = 1;
   string client_id = 2;
-  uint64 sequence = 3;
+  uint64 sequence  = 3;
 }
 
+// QueryPendingTransferResponse is the response type for the PendingTransfer query.
 message QueryPendingTransferResponse {
-  PendingTransfer pending_transfer = 1 [ (gogoproto.nullable) = false ];
+  PendingTransfer pending_transfer = 1 [(gogoproto.nullable) = false];
 }
 
+// QueryParamsRequest is the request type for querying module parameters.
 message QueryParamsRequest {}
 
+// QueryParamsResponse is the response type for the Params query.
 message QueryParamsResponse {
-  Params params = 1 [ (gogoproto.nullable) = false ];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // DenomBridge wraps denom with its bridge info for query responses
 message DenomBridge {
-  string denom = 1;
-  IFTBridge bridge = 2 [ (gogoproto.nullable) = false ];
+  string    denom  = 1;
+  IFTBridge bridge = 2 [(gogoproto.nullable) = false];
 }
