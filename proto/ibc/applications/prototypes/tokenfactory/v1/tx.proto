@@ -32,7 +32,7 @@ service Msg {
 // MsgCreateDenom is the message for creating a new denom.
 message MsgCreateDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgCreateDenom";
+  option (amino.name) = "tokenfactory/MsgCreateDenom";
 
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string denom = 2;
@@ -44,7 +44,7 @@ message MsgCreateDenomResponse {}
 // MsgMint is the message for minting new tokens.
 message MsgMint {
   option (cosmos.msg.v1.signer) = "from";
-  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgMint";
+  option (amino.name) = "tokenfactory/MsgMint";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -60,7 +60,7 @@ message MsgMintResponse {}
 // MsgBurn is the message for burning tokens.
 message MsgBurn {
   option (cosmos.msg.v1.signer) = "from";
-  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgBurn";
+  option (amino.name) = "tokenfactory/MsgBurn";
 
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
@@ -75,7 +75,7 @@ message MsgBurnResponse {}
 // MsgChangeAdmin transfers admin authority to a new address.
 message MsgChangeAdmin {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgChangeAdmin";
+  option (amino.name) = "tokenfactory/MsgChangeAdmin";
 
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string denom = 2;
@@ -89,7 +89,7 @@ message MsgChangeAdminResponse {}
 // After renouncing, no one can mint/burn via MsgMint/MsgBurn.
 message MsgRenounceAdmin {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name) = "ibc/applications/prototypes/tokenfactory/v1/MsgRenounceAdmin";
+  option (amino.name) = "tokenfactory/MsgRenounceAdmin";
 
   string sender = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   string denom = 2;

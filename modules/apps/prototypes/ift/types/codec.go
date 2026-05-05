@@ -11,11 +11,11 @@ import (
 // RegisterLegacyAminoCodec registers the necessary x/ift interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	legacy.RegisterAminoMsg(cdc, &MsgRegisterIFTBridge{}, "ibc/applications/ift/v1/MsgRegisterIFTBridge")
-	legacy.RegisterAminoMsg(cdc, &MsgRemoveIFTBridge{}, "ibc/applications/ift/v1/MsgRemoveIFTBridge")
-	legacy.RegisterAminoMsg(cdc, &MsgIFTTransfer{}, "ibc/applications/ift/v1/MsgIFTTransfer")
-	legacy.RegisterAminoMsg(cdc, &MsgIFTMint{}, "ibc/applications/ift/v1/MsgIFTMint")
-	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "ibc/applications/ift/v1/MsgUpdateParams")
+	legacy.RegisterAminoMsg(cdc, &MsgRegisterIFTBridge{}, "ift/MsgRegisterIFTBridge")
+	legacy.RegisterAminoMsg(cdc, &MsgRemoveIFTBridge{}, "ift/MsgRemoveIFTBridge")
+	legacy.RegisterAminoMsg(cdc, &MsgIFTTransfer{}, "ift/MsgIFTTransfer")
+	legacy.RegisterAminoMsg(cdc, &MsgIFTMint{}, "ift/MsgIFTMint")
+	legacy.RegisterAminoMsg(cdc, &MsgUpdateParams{}, "ift/MsgUpdateParams")
 }
 
 // RegisterInterfaces registers the x/ift interfaces types with the interface registry
