@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/prototypes/tokenfactory/types"
 
@@ -30,7 +31,8 @@ func (k msgServer) CreateDenom(goCtx context.Context, msg *types.MsgCreateDenom)
 		return nil, errorsmod.Wrapf(types.ErrInvalidAddress, "error: %s", err.Error())
 	}
 
-	if err := k.Keeper.CreateDenom(ctx, msg.Sender, msg.Denom); err != nil {
+	fullDenom := fmt.Sprintf("factory/%s/%s", msg.Sender, msg.Denom)
+	if err := k.Keeper.CreateDenom(ctx, msg.Sender, fullDenom); err != nil {
 		return nil, err
 	}
 
@@ -92,10 +94,6 @@ func (k msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdmin) (
 		return nil, errorsmod.Wrapf(types.ErrInvalidAddress, "invalid new admin: %s", err.Error())
 	}
 
-	if err := types.ValidateTokenFactoryDenom(msg.Denom); err != nil {
-		return nil, err
-	}
-
 	if err := k.Keeper.ChangeAdmin(ctx, msg.Denom, msg.Sender, msg.NewAdmin); err != nil {
 		return nil, err
 	}
@@ -107,10 +105,6 @@ func (k msgServer) ChangeAdmin(ctx context.Context, msg *types.MsgChangeAdmin) (
 func (k msgServer) RenounceAdmin(ctx context.Context, msg *types.MsgRenounceAdmin) (*types.MsgRenounceAdminResponse, error) {
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
 		return nil, errorsmod.Wrapf(types.ErrInvalidAddress, "invalid sender: %s", err.Error())
-	}
-
-	if err := types.ValidateTokenFactoryDenom(msg.Denom); err != nil {
-		return nil, err
 	}
 
 	if err := k.Keeper.RenounceAdmin(ctx, msg.Denom, msg.Sender); err != nil {

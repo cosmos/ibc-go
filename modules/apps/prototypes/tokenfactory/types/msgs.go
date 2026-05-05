@@ -54,7 +54,7 @@ func (msg MsgMint) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount: %s", msg.Amount.String())
 	}
 
-	return ValidateTokenFactoryDenom(msg.Amount.Denom)
+	return ValidateFullTokenFactoryDenom(msg.Amount.Denom)
 }
 
 // NewMsgBurn creates a new MsgBurn instance
@@ -75,7 +75,7 @@ func (msg MsgBurn) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "amount: %s", msg.Amount.String())
 	}
 
-	return ValidateTokenFactoryDenom(msg.Amount.Denom)
+	return ValidateFullTokenFactoryDenom(msg.Amount.Denom)
 }
 
 // NewMsgChangeAdmin creates a new MsgChangeAdmin instance
@@ -97,7 +97,7 @@ func (msg MsgChangeAdmin) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "new_admin: %s, error: %s", msg.NewAdmin, err.Error())
 	}
 
-	return ValidateTokenFactoryDenom(msg.Denom)
+	return ValidateFullTokenFactoryDenom(msg.Denom)
 }
 
 // NewMsgRenounceAdmin creates a new MsgRenounceAdmin instance
@@ -114,5 +114,5 @@ func (msg MsgRenounceAdmin) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "sender: %s, error: %s", msg.Sender, err.Error())
 	}
 
-	return ValidateTokenFactoryDenom(msg.Denom)
+	return ValidateFullTokenFactoryDenom(msg.Denom)
 }

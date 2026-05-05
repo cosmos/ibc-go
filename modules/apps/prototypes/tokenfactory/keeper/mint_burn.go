@@ -14,10 +14,6 @@ import (
 // MintTo mints tokens of denom to address.
 // MUST fail if denom is not recognized or not authorized for minting.
 func (k Keeper) MintTo(ctx context.Context, denom string, amount math.Int, to sdk.AccAddress) error {
-	if err := types.ValidateTokenFactoryDenom(denom); err != nil {
-		return err
-	}
-
 	coin := sdk.NewCoin(denom, amount)
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return err
@@ -43,10 +39,6 @@ func (k Keeper) MintTo(ctx context.Context, denom string, amount math.Int, to sd
 // BurnFrom burns tokens of denom from address.
 // MUST fail if address does not have enough balance or burn is not permitted.
 func (k Keeper) BurnFrom(ctx context.Context, denom string, amount math.Int, from sdk.AccAddress) error {
-	if err := types.ValidateTokenFactoryDenom(denom); err != nil {
-		return err
-	}
-
 	coin := sdk.NewCoin(denom, amount)
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return err
@@ -71,9 +63,6 @@ func (k Keeper) BurnFrom(ctx context.Context, denom string, amount math.Int, fro
 
 // HasDenom checks if a denom exists in the token factory.
 func (k Keeper) HasDenom(ctx context.Context, denom string) bool {
-	if err := types.ValidateTokenFactoryDenom(denom); err != nil {
-		return false
-	}
 	has, err := k.DenomAuthorityMetadataStore.Has(ctx, denom)
 	if err != nil {
 		return false
@@ -129,10 +118,6 @@ func (k Keeper) burnFromWithAdmin(ctx context.Context, from sdk.AccAddress, amou
 }
 
 func (k Keeper) validateMintBurnPermission(ctx context.Context, admin, denom string) error {
-	if err := types.ValidateTokenFactoryDenom(denom); err != nil {
-		return err
-	}
-
 	md, err := k.GetAuthorityMetadata(ctx, denom)
 	if err != nil {
 		return errorsmod.Wrapf(types.ErrDenomNotFound, "denom %s not found", denom)
