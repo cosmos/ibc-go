@@ -1,0 +1,58 @@
+syntax = "proto3";
+package ibc.applications.prototypes.tokenfactory.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "ibc/applications/prototypes/tokenfactory/v1/tokenfactory.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/tokenfactory/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // DenomAuthorityMetadata queries the authority metadata for a denom.
+  rpc DenomAuthorityMetadata(QueryDenomAuthorityMetadataRequest) returns (QueryDenomAuthorityMetadataResponse) {
+    option (google.api.http).get = "/ibc/applications/prototypes/tokenfactory/v1/denoms/{denom}/authority_metadata";
+  }
+
+  // DenomsByCreator queries all denoms created by a specific address.
+  rpc DenomsByCreator(QueryDenomsByCreatorRequest) returns (QueryDenomsByCreatorResponse) {
+    option (google.api.http).get = "/ibc/applications/prototypes/tokenfactory/v1/creators/{creator}/denoms";
+  }
+
+  // Params queries the parameters of the tokenfactory module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/ibc/applications/prototypes/tokenfactory/v1/params";
+  }
+}
+
+// QueryDenomAuthorityMetadataRequest is the request type for the
+// Query/DenomAuthorityMetadata RPC method.
+message QueryDenomAuthorityMetadataRequest {
+  string denom = 1;
+}
+
+// QueryDenomAuthorityMetadataResponse is the response type for the
+// Query/DenomAuthorityMetadata RPC method.
+message QueryDenomAuthorityMetadataResponse {
+  DenomAuthorityMetadata authority_metadata = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDenomsByCreatorRequest is the request type for the
+// Query/DenomsByCreator RPC method.
+message QueryDenomsByCreatorRequest {
+  string creator = 1;
+}
+
+// QueryDenomsByCreatorResponse is the response type for the
+// Query/DenomsByCreator RPC method.
+message QueryDenomsByCreatorResponse {
+  repeated string denoms = 1;
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

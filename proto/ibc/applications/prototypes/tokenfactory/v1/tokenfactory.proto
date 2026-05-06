@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ibc.applications.prototypes.tokenfactory.v1;
+
+import "amino/amino.proto";
+
+option go_package = "github.com/cosmos/ibc-go/v11/modules/apps/prototypes/tokenfactory/types";
+
+// Params defines the parameters for the tokenfactory module.
+message Params {}
+
+// DenomAuthorityMetadata defines the authority metadata for a denom.
+message DenomAuthorityMetadata {
+  string admin = 1 [(amino.dont_omitempty) = true];
+}
