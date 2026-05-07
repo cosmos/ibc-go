@@ -37,27 +37,6 @@ func TestPFMTestSuite(t *testing.T) {
 	suite.Run(t, new(PFMTestSuite))
 }
 
-func TestGetReceiverUsesAddressCodec(t *testing.T) {
-	channel := "channel-0"
-	originalSender := "original-sender"
-
-	receiver, err := packetforward.GetReceiver(hexAddressCodec{}, channel, originalSender)
-	require.NoError(t, err)
-
-	senderHash32 := sdkaddress.Hash(packetforwardtypes.ModuleName, []byte(fmt.Sprintf("%s/%s", channel, originalSender)))
-	require.Equal(t, hex.EncodeToString(senderHash32[:20]), receiver)
-}
-
-type hexAddressCodec struct{}
-
-func (hexAddressCodec) StringToBytes(text string) ([]byte, error) {
-	return hex.DecodeString(text)
-}
-
-func (hexAddressCodec) BytesToString(bz []byte) (string, error) {
-	return hex.EncodeToString(bz), nil
-}
-
 // setupChains sets up a coordinator with 3 test chains.
 func (s *PFMTestSuite) setupChains() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
@@ -267,6 +246,17 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().NoError(err)
 }
 
+func TestGetReceiverUsesAddressCodec(t *testing.T) {
+	channel := "channel-0"
+	originalSender := "original-sender"
+
+	receiver, err := packetforward.GetReceiver(hexAddressCodec{}, channel, originalSender)
+	require.NoError(t, err)
+
+	senderHash32 := sdkaddress.Hash(packetforwardtypes.ModuleName, []byte(fmt.Sprintf("%s/%s", channel, originalSender)))
+	require.Equal(t, hex.EncodeToString(senderHash32[:20]), receiver)
+}
+
 func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) *packetforward.IBCMiddleware {
 	pfmKeeper := chain.GetSimApp().PFMKeeper
 
@@ -302,4 +292,14 @@ func (s *PFMTestSuite) transferPacket(sender string, receiver string, path *ibct
 		Data:               tokenData,
 		Sequence:           seq,
 	}
+}
+
+type hexAddressCodec struct{}
+
+func (hexAddressCodec) StringToBytes(text string) ([]byte, error) {
+	return hex.DecodeString(text)
+}
+
+func (hexAddressCodec) BytesToString(bz []byte) (string, error) {
+	return hex.EncodeToString(bz), nil
 }
