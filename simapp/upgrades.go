@@ -51,23 +51,41 @@ func (app *SimApp) registerUpgradeHandlers() {
 		),
 	)
 
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V11_1LegacyPFM,
+		upgrades.CreateDefaultUpgradeHandler(
+			app.ModuleManager,
+			app.configurator,
+		),
+	)
+
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(err)
 	}
 
-	if !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		var storeUpgrades storetypes.StoreUpgrades
-
-		switch upgradeInfo.Name {
-		case upgrades.V11:
-			storeUpgrades.Added = []string{gmptypes.StoreKey}
-		case upgrades.V11_1:
-			storeUpgrades.Added = []string{packetforwardtypes.StoreKey}
-		default:
-			return
+	if upgradeInfo.Name == upgrades.V11 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{gmptypes.StoreKey},
 		}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 
+	// NOTE: Add gmptypes.StoreKey here if you are upgrading from v10 directly to v11.1 as v11 upgrade handler will not run
+	if upgradeInfo.Name == upgrades.V11_1LegacyPFM && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{},
+		}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// NOTE: Add gmptypes.StoreKey here if you are upgrading from v10 directly to v11.1 as v11 upgrade handler will not run
+	if upgradeInfo.Name == upgrades.V11_1 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{packetforwardtypes.StoreKey},
+		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
