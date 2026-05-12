@@ -72,7 +72,7 @@ type entry struct {
 func collectLegacyEntries(store prefix.Store, oldKeyLen, newKeyLen int) (legacy []entry, err error) {
 	iterator := store.Iterator(nil, nil)
 	defer func() {
-		errors.Join(err, iterator.Close())
+		err = errors.Join(err, iterator.Close())
 	}()
 
 	for ; iterator.Valid(); iterator.Next() {
