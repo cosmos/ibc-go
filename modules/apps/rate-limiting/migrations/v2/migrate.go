@@ -1,6 +1,7 @@
 package v2
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -63,19 +64,17 @@ type entry struct {
 
 // collectLegacyEntries returns a list of entries in the prefix store that must
 // be migrated from the oldKeyLen to the newKeyLen.
-func collectLegacyEntries(store prefix.Store, oldKeyLen, newKeyLen int) ([]entry, error) {
-	var legacy []entry
-
+func collectLegacyEntries(store prefix.Store, oldKeyLen, newKeyLen int) (legacy []entry, err error) {
 	iterator := store.Iterator(nil, nil)
 	defer func() {
-		_ = iterator.Close()
+		errors.Join(err, iterator.Close())
 	}()
 
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 		switch len(key) {
 		case newKeyLen:
-			// already correct length, noting to do
+			// already correct length, nothing to do
 			continue
 		case oldKeyLen:
 			legacy = append(legacy, entry{
