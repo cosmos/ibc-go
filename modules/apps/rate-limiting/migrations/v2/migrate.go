@@ -14,20 +14,25 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
-// oldPendingSendPacketChannelLength is hard-coded so the migration stays
-// correct even if types.PendingSendPacketChannelLength is bumped again later.
-const oldPendingSendPacketChannelLength = 16
+const (
+	// oldPendingSendPacketChannelLength is hard-coded so the migration stays
+	// correct even if types.PendingSendPacketChannelLength is bumped again
+	// later.
+	oldPendingSendPacketChannelLength = 16
+	oldKeyLen                         = oldPendingSendPacketChannelLength + 8
+
+	// newPendingSendPacketChannelLength is hard-coded so the migration stays
+	// correct even if types.PendingSendPacketChannelLength is bumped again
+	// later.
+	newPendingSendPacketChannelLength = 64
+	newKeyLen                         = newPendingSendPacketChannelLength + 8
+)
 
 // Migrate rewrites entries under types.PendingSendPacketPrefix from the old
 // [16-byte channelID][8-byte sequence] layout to the new [64-byte channelID]
 // [8-byte sequence] layout so IBC v2 channel IDs (up to 64 bytes) fit. Entries
 // already in the new layout are skipped, making the migration idempotent.
 func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
-	var (
-		oldKeyLen = oldPendingSendPacketChannelLength + 8
-		newKeyLen = types.PendingSendPacketChannelLength + 8
-	)
-
 	adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 

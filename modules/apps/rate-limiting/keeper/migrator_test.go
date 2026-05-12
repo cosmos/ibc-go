@@ -15,7 +15,8 @@ import (
 
 func (s *KeeperTestSuite) TestMigrate1to2() {
 	const oldPendingSendPacketChannelLength = 16
-	newKeyLen := ratelimittypes.PendingSendPacketChannelLength + 8
+	const newPendingSendPacketChannelLength = 64
+	const newKeyLen = newPendingSendPacketChannelLength + 8
 
 	writeLegacy := func(store prefix.Store, channelID string, sequence uint64) {
 		key := make([]byte, oldPendingSendPacketChannelLength+8)
