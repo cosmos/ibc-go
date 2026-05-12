@@ -30,7 +30,7 @@ var (
 	AddressWhitelistKeyPrefix = bytes("address-blacklist")
 	HourEpochKey              = bytes("hour-epoch")
 
-	PendingSendPacketChannelLength = 16
+	PendingSendPacketChannelLength = 64
 )
 
 // Get the rate limit byte key built from the denom and channelId
