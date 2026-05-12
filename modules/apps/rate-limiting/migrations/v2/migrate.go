@@ -53,7 +53,7 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 
 		// put remaining 8 bytes sequence from old key into the final 8 bytes
 		// sequence of the new key
-		copy(newKey[types.PendingSendPacketChannelLength:], entry.key[oldPendingSendPacketChannelLength:])
+		copy(newKey[newPendingSendPacketChannelLength:], entry.key[oldPendingSendPacketChannelLength:])
 
 		// remove old kv and set new kv
 		store.Delete(entry.key)
