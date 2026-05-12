@@ -149,7 +149,7 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 			// assert that all keys match our expected keys, or there are no
 			// keys at all
 			for _, k := range readAllKeys(prefixStore) {
-				s.Require().Equal(newKeyLen, len(k), "every post-migration key must be in the new layout")
+				s.Require().Len(k, newKeyLen, "every post-migration key must be in the new layout")
 			}
 			if tc.expectAll == nil {
 				s.Require().Empty(rlKeeper.GetAllPendingSendPackets(ctx))
