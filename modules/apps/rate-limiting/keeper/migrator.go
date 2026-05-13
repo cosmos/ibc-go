@@ -11,6 +11,7 @@ type Migrator struct {
 	keeper *Keeper
 }
 
+// NewMigrator creates a new Migrator instance.
 func NewMigrator(k *Keeper) Migrator {
 	return Migrator{keeper: k}
 }
