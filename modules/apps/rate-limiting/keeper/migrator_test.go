@@ -2,8 +2,6 @@ package keeper_test
 
 import (
 	"encoding/binary"
-	"fmt"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
@@ -16,12 +14,20 @@ import (
 func (s *KeeperTestSuite) TestMigrate1to2() {
 	const oldPendingSendPacketChannelLength = 16
 	const newPendingSendPacketChannelLength = 64
+	const oldKeyLen = oldPendingSendPacketChannelLength + 8
 	const newKeyLen = newPendingSendPacketChannelLength + 8
 
 	writeLegacy := func(store prefix.Store, channelID string, sequence uint64) {
-		key := make([]byte, oldPendingSendPacketChannelLength+8)
+		key := make([]byte, oldKeyLen)
 		copy(key, channelID)
 		binary.BigEndian.PutUint64(key[oldPendingSendPacketChannelLength:], sequence)
+		store.Set(key, []byte{1})
+	}
+
+	writeNewLayout := func(store prefix.Store, channelID string, sequence uint64) {
+		key := make([]byte, newKeyLen)
+		copy(key, channelID)
+		binary.BigEndian.PutUint64(key[newPendingSendPacketChannelLength:], sequence)
 		store.Set(key, []byte{1})
 	}
 
@@ -46,7 +52,6 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 		name      string
 		malleate  func(store prefix.Store)
 		expectAll []string
-		postCheck func(store prefix.Store)
 		expectErr string
 	}{
 		{
@@ -60,53 +65,52 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 				writeLegacy(store, "channel-1", 2)
 				writeLegacy(store, "channel-11", 1)
 				writeLegacy(store, "channel-11", 7)
+				writeLegacy(store, "07-tendermint-10", 500)
+				// note this following channelID will get truncated when written to the store
+				writeLegacy(store, "07-tendermint-5011", 600)
 			},
 			expectAll: []string{
 				"channel-1/1", "channel-1/2",
 				"channel-11/1", "channel-11/7",
+				"07-tendermint-10/500", "07-tendermint-50/600",
 			},
 		},
 		{
-			name: "failure: mixed legacy and new-layout entries",
+			name: "failure: already migrated entry",
 			malleate: func(store prefix.Store) {
 				writeLegacy(store, "channel-1", 1)
-				writeLegacy(store, "channel-11", 7)
-				rlKeeper.SetPendingSendPacket(ctx, "channel-99", 5)
+				writeNewLayout(store, "channel-99", 5)
 			},
-			expectAll: []string{
-				"channel-1/1", "channel-11/7", "channel-99/5",
-			},
+			expectErr: "unexpected pending-send-packet key length",
 		},
 		{
-			name: "long IBC v2 keys properly round trips post migration",
+			name: "failure: unexpected key length",
 			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 3)
+				// key length is does not match oldKeyLen
+				store.Set(make([]byte, oldKeyLen+1), []byte{1})
 			},
-			expectAll: []string{"channel-1/3"},
-			postCheck: func(store prefix.Store) {
-				longChannelID := fmt.Sprintf("channel-%050d", 1)
-				s.Require().Greater(len(longChannelID), oldPendingSendPacketChannelLength)
-				rlKeeper.SetPendingSendPacket(ctx, longChannelID, 9)
-				s.Require().True(rlKeeper.CheckPacketSentDuringCurrentQuota(ctx, longChannelID, 9))
-				s.Require().True(rlKeeper.CheckPacketSentDuringCurrentQuota(ctx, "channel-1", 3))
-			},
+			expectErr: "unexpected pending-send-packet key length",
 		},
 		{
-			name:     "long channel keys sharing first 16 bytes dont collide post migration",
-			malleate: func(_ prefix.Store) {},
-			postCheck: func(store prefix.Store) {
-				// Two keys whose first 16 bytes are identical but full strings differ.
-				shared := strings.Repeat("a", oldPendingSendPacketChannelLength)
-				idA := shared + "-suffix-A"
-				idB := shared + "-suffix-B"
-
-				rlKeeper.SetPendingSendPacket(ctx, idA, 1)
-				rlKeeper.SetPendingSendPacket(ctx, idB, 2)
-
-				s.Require().True(rlKeeper.CheckPacketSentDuringCurrentQuota(ctx, idA, 1))
-				s.Require().True(rlKeeper.CheckPacketSentDuringCurrentQuota(ctx, idB, 2))
-				s.Require().Len(readAllKeys(store), 2, "two distinct keys despite shared first 16 bytes")
+			name: "failure: existing channel ID too short",
+			malleate: func(store prefix.Store) {
+				writeLegacy(store, "abc", 1)
 			},
+			expectErr: "invalid channel or client ID",
+		},
+		{
+			name: "failure: invalid existing channelID",
+			malleate: func(store prefix.Store) {
+				writeLegacy(store, "ch/1", 1)
+			},
+			expectErr: "invalid channel or client ID",
+		},
+		{
+			name: "failure: existing sequence 0",
+			malleate: func(store prefix.Store) {
+				writeLegacy(store, "channel-1", 0)
+			},
+			expectErr: "invalid sequence 0",
 		},
 	}
 
@@ -143,11 +147,6 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 				s.Require().Empty(rlKeeper.GetAllPendingSendPackets(ctx))
 			} else {
 				s.Require().ElementsMatch(tc.expectAll, rlKeeper.GetAllPendingSendPackets(ctx))
-			}
-
-			// do custom post checks
-			if tc.postCheck != nil {
-				tc.postCheck(prefixStore)
 			}
 		})
 	}
