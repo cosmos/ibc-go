@@ -37,7 +37,7 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	// get store entries that need to be migrated
-	legacyEntries, err := collectLegacyEntries(store, oldKeyLen, newKeyLen)
+	legacyEntries, err := collectLegacyEntries(store)
 	if err != nil {
 		return fmt.Errorf("collecting legacy pending send packet entries from prefix store: %w", err)
 	}
@@ -56,7 +56,7 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 		copy(newKey[newPendingSendPacketChannelLength:], entry.key[oldPendingSendPacketChannelLength:])
 
 		// remove old kv and set new kv
-		store.Delete(entry.key)
+		store.Delete(entry.key[:])
 		store.Set(newKey, entry.value)
 	}
 
@@ -64,12 +64,18 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 }
 
 type entry struct {
-	key, value []byte
+	key   [oldKeyLen]byte
+	value []byte
 }
 
 // collectLegacyEntries returns a list of entries in the prefix store that must
 // be migrated from the oldKeyLen to the newKeyLen.
-func collectLegacyEntries(store prefix.Store, oldKeyLen, newKeyLen int) (legacy []entry, err error) {
+func collectLegacyEntries(store prefix.Store) ([]entry, error) {
+	var (
+		legacy []entry
+		err    error
+	)
+
 	iterator := store.Iterator(nil, nil)
 	defer func() {
 		err = errors.Join(err, iterator.Close())
@@ -83,11 +89,12 @@ func collectLegacyEntries(store prefix.Store, oldKeyLen, newKeyLen int) (legacy 
 			continue
 		case oldKeyLen:
 			legacy = append(legacy, entry{
-				key:   slices.Clone(key),
+				key:   [oldKeyLen]byte(key),
 				value: slices.Clone(iterator.Value()),
 			})
 		default:
-			return nil, fmt.Errorf("unexpected pending-send-packet key length %d (want %d or %d)", len(key), oldKeyLen, newKeyLen)
+			err = fmt.Errorf("unexpected pending-send-packet key length %d (want %d or %d)", len(key), oldKeyLen, newKeyLen)
+			return nil, err
 		}
 	}
 
