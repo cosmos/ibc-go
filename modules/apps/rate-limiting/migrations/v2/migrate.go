@@ -92,16 +92,13 @@ func collectLegacyEntries(store prefix.Store) ([]entry, error) {
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 		switch len(key) {
-		case newKeyLen:
-			// already correct length, nothing to do
-			continue
 		case oldKeyLen:
 			legacy = append(legacy, entry{
 				key:   [oldKeyLen]byte(key),
 				value: slices.Clone(iterator.Value()),
 			})
 		default:
-			err = fmt.Errorf("unexpected pending-send-packet key length %d (want %d or %d)", len(key), oldKeyLen, newKeyLen)
+			err = fmt.Errorf("unexpected pending-send-packet key length %d (want %d)", len(key), oldKeyLen)
 			return nil, err
 		}
 	}

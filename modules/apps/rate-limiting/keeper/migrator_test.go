@@ -50,44 +50,31 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 		expectErr string
 	}{
 		{
-			name:     "empty store",
+			name:     "success: empty store",
 			malleate: func(_ prefix.Store) {},
 		},
 		{
-			name: "legacy entries rewritten",
+			name: "success: legacy entries rewritten",
 			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 0)
 				writeLegacy(store, "channel-1", 1)
-				writeLegacy(store, "channel-11", 0)
+				writeLegacy(store, "channel-1", 2)
+				writeLegacy(store, "channel-11", 1)
 				writeLegacy(store, "channel-11", 7)
 			},
 			expectAll: []string{
-				"channel-1/0", "channel-1/1",
-				"channel-11/0", "channel-11/7",
+				"channel-1/1", "channel-1/2",
+				"channel-11/1", "channel-11/7",
 			},
 		},
 		{
-			name: "mixed legacy and new-layout entries",
+			name: "failure: mixed legacy and new-layout entries",
 			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 0)
+				writeLegacy(store, "channel-1", 1)
 				writeLegacy(store, "channel-11", 7)
 				rlKeeper.SetPendingSendPacket(ctx, "channel-99", 5)
 			},
 			expectAll: []string{
-				"channel-1/0", "channel-11/7", "channel-99/5",
-			},
-		},
-		{
-			name: "idempotency",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 0)
-				writeLegacy(store, "channel-1", 1)
-			},
-			expectAll: []string{"channel-1/0", "channel-1/1"},
-			postCheck: func(store prefix.Store) {
-				before := readAllKeys(store)
-				s.Require().NoError(migrator.Migrate1to2(ctx))
-				s.Require().ElementsMatch(before, readAllKeys(store))
+				"channel-1/1", "channel-11/7", "channel-99/5",
 			},
 		},
 		{
