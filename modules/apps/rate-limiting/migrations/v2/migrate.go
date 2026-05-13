@@ -1,9 +1,12 @@
 package v2
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	corestore "cosmossdk.io/core/store"
 
@@ -12,6 +15,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 )
 
 const (
@@ -54,6 +58,10 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 		// put remaining 8 bytes sequence from old key into the final 8 bytes
 		// sequence of the new key
 		copy(newKey[newPendingSendPacketChannelLength:], entry.key[oldPendingSendPacketChannelLength:])
+
+		if err := validateMigratedKey(newKey, entry.key); err != nil {
+			return fmt.Errorf("validating migrated key %X against legacy key %X: %w", newKey, entry.key, err)
+		}
 
 		// remove old kv and set new kv
 		store.Delete(entry.key[:])
@@ -99,4 +107,47 @@ func collectLegacyEntries(store prefix.Store) ([]entry, error) {
 	}
 
 	return legacy, nil
+}
+
+// validateMigratedKey ensures a legacy key transformation is valid, returns an
+// error if not.
+func validateMigratedKey(newKey []byte, oldKey [oldKeyLen]byte) error {
+	// channelID is right-padded with null bytes in the key (see
+	// types.PendingSendPacketKey), so trim them before validating.
+	rawChannelID := string(newKey[:newPendingSendPacketChannelLength])
+	channelID := strings.TrimRight(rawChannelID, "\x00")
+
+	// validate channelID in the newKey.
+
+	// we are using the client
+	// validator here since in v1 these will be channelID's, and in v2 they
+	// are clientID's, the client validator is slightly less strict and
+	// will accept both.
+	if err := host.ClientIdentifierValidator(channelID); err != nil {
+		return fmt.Errorf("invalid channel or client ID %q in migrated key: %w", channelID, err)
+	}
+
+	// ensure we have not modified the existing value
+	if !bytes.Equal(newKey[:oldPendingSendPacketChannelLength], oldKey[:oldPendingSendPacketChannelLength]) {
+		return fmt.Errorf("first %d bytes of migrated key not do not match existing key", oldPendingSendPacketChannelLength)
+	}
+	// ensure after the oldPendingSendPacketChannelLength, we have 48 bytes of 0's
+	padding := newKey[oldPendingSendPacketChannelLength:newPendingSendPacketChannelLength]
+	if !bytes.Equal(padding, make([]byte, len(padding))) {
+		return fmt.Errorf("expected all zero values after channel identifier in migrated key")
+	}
+
+	// validate sequence number in the newKey.
+	sequenceRaw := newKey[newPendingSendPacketChannelLength:]
+	sequence := binary.BigEndian.Uint64(sequenceRaw)
+	if sequence == 0 {
+		return fmt.Errorf("invalid sequence 0 for %q in migrated key", channelID)
+	}
+
+	// ensure we have not modified the existing value
+	if !bytes.Equal(sequenceRaw, oldKey[oldPendingSendPacketChannelLength:]) {
+		return fmt.Errorf("mismatch in sequence number bytes between migrated key and existing key")
+	}
+
+	return nil
 }
