@@ -7,11 +7,12 @@ import (
 
 	"github.com/hashicorp/go-metrics"
 
+	coreaddress "cosmossdk.io/core/address"
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
+	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
@@ -104,12 +105,10 @@ func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel s
 // it overrides the receiver address to be a hash of the channel/origSender so that
 // the receiver address is deterministic and can be used to identify the sender on the
 // initial chain.
-func GetReceiver(channel string, originalSender string) (string, error) {
+func GetReceiver(addressCodec coreaddress.Codec, channel string, originalSender string) (string, error) {
 	senderStr := fmt.Sprintf("%s/%s", channel, originalSender)
-	senderHash32 := address.Hash(types.ModuleName, []byte(senderStr))
-	sender := sdk.AccAddress(senderHash32[:20])
-	bech32Prefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
-	return sdk.Bech32ifyAddressBytes(bech32Prefix, sender)
+	senderHash32 := sdkaddress.Hash(types.ModuleName, []byte(senderStr))
+	return addressCodec.BytesToString(senderHash32[:20])
 }
 
 // OnRecvPacket checks the memo field on this packet and if the metadata inside's root key indicates this packet
@@ -160,7 +159,7 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 	}
 
 	// override the receiver so that senders cannot move funds through arbitrary addresses.
-	overrideReceiver, err := GetReceiver(packet.DestinationChannel, data.Sender)
+	overrideReceiver, err := GetReceiver(im.keeper.GetAddressCodec(), packet.DestinationChannel, data.Sender)
 	if err != nil {
 		logger.Error("packetForwardMiddleware OnRecvPacket failed to construct override receiver", "error", err)
 		return channeltypes.NewErrorAcknowledgement(err)
