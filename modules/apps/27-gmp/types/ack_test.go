@@ -95,3 +95,21 @@ func TestMarshalAcknowledgement_EmptyResult(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalAcknowledgement_NonCanonicalJSON(t *testing.T) {
+	testCases := []struct {
+		name string
+		bz   []byte
+	}{
+		{"failure: duplicate key", []byte(`{"result":"AAEC","result":"/+7d"}`)},
+		{"failure: unknown field", []byte(`{"result":"AAEC","unknown_field":"x"}`)},
+		{"failure: case-insensitive field", []byte(`{"RESULT":"AAEC"}`)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := types.UnmarshalAcknowledgement(tc.bz, types.Version, types.EncodingJSON)
+			require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+		})
+	}
+}

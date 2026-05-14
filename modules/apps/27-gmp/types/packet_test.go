@@ -145,6 +145,33 @@ func TestMarshalUnmarshalPacketData(t *testing.T) {
 	}
 }
 
+func TestUnmarshalPacketData_NonCanonicalJSON(t *testing.T) {
+	testCases := []struct {
+		name string
+		bz   []byte
+	}{
+		{
+			"failure: duplicate key",
+			[]byte(`{"sender":"cosmos1sender","sender":"cosmos1attacker","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`),
+		},
+		{
+			"failure: unknown field",
+			[]byte(`{"sender":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo","unknown_field":"x"}`),
+		},
+		{
+			"failure: case-insensitive field",
+			[]byte(`{"SENDER":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := types.UnmarshalPacketData(tc.bz, types.Version, types.EncodingJSON)
+			require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+		})
+	}
+}
+
 func TestMsgSendCall_ValidateBasic(t *testing.T) {
 	validSender := "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du"
 
