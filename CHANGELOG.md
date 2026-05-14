@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
+
 ### Dependencies
 
 * (light-clients/08-wasm) [\#8922](https://github.com/cosmos/ibc-go/pull/8922) Bump **wasmvm** to **3.0.3**
