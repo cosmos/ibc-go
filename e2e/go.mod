@@ -23,7 +23,7 @@ require (
 	github.com/cosmos/ibc-go/v11 v11.0.0
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260325172338-08abe11c26f0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/ethereum/go-ethereum v1.17.2
+	github.com/ethereum/go-ethereum v1.17.3
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
