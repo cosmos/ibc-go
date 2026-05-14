@@ -78,6 +78,11 @@ func (k *Keeper) GetAuthority() string {
 	return k.authority
 }
 
+// GetAddressCodec returns the address codec used by the keeper.
+func (k *Keeper) GetAddressCodec() address.Codec {
+	return k.addressCodec
+}
+
 // SetICS4Wrapper sets the ICS4 wrapper.
 func (k *Keeper) SetICS4Wrapper(ics4Wrapper porttypes.ICS4Wrapper) {
 	k.ics4Wrapper = ics4Wrapper
