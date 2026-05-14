@@ -172,6 +172,24 @@ func TestUnmarshalPacketData_NonCanonicalJSON(t *testing.T) {
 	}
 }
 
+func TestUnmarshalPacketData_NonCanonicalABI(t *testing.T) {
+	packetData := &types.GMPPacketData{
+		Sender:   "cosmos1sender",
+		Receiver: "cosmos1receiver",
+		Salt:     []byte("salt"),
+		Payload:  []byte("payload"),
+		Memo:     "memo",
+	}
+	bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
+	require.NoError(t, err)
+
+	// Solidity ABI does not encode field names, so trailing data is the ABI analogue of an unknown field.
+	bz = append(bz, make([]byte, 32)...)
+
+	_, err = types.UnmarshalPacketData(bz, types.Version, types.EncodingABI)
+	require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+}
+
 func TestMsgSendCall_ValidateBasic(t *testing.T) {
 	validSender := "cosmos1qyqszqgpqyqszqgpqyqszqgpqyqszqgpjnp7du"
 

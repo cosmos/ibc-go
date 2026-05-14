@@ -113,3 +113,19 @@ func TestUnmarshalAcknowledgement_NonCanonicalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalAcknowledgement_NonCanonicalABI(t *testing.T) {
+	ack := &types.Acknowledgement{Result: []byte("result")}
+	bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
+	require.NoError(t, err)
+
+	// Solidity ABI does not encode field names, so trailing data is the ABI analogue of an unknown field.
+	bz = append(bz, make([]byte, 32)...)
+
+	decoded, err := types.DecodeABIAcknowledgement(bz)
+	require.NoError(t, err)
+	require.Equal(t, ack.Result, decoded.Result)
+
+	_, err = types.UnmarshalAcknowledgement(bz, types.Version, types.EncodingABI)
+	require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+}
