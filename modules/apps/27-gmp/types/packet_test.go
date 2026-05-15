@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
@@ -145,34 +146,7 @@ func TestMarshalUnmarshalPacketData(t *testing.T) {
 	}
 }
 
-func TestUnmarshalPacketData_NonCanonicalJSON(t *testing.T) {
-	testCases := []struct {
-		name string
-		bz   []byte
-	}{
-		{
-			"failure: duplicate key",
-			[]byte(`{"sender":"cosmos1sender","sender":"cosmos1attacker","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`),
-		},
-		{
-			"failure: unknown field",
-			[]byte(`{"sender":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo","unknown_field":"x"}`),
-		},
-		{
-			"failure: case-insensitive field",
-			[]byte(`{"SENDER":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			_, err := types.UnmarshalPacketData(tc.bz, types.Version, types.EncodingJSON)
-			require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
-		})
-	}
-}
-
-func TestUnmarshalPacketData_NonCanonicalABI(t *testing.T) {
+func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 	packetData := &types.GMPPacketData{
 		Sender:   "cosmos1sender",
 		Receiver: "cosmos1receiver",
@@ -180,14 +154,98 @@ func TestUnmarshalPacketData_NonCanonicalABI(t *testing.T) {
 		Payload:  []byte("payload"),
 		Memo:     "memo",
 	}
-	bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
-	require.NoError(t, err)
 
-	// Solidity ABI does not encode field names, so trailing data is the ABI analogue of an unknown field.
-	bz = append(bz, make([]byte, 32)...)
+	testCases := []struct {
+		name     string
+		encoding string
+		malleate func(t *testing.T) []byte
+	}{
+		{
+			"failure: JSON duplicate key",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"sender":"cosmos1sender","sender":"cosmos1attacker","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`)
+			},
+		},
+		{
+			"failure: JSON unknown field",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"sender":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo","unknown_field":"x"}`)
+			},
+		},
+		{
+			"failure: JSON case-insensitive field",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"SENDER":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`)
+			},
+		},
+		{
+			"failure: ABI trailing data",
+			types.EncodingABI,
+			func(t *testing.T) []byte {
+				bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
+				require.NoError(t, err)
+				bz = append(bz, make([]byte, 32)...)
 
-	_, err = types.UnmarshalPacketData(bz, types.Version, types.EncodingABI)
-	require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+				decoded, err := types.DecodeABIGMPPacketData(bz)
+				require.NoError(t, err)
+				require.Equal(t, packetData, decoded)
+
+				return bz
+			},
+		},
+		{
+			"failure: ABI non-zero padding",
+			types.EncodingABI,
+			func(t *testing.T) []byte {
+				bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
+				require.NoError(t, err)
+				bz[len(bz)-1] = 1
+
+				decoded, err := types.DecodeABIGMPPacketData(bz)
+				require.NoError(t, err)
+				require.Equal(t, packetData, decoded)
+
+				return bz
+			},
+		},
+		{
+			"failure: protobuf duplicate field",
+			types.EncodingProtobuf,
+			func(t *testing.T) []byte {
+				bz := []byte("\x0A\x0Dcosmos1sender\x0A\x0Fcosmos1attacker\x12\x0Fcosmos1receiver\x1A\x04salt\x22\x07payload\x2A\x04memo")
+				decoded := &types.GMPPacketData{}
+				require.NoError(t, proto.Unmarshal(bz, decoded))
+				require.Equal(t, "cosmos1attacker", decoded.Sender)
+				require.Equal(t, packetData.Receiver, decoded.Receiver)
+
+				return bz
+			},
+		},
+		{
+			"failure: protobuf reordered fields",
+			types.EncodingProtobuf,
+			func(t *testing.T) []byte {
+				bz := []byte("\x2A\x04memo\x22\x07payload\x1A\x04salt\x12\x0Fcosmos1receiver\x0A\x0Dcosmos1sender")
+				decoded := &types.GMPPacketData{}
+				require.NoError(t, proto.Unmarshal(bz, decoded))
+				require.Equal(t, packetData, decoded)
+
+				return bz
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			bz := tc.malleate(t)
+
+			_, err := types.UnmarshalPacketData(bz, types.Version, tc.encoding)
+			require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
+		})
+	}
 }
 
 func TestMsgSendCall_ValidateBasic(t *testing.T) {

@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
@@ -96,36 +97,97 @@ func TestMarshalAcknowledgement_EmptyResult(t *testing.T) {
 	}
 }
 
-func TestUnmarshalAcknowledgement_NonCanonicalJSON(t *testing.T) {
+func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
+	ack := &types.Acknowledgement{Result: []byte("result")}
+
 	testCases := []struct {
-		name string
-		bz   []byte
+		name     string
+		encoding string
+		malleate func(t *testing.T) []byte
 	}{
-		{"failure: duplicate key", []byte(`{"result":"AAEC","result":"/+7d"}`)},
-		{"failure: unknown field", []byte(`{"result":"AAEC","unknown_field":"x"}`)},
-		{"failure: case-insensitive field", []byte(`{"RESULT":"AAEC"}`)},
+		{
+			"failure: JSON duplicate key",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"result":"AAEC","result":"/+7d"}`)
+			},
+		},
+		{
+			"failure: JSON unknown field",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"result":"AAEC","unknown_field":"x"}`)
+			},
+		},
+		{
+			"failure: JSON case-insensitive field",
+			types.EncodingJSON,
+			func(t *testing.T) []byte {
+				return []byte(`{"RESULT":"AAEC"}`)
+			},
+		},
+		{
+			"failure: ABI trailing data",
+			types.EncodingABI,
+			func(t *testing.T) []byte {
+				bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
+				require.NoError(t, err)
+				bz = append(bz, make([]byte, 32)...)
+
+				decoded, err := types.DecodeABIAcknowledgement(bz)
+				require.NoError(t, err)
+				require.Equal(t, ack.Result, decoded.Result)
+
+				return bz
+			},
+		},
+		{
+			"failure: ABI non-zero padding",
+			types.EncodingABI,
+			func(t *testing.T) []byte {
+				bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
+				require.NoError(t, err)
+				bz[len(bz)-1] = 1
+
+				decoded, err := types.DecodeABIAcknowledgement(bz)
+				require.NoError(t, err)
+				require.Equal(t, ack.Result, decoded.Result)
+
+				return bz
+			},
+		},
+		{
+			"failure: protobuf duplicate field",
+			types.EncodingProtobuf,
+			func(t *testing.T) []byte {
+				bz := []byte{0x0A, 0x03, 0x00, 0x01, 0x02, 0x0A, 0x03, 0xFF, 0xEE, 0xDD}
+				decoded := &types.Acknowledgement{}
+				require.NoError(t, proto.Unmarshal(bz, decoded))
+				require.Equal(t, []byte{0xFF, 0xEE, 0xDD}, decoded.Result)
+
+				return bz
+			},
+		},
+		{
+			"failure: protobuf explicit empty result",
+			types.EncodingProtobuf,
+			func(t *testing.T) []byte {
+				bz := []byte{0x0A, 0x00}
+				decoded := &types.Acknowledgement{}
+				require.NoError(t, proto.Unmarshal(bz, decoded))
+				require.Empty(t, decoded.Result)
+
+				return bz
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := types.UnmarshalAcknowledgement(tc.bz, types.Version, types.EncodingJSON)
+			bz := tc.malleate(t)
+
+			_, err := types.UnmarshalAcknowledgement(bz, types.Version, tc.encoding)
 			require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
 		})
 	}
-}
-
-func TestUnmarshalAcknowledgement_NonCanonicalABI(t *testing.T) {
-	ack := &types.Acknowledgement{Result: []byte("result")}
-	bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
-	require.NoError(t, err)
-
-	// Solidity ABI does not encode field names, so trailing data is the ABI analogue of an unknown field.
-	bz = append(bz, make([]byte, 32)...)
-
-	decoded, err := types.DecodeABIAcknowledgement(bz)
-	require.NoError(t, err)
-	require.Equal(t, ack.Result, decoded.Result)
-
-	_, err = types.UnmarshalAcknowledgement(bz, types.Version, types.EncodingABI)
-	require.ErrorIs(t, err, ibcerrors.ErrInvalidType)
 }
