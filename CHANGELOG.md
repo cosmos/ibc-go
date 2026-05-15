@@ -44,6 +44,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/pfm) [\#8933](https://github.com/cosmos/ibc-go/pull/8933) Use `channeltypes.NewErrorAcknowledgement` instead of internal function
+* (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
+
 ### Dependencies
 
 * (light-clients/08-wasm) [\#8922](https://github.com/cosmos/ibc-go/pull/8922) Bump **wasmvm** to **3.0.3**

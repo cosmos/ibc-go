@@ -1,9 +1,14 @@
 package packetforward_test
 
 import (
+	"encoding/hex"
+	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 
 	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
 	packetforwardkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
@@ -195,7 +200,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 
 	err = s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
-	s.Require().Equal("packet-forward-middleware error: error receiving packet: ack error: {\"error\":\"ABCI code: 8: error handling packet: see events for details\"}", expectedAck.GetError())
+	s.Require().Equal("ABCI code: 1: error handling packet: see events for details", expectedAck.GetError())
 
 	s.Require().Equal([]byte(nil), expectedAck.GetResult())
 }
@@ -241,6 +246,17 @@ func (s *PFMTestSuite) TestOnRecvPacket_ForwardNoFee() {
 	s.Require().NoError(err)
 }
 
+func TestGetReceiverUsesAddressCodec(t *testing.T) {
+	channel := "channel-0"
+	originalSender := "original-sender"
+
+	receiver, err := packetforward.GetReceiver(hexAddressCodec{}, channel, originalSender)
+	require.NoError(t, err)
+
+	senderHash32 := sdkaddress.Hash(packetforwardtypes.ModuleName, []byte(fmt.Sprintf("%s/%s", channel, originalSender)))
+	require.Equal(t, hex.EncodeToString(senderHash32[:20]), receiver)
+}
+
 func (s *PFMTestSuite) pktForwardMiddleware(chain *ibctesting.TestChain) *packetforward.IBCMiddleware {
 	pfmKeeper := chain.GetSimApp().PFMKeeper
 
@@ -276,4 +292,14 @@ func (s *PFMTestSuite) transferPacket(sender string, receiver string, path *ibct
 		Data:               tokenData,
 		Sequence:           seq,
 	}
+}
+
+type hexAddressCodec struct{}
+
+func (hexAddressCodec) StringToBytes(text string) ([]byte, error) {
+	return hex.DecodeString(text)
+}
+
+func (hexAddressCodec) BytesToString(bz []byte) (string, error) {
+	return hex.EncodeToString(bz), nil
 }
