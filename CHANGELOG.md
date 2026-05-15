@@ -55,6 +55,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (light-clients/attestation) [\#8947](https://github.com/cosmos/ibc-go/pull/8947) fix(light-clients/attestation): allow initial height to be zero (backport of [\#8910](https://github.com/cosmos/ibc-go/pull/8910))
+
 ### Testing API
 
 ## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
