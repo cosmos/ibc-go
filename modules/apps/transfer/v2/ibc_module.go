@@ -173,6 +173,12 @@ func (im IBCModule) OnAcknowledgementPacket(ctx sdk.Context, sourceChannel strin
 		if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 			return errorsmod.Wrapf(ibcerrors.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 		}
+
+		bz := types.ModuleCdc.MustMarshalJSON(&ack)
+		if !bytes.Equal(bz, acknowledgement) {
+			return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "acknowledgement did not marshal to expected bytes: %X ≠ %X", bz, acknowledgement)
+		}
+
 		if !ack.Success() {
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidRequest, "cannot pass in a custom error acknowledgement with IBC v2")
 		}
