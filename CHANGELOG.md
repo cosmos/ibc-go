@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-gmp) [\#8945](https://github.com/cosmos/ibc-go/pull/8945) imp(apps/27-gmp): add extra validation during unmarshals
 * (apps/pfm) [\#8933](https://github.com/cosmos/ibc-go/pull/8933) Use `channeltypes.NewErrorAcknowledgement` instead of internal function
 * (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
 
