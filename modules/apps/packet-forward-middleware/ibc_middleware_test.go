@@ -200,7 +200,7 @@ func (s *PFMTestSuite) TestOnRecvPacket_RecvPacketFailed() {
 
 	err = s.chainA.Codec.UnmarshalJSON(ack.Acknowledgement(), expectedAck)
 	s.Require().NoError(err)
-	s.Require().Equal("packet-forward-middleware error: error receiving packet: ack error: {\"error\":\"ABCI code: 8: error handling packet: see events for details\"}", expectedAck.GetError())
+	s.Require().Equal("ABCI code: 1: error handling packet: see events for details", expectedAck.GetError())
 
 	s.Require().Equal([]byte(nil), expectedAck.GetResult())
 }

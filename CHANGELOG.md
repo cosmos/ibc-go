@@ -43,7 +43,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
-* (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
+* (apps/pfm) [\#8941](https://github.com/cosmos/ibc-go/pull/8941) Use `channeltypes.NewErrorAcknowledgement` instead of internal function (backport of [\#8933](https://github.com/cosmos/ibc-go/pull/8933))
+* (apps/pfm) [\#8940](https://github.com/cosmos/ibc-go/pull/8940) imp(apps/pfm): use addressCodec in GetReceiver (backport of [\#8932](https://github.com/cosmos/ibc-go/pull/8932))
 
 ### Dependencies
 
