@@ -34,6 +34,24 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Improvements
+
+* (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+### Improvements
+
+### Bug Fixes
+
+### Testing API
+
 ## [v10.6.0](https://github.com/cosmos/ibc-go/releases/tag/v10.6.0) - 2026-04-24
 
 ### Bug Fixes
