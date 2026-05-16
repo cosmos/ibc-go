@@ -42,12 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-<<<<<<< HEAD
 * (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
-=======
 * (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
-* (apps/pfm) [\#8933](https://github.com/cosmos/ibc-go/pull/8933) Use `channeltypes.NewErrorAcknowledgement` instead of internal function
->>>>>>> 82c427fa (imp(transfer): add extra validation to v2 module based on v1 validation (#8939))
 * (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
 
 ### Dependencies
