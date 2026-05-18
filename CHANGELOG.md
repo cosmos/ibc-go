@@ -49,6 +49,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* (light-clients/08-wasm) [\#8950](https://github.com/cosmos/ibc-go/pull/8950) chore(light-clients/08-wasm): bump to wasmvm@v3 (backport of [\#8922](https://github.com/cosmos/ibc-go/pull/8922))
+
 ### API Breaking
 
 ### State Machine Breaking
