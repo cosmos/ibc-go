@@ -63,11 +63,16 @@ func (k *Keeper) UndoSendPacket(ctx sdk.Context, channelOrClientID string, seque
 
 	// If the packet was sent during this quota, decrement the outflow
 	// Otherwise, it can be ignored
-	if k.CheckPacketSentDuringCurrentQuota(ctx, channelOrClientID, sequence) {
+	found, err := k.CheckPacketSentDuringCurrentQuota(ctx, channelOrClientID, sequence)
+	if err != nil {
+		return err
+	}
+
+	if found {
 		rateLimit.Flow.Outflow = rateLimit.Flow.Outflow.Sub(amount)
 		k.SetRateLimit(ctx, rateLimit)
 
-		k.RemovePendingSendPacket(ctx, channelOrClientID, sequence)
+		return k.RemovePendingSendPacket(ctx, channelOrClientID, sequence)
 	}
 
 	return nil

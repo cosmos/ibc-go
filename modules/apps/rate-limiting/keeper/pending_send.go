@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
@@ -14,42 +16,56 @@ import (
 )
 
 // Sets the sequence number of a packet that was just sent
-func (k *Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) {
+func (k *Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) error {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
-	key := types.PendingSendPacketKey(channelID, sequence)
+	key, err := types.PendingSendPacketKey(channelID, sequence)
+	if err != nil {
+		return err
+	}
 	store.Set(key, []byte{1})
+	return nil
 }
 
 // Remove a pending packet sequence number from the store
 // Used after the ack or timeout for a packet has been received
-func (k *Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) {
+func (k *Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) error {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
-	key := types.PendingSendPacketKey(channelID, sequence)
+	key, err := types.PendingSendPacketKey(channelID, sequence)
+	if err != nil {
+		return err
+	}
+
 	store.Delete(key)
+	return nil
 }
 
 // Checks whether the packet sequence number is in the store - indicating that it was
 // sent during the current quota
-func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64) bool {
+func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64) (bool, error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
-	key := types.PendingSendPacketKey(channelID, sequence)
+	key, err := types.PendingSendPacketKey(channelID, sequence)
+	if err != nil {
+		return false, err
+	}
 	valueBz := store.Get(key)
 	found := len(valueBz) != 0
-	return found
+	return found, nil
 }
 
 // Get all pending packet sequence numbers
-func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
+func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []string, err error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := store.Iterator(nil, nil)
-	defer iterator.Close()
+	defer func() {
+		err = errors.Join(err, iterator.Close())
+	}()
 
-	pendingPackets := make([]string, 0)
+	pendingPackets = make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 
@@ -61,22 +77,29 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 		pendingPackets = append(pendingPackets, packetID)
 	}
 
-	return pendingPackets
+	return pendingPackets, nil
 }
 
 // Remove all pending sequence numbers from the store
 // This is executed when the quota resets
-func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) {
+func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) (err error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
+
+	if len(channelID) > types.PendingSendPacketChannelLength {
+		return errorsmod.Wrapf(types.ErrInvalidChannelID, "channel %s with length %d is greater than the allowed length %d", channelID, len(channelID), types.PendingSendPacketChannelLength)
+	}
 
 	channelIDBz := make([]byte, types.PendingSendPacketChannelLength)
 	copy(channelIDBz, channelID)
 
 	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
-	defer iterator.Close()
+	defer func() {
+		err = errors.Join(iterator.Close())
+	}()
 
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
 	}
+	return nil
 }
