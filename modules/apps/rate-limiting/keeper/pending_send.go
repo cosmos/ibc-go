@@ -65,6 +65,7 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []str
 		err = errors.Join(err, iterator.Close())
 	}()
 
+	pendingPackets = make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 
