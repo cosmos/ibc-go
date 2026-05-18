@@ -143,10 +143,13 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 			for _, k := range readAllKeys(prefixStore) {
 				s.Require().Len(k, newKeyLen, "every post-migration key must be in the new layout")
 			}
+
+			pendingSendPackets, err := rlKeeper.GetAllPendingSendPackets(ctx)
+			s.Require().NoError(err)
 			if tc.expectAll == nil {
-				s.Require().Empty(rlKeeper.GetAllPendingSendPackets(ctx))
+				s.Require().Empty(pendingSendPackets)
 			} else {
-				s.Require().ElementsMatch(tc.expectAll, rlKeeper.GetAllPendingSendPackets(ctx))
+				s.Require().ElementsMatch(tc.expectAll, pendingSendPackets)
 			}
 		})
 	}

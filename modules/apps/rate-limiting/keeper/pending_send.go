@@ -55,14 +55,13 @@ func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID st
 }
 
 // Get all pending packet sequence numbers
-func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
+func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := store.Iterator(nil, nil)
-	defer iterator.Close()
-
 	pendingPackets := make([]string, 0)
+
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 
@@ -74,7 +73,10 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) []string {
 		pendingPackets = append(pendingPackets, packetID)
 	}
 
-	return pendingPackets
+	if err := iterator.Close(); err != nil {
+		return nil, err
+	}
+	return pendingPackets, nil
 }
 
 // Remove all pending sequence numbers from the store

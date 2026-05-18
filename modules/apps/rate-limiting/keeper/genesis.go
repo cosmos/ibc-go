@@ -57,11 +57,16 @@ func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	pendingSendPackets, err := k.GetAllPendingSendPackets(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
 		RateLimits:                       rateLimits,
 		BlacklistedDenoms:                k.GetAllBlacklistedDenoms(ctx),
 		WhitelistedAddressPairs:          k.GetAllWhitelistedAddressPairs(ctx),
-		PendingSendPacketSequenceNumbers: k.GetAllPendingSendPackets(ctx),
+		PendingSendPacketSequenceNumbers: pendingSendPackets,
 		HourEpoch:                        hourEpoch,
 	}
 }

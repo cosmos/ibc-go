@@ -23,13 +23,14 @@ func (s *KeeperTestSuite) TestPendingSendPacketPrefix() {
 	}
 
 	// Check lookup of all sequence numbers
-	actualSendPackets := s.chainA.GetSimApp().RateLimitKeeper.GetAllPendingSendPackets(s.chainA.GetContext())
+	actualSendPackets, err := s.chainA.GetSimApp().RateLimitKeeper.GetAllPendingSendPackets(s.chainA.GetContext())
+	s.Require().NoError(err, "unexpected error getting pending send packets")
 	s.Require().Equal(sendPackets, actualSendPackets, "all send packets")
 
 	// Remove 0 sequence numbers and all sequence numbers from channel-0
 	s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), "channel-1", 0)
 	s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), "channel-11", 0)
-	err := s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), "channel-1")
+	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), "channel-1")
 	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", channelID)
 
 	// Check that only the remaining sequences are found
