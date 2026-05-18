@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -55,12 +56,14 @@ func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID st
 }
 
 // Get all pending packet sequence numbers
-func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
+func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []string, err error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := store.Iterator(nil, nil)
-	pendingPackets := make([]string, 0)
+	defer func() {
+		err = errors.Join(err, iterator.Close())
+	}()
 
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
@@ -73,9 +76,6 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 		pendingPackets = append(pendingPackets, packetID)
 	}
 
-	if err := iterator.Close(); err != nil {
-		return nil, err
-	}
 	return pendingPackets, nil
 }
 
