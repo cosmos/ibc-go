@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 * (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
+* (apps/transfer) [\#8949](https://github.com/cosmos/ibc-go/pull/8949) Add extra validation to the v2 transfer module based on v1 validation. (backport of [\#8939](https://github.com/cosmos/ibc-go/pull/8939))
 * (apps/pfm) [\#8941](https://github.com/cosmos/ibc-go/pull/8941) Use `channeltypes.NewErrorAcknowledgement` instead of internal function (backport of [\#8933](https://github.com/cosmos/ibc-go/pull/8933))
 * (apps/pfm) [\#8940](https://github.com/cosmos/ibc-go/pull/8940) imp(apps/pfm): use addressCodec in GetReceiver (backport of [\#8932](https://github.com/cosmos/ibc-go/pull/8932))
 
@@ -57,6 +58,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Improvements
 
 ### Bug Fixes
+
+* (light-clients/attestation) [\#8947](https://github.com/cosmos/ibc-go/pull/8947) fix(light-clients/attestation): allow initial height to be zero (backport of [\#8910](https://github.com/cosmos/ibc-go/pull/8910))
 
 ### Testing API
 
