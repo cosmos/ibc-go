@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 
@@ -110,6 +111,14 @@ func UnmarshalPacketData(bz []byte, ics27Version string, encoding string) (*GMPP
 		}
 	default:
 		return nil, errorsmod.Wrapf(ErrInvalidEncoding, "invalid encoding provided, must be either empty or one of [%q, %q, %q], got %s", EncodingJSON, EncodingProtobuf, EncodingABI, encoding)
+	}
+
+	reserializedBz, err := MarshalPacketData(data, ics27Version, encoding)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(reserializedBz, bz) {
+		return nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "packet data did not marshal to expected bytes: %X != %X", reserializedBz, bz)
 	}
 
 	return data, nil
