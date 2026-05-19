@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+* (apps/27-gmp) [\#8945](https://github.com/cosmos/ibc-go/pull/8945) imp(apps/27-gmp): add extra validation during unmarshals
 * (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
 
 ### Dependencies
