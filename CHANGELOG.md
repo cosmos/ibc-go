@@ -38,21 +38,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* (apps/pfm) [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+* (apps/pfm) [\#8285](https://github.com/cosmos/ibc-go/pull/8285) feat: packet forward middleware.
 
 ### Improvements
 
-<<<<<<< HEAD
+* (apps/27-gmp) [\#8953](https://github.com/cosmos/ibc-go/pull/8953) imp(apps/27-gmp): add extra validation during unmarshals (backport of [\#8945](https://github.com/cosmos/ibc-go/pull/8945))
 * (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
 * (apps/transfer) [\#8949](https://github.com/cosmos/ibc-go/pull/8949) Add extra validation to the v2 transfer module based on v1 validation. (backport of [\#8939](https://github.com/cosmos/ibc-go/pull/8939))
 * (apps/pfm) [\#8941](https://github.com/cosmos/ibc-go/pull/8941) Use `channeltypes.NewErrorAcknowledgement` instead of internal function (backport of [\#8933](https://github.com/cosmos/ibc-go/pull/8933))
 * (apps/pfm) [\#8940](https://github.com/cosmos/ibc-go/pull/8940) imp(apps/pfm): use addressCodec in GetReceiver (backport of [\#8932](https://github.com/cosmos/ibc-go/pull/8932))
-=======
-* (apps/27-gmp) [\#8945](https://github.com/cosmos/ibc-go/pull/8945) imp(apps/27-gmp): add extra validation during unmarshals
-* (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
-* (apps/pfm) [\#8933](https://github.com/cosmos/ibc-go/pull/8933) Use `channeltypes.NewErrorAcknowledgement` instead of internal function
-* (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
->>>>>>> 00580a72 (imp(apps/27-gmp): add extra validation during unmarshals (#8945))
 
 ### Dependencies
 
