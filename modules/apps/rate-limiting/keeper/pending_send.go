@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
@@ -56,6 +57,8 @@ func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID st
 }
 
 // Get all pending packet sequence numbers
+//
+//nolint:nonamedreturns // named err is needed so deferred iterator.Close errors are included in the returned error.
 func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []string, err error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
@@ -82,6 +85,8 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []str
 
 // Remove all pending sequence numbers from the store
 // This is executed when the quota resets
+//
+//nolint:nonamedreturns // named err is needed so deferred iterator.Close errors are included in the returned error.
 func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) (err error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)

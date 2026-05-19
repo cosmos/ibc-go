@@ -30,7 +30,8 @@ func (s *KeeperTestSuite) TestPendingSendPacketPrefix() {
 
 	// Remove 0 sequence numbers and all sequence numbers from channel-0 + 07-tendermint-1005
 	for _, channelID := range channels {
-		s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 0)
+		err := s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 0)
+		s.Require().NoError(err, "unexpected error removing pending send packet - channel %s, sequence %d", channelID, 0)
 	}
 	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), "channel-1")
 	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", "channel-1")
