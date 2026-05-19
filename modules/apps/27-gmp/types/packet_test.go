@@ -164,6 +164,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: JSON duplicate key",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"sender":"cosmos1sender","sender":"cosmos1attacker","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`)
 			},
 		},
@@ -171,6 +173,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: JSON unknown field",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"sender":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo","unknown_field":"x"}`)
 			},
 		},
@@ -178,6 +182,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: JSON case-insensitive field",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"SENDER":"cosmos1sender","receiver":"cosmos1receiver","salt":"c2FsdA==","payload":"cGF5bG9hZA==","memo":"memo"}`)
 			},
 		},
@@ -185,6 +191,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: ABI trailing data",
 			types.EncodingABI,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
 				require.NoError(t, err)
 				bz = append(bz, make([]byte, 32)...)
@@ -200,6 +208,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: ABI non-zero padding",
 			types.EncodingABI,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz, err := types.MarshalPacketData(packetData, types.Version, types.EncodingABI)
 				require.NoError(t, err)
 				bz[len(bz)-1] = 1
@@ -215,6 +225,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: protobuf duplicate field",
 			types.EncodingProtobuf,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz := []byte("\x0A\x0Dcosmos1sender\x0A\x0Fcosmos1attacker\x12\x0Fcosmos1receiver\x1A\x04salt\x22\x07payload\x2A\x04memo")
 				decoded := &types.GMPPacketData{}
 				require.NoError(t, proto.Unmarshal(bz, decoded))
@@ -228,6 +240,8 @@ func TestUnmarshalPacketData_NonCanonical(t *testing.T) {
 			"failure: protobuf reordered fields",
 			types.EncodingProtobuf,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz := []byte("\x2A\x04memo\x22\x07payload\x1A\x04salt\x12\x0Fcosmos1receiver\x0A\x0Dcosmos1sender")
 				decoded := &types.GMPPacketData{}
 				require.NoError(t, proto.Unmarshal(bz, decoded))

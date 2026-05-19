@@ -109,6 +109,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: JSON duplicate key",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"result":"AAEC","result":"/+7d"}`)
 			},
 		},
@@ -116,6 +118,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: JSON unknown field",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"result":"AAEC","unknown_field":"x"}`)
 			},
 		},
@@ -123,6 +127,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: JSON case-insensitive field",
 			types.EncodingJSON,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				return []byte(`{"RESULT":"AAEC"}`)
 			},
 		},
@@ -130,6 +136,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: ABI trailing data",
 			types.EncodingABI,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
 				require.NoError(t, err)
 				bz = append(bz, make([]byte, 32)...)
@@ -145,6 +153,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: ABI non-zero padding",
 			types.EncodingABI,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz, err := types.MarshalAcknowledgement(ack, types.Version, types.EncodingABI)
 				require.NoError(t, err)
 				bz[len(bz)-1] = 1
@@ -160,6 +170,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: protobuf duplicate field",
 			types.EncodingProtobuf,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz := []byte{0x0A, 0x03, 0x00, 0x01, 0x02, 0x0A, 0x03, 0xFF, 0xEE, 0xDD}
 				decoded := &types.Acknowledgement{}
 				require.NoError(t, proto.Unmarshal(bz, decoded))
@@ -172,6 +184,8 @@ func TestUnmarshalAcknowledgement_NonCanonical(t *testing.T) {
 			"failure: protobuf explicit empty result",
 			types.EncodingProtobuf,
 			func(t *testing.T) []byte {
+				t.Helper()
+
 				bz := []byte{0x0A, 0x00}
 				decoded := &types.Acknowledgement{}
 				require.NoError(t, proto.Unmarshal(bz, decoded))
