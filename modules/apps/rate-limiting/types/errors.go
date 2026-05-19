@@ -16,4 +16,5 @@ var (
 	ErrEpochNotFound          = errorsmod.Register(ModuleName, 9, "hour epoch not found in store")
 	ErrUnmarshalEpoch         = errorsmod.Register(ModuleName, 10, "could not unmarshal epochBz")
 	ErrInvalidEpoce           = errorsmod.Register(ModuleName, 11, "invalid hour epoch")
+	ErrInvalidChannelID       = errorsmod.Register(ModuleName, 12, "invalid channel")
 )

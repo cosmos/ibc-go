@@ -27,7 +27,9 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		if err != nil {
 			panic(err.Error())
 		}
-		k.SetPendingSendPacket(ctx, channelOrClientID, sequence)
+		if err := k.SetPendingSendPacket(ctx, channelOrClientID, sequence); err != nil {
+			panic(err)
+		}
 	}
 
 	// If the hour epoch has been initialized already (epoch number != 0), validate and then use it
@@ -55,11 +57,16 @@ func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	pendingSendPackets, err := k.GetAllPendingSendPackets(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
 		RateLimits:                       rateLimits,
 		BlacklistedDenoms:                k.GetAllBlacklistedDenoms(ctx),
 		WhitelistedAddressPairs:          k.GetAllWhitelistedAddressPairs(ctx),
-		PendingSendPacketSequenceNumbers: k.GetAllPendingSendPackets(ctx),
+		PendingSendPacketSequenceNumbers: pendingSendPackets,
 		HourEpoch:                        hourEpoch,
 	}
 }
