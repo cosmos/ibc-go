@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
 ### Features
 
@@ -52,17 +52,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (light-clients/08-wasm) [\#8950](https://github.com/cosmos/ibc-go/pull/8950) chore(light-clients/08-wasm): bump to wasmvm@v3 (backport of [\#8922](https://github.com/cosmos/ibc-go/pull/8922))
 
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
-
 ### Bug Fixes
 
 * (light-clients/attestation) [\#8947](https://github.com/cosmos/ibc-go/pull/8947) fix(light-clients/attestation): allow initial height to be zero (backport of [\#8910](https://github.com/cosmos/ibc-go/pull/8910))
-
-### Testing API
 
 ## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
 
