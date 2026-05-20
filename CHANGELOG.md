@@ -34,21 +34,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [v10.7.0](https://github.com/cosmos/ibc-go/releases/tag/v10.6.0) - 2026-05-20
 
 ### Improvements
 
-* (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-### Improvements
+* (apps/transfer) [\#8948](https://github.com/cosmos/ibc-go/pull/8948) Add extra validation to the v2 transfer module based on v1 validation. (backport of [\#8939](https://github.com/cosmos/ibc-go/pull/8939))
 
 ### Bug Fixes
+
+* (channel/v2) [\#8954](https://github.com/cosmos/ibc-go/pull/8954) fix(channel/v2): parse binary store keys in PacketCommitments and PacketAcknowledgements queries (backport of [\#8778](https://github.com/cosmos/ibc-go/pull/8778))
 
 ### Testing API
 

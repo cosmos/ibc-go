@@ -207,6 +207,95 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 }
 
+// TestQueryPacketCommitmentsWithSlashByteSequences verifies that the
+// PacketCommitments pagination query correctly handles sequence numbers whose
+// big-endian encoding contains the byte 0x2F (ASCII "/"). Before the fix, the
+// query handler used strings.Split(string(key), "/") to parse the binary store
+// key, which corrupted any sequence containing 0x2F, causing ErrInvalidPacket.
+//
+// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+func (suite *KeeperTestSuite) TestQueryPacketCommitmentsWithSlashByteSequences() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupV2()
+
+	// Sequences whose big-endian encoding contains the byte 0x2F ("/"):
+	//   47        = 0x000000000000002F  (last byte is 0x2F)
+	//   12079     = 0x0000000000002F2F  (two 0x2F bytes)
+	//   3_091_247 = 0x00000000002F2F2F  (three 0x2F bytes)
+	//   256       = 0x0000000000000100  (control: no 0x2F byte)
+	sequences := []uint64{1, 47, 100, 256, 12079, 3_091_247}
+	expCommitments := make([]*types.PacketState, 0, len(sequences))
+
+	for _, seq := range sequences {
+		commitment := types.NewPacketState(path.EndpointA.ClientID, seq, fmt.Appendf(nil, "hash_%d", seq))
+		suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketCommitment(suite.chainA.GetContext(), commitment.ClientId, commitment.Sequence, commitment.Data)
+		expCommitments = append(expCommitments, &commitment)
+	}
+
+	req := &types.QueryPacketCommitmentsRequest{
+		ClientId: path.EndpointA.ClientID,
+		Pagination: &query.PageRequest{
+			Limit:      100,
+			CountTotal: true,
+		},
+	}
+
+	queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+	res, err := queryServer.PacketCommitments(suite.chainA.GetContext(), req)
+
+	suite.Require().NoError(err, "PacketCommitments query must not fail for sequences containing 0x2F bytes")
+	suite.Require().NotNil(res)
+	suite.Require().Len(res.Commitments, len(sequences))
+
+	for i, ps := range res.Commitments {
+		suite.Require().Equal(sequences[i], ps.Sequence, "sequence %d must be correct", ps.Sequence)
+		expCommitment := expCommitments[i]
+		suite.Require().Equal(expCommitment.Sequence, ps.Sequence, "sequence %d must have correct sequence", ps.Sequence)
+		suite.Require().Equal(expCommitment.ClientId, ps.ClientId, "sequence %d must have correct client ID", ps.Sequence)
+		suite.Require().Equal(expCommitment.Data, ps.Data, "sequence %d must have correct data", ps.Sequence)
+	}
+}
+
+// TestQueryPacketAcknowledgementsWithSlashByteSequences verifies the same fix
+// for the PacketAcknowledgements pagination query.
+//
+// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+func (suite *KeeperTestSuite) TestQueryPacketAcknowledgementsWithSlashByteSequences() {
+	path := ibctesting.NewPath(suite.chainA, suite.chainB)
+	path.SetupV2()
+
+	sequences := []uint64{1, 47, 100, 256, 12079, 3_091_247}
+	expAcks := make([]*types.PacketState, 0, len(sequences))
+
+	for _, seq := range sequences {
+		ack := types.NewPacketState(path.EndpointA.ClientID, seq, fmt.Appendf(nil, "ack_%d", seq))
+		suite.chainA.App.GetIBCKeeper().ChannelKeeperV2.SetPacketAcknowledgement(suite.chainA.GetContext(), ack.ClientId, ack.Sequence, ack.Data)
+		expAcks = append(expAcks, &ack)
+	}
+
+	req := &types.QueryPacketAcknowledgementsRequest{
+		ClientId: path.EndpointA.ClientID,
+		Pagination: &query.PageRequest{
+			Limit:      100,
+			CountTotal: true,
+		},
+	}
+
+	queryServer := keeper.NewQueryServer(suite.chainA.GetSimApp().IBCKeeper.ChannelKeeperV2)
+	res, err := queryServer.PacketAcknowledgements(suite.chainA.GetContext(), req)
+
+	suite.Require().NoError(err, "PacketAcknowledgements query must not fail for sequences containing 0x2F bytes")
+	suite.Require().NotNil(res)
+	suite.Require().Len(res.Acknowledgements, len(sequences))
+
+	for i, ps := range res.Acknowledgements {
+		expAck := expAcks[i]
+		suite.Require().Equal(expAck.Sequence, ps.Sequence, "sequence %d must have correct sequence", ps.Sequence)
+		suite.Require().Equal(expAck.ClientId, ps.ClientId, "sequence %d must have correct client ID", ps.Sequence)
+		suite.Require().Equal(expAck.Data, ps.Data, "sequence %d must have correct data", ps.Sequence)
+	}
+}
+
 func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	var (
 		expAcknowledgement []byte
