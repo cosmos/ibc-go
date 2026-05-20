@@ -207,9 +207,6 @@ func (suite *KeeperTestSuite) TestQueryPacketCommitments() {
 	}
 }
 
-<<<<<<< HEAD
-func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
-=======
 // TestQueryPacketCommitmentsWithSlashByteSequences verifies that the
 // PacketCommitments pagination query correctly handles sequence numbers whose
 // big-endian encoding contains the byte 0x2F (ASCII "/"). Before the fix, the
@@ -299,8 +296,7 @@ func (s *KeeperTestSuite) TestQueryPacketAcknowledgementsWithSlashByteSequences(
 	}
 }
 
-func (s *KeeperTestSuite) TestQueryPacketAcknowledgement() {
->>>>>>> 61d64151 (fix(channel/v2): parse binary store keys in PacketCommitments and PacketAcknowledgements queries (#8778))
+func (suite *KeeperTestSuite) TestQueryPacketAcknowledgement() {
 	var (
 		expAcknowledgement []byte
 		path               *ibctesting.Path
