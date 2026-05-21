@@ -112,6 +112,7 @@ Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently acti
 
 | Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|--------|------------|---------------------|
+| 1.23 | v10.1 | v0.50  | v0.38 |
 | 1.23 | v10.7 | v0.53  | v0.38 |
 | 1.25 | v11.1 | v0.54 | v0.39 |
 
@@ -125,7 +126,8 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 
 | Go | 08-wasm | ibc-go | Cosmos SDK | Tendermint/CometBFT |
 |----|-----------|--------|------------|---------------------|
-| 1.23 | v10.7 | v10.7 | v0.53 | v0.38 |
+| 1.23 | v10.1 | v10.1 | v0.50 | v0.38 |
+| 1.23 | v10.5 | v10.5 | v0.53 | v0.38 |
 | 1.25 | v11.1 | v11.1 | v0.54 | v0.39 |
 
 ## Graphics
