@@ -53,8 +53,8 @@ jobs:
             test: TestV8ToV10ChainUpgrade_Localhost
           },
           {
-            tag: v10.5.0,
-            upgrade-plan: v11,
+            tag: v10.7.0,
+            upgrade-plan: v11.1,
             test: TestV10ToV11ChainUpgrade
           },
         ]
