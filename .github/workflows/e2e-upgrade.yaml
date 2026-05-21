@@ -54,7 +54,7 @@ jobs:
           },
           {
             tag: v10.7.0,
-            upgrade-plan: v11_1,
+            upgrade-plan: v11.1,
             test: TestV10ToV11ChainUpgrade
           },
         ]
