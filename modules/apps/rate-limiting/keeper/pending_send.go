@@ -79,7 +79,7 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 
 // Remove all pending sequence numbers from the store
 // This is executed when the quota resets
-func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) (err error) {
+func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) error {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
@@ -91,12 +91,8 @@ func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID s
 	copy(channelIDBz, channelID)
 
 	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
-	defer func() {
-		err = errors.Join(iterator.Close())
-	}()
-
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
 	}
-	return nil
+	return iterator.Close()
 }
