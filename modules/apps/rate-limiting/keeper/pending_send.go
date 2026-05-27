@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
@@ -56,16 +56,13 @@ func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID st
 }
 
 // Get all pending packet sequence numbers
-func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []string, err error) {
+func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
 	iterator := store.Iterator(nil, nil)
-	defer func() {
-		err = errors.Join(err, iterator.Close())
-	}()
 
-	pendingPackets = make([]string, 0)
+	pendingPackets := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
 
@@ -77,12 +74,12 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) (pendingPackets []str
 		pendingPackets = append(pendingPackets, packetID)
 	}
 
-	return pendingPackets, nil
+	return pendingPackets, iterator.Close()
 }
 
 // Remove all pending sequence numbers from the store
 // This is executed when the quota resets
-func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) (err error) {
+func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) error {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, types.PendingSendPacketPrefix)
 
@@ -94,12 +91,8 @@ func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID s
 	copy(channelIDBz, channelID)
 
 	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
-	defer func() {
-		err = errors.Join(iterator.Close())
-	}()
-
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
 	}
-	return nil
+	return iterator.Close()
 }
