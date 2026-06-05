@@ -107,8 +107,18 @@ func (im *IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCh
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
-// It calls the underlying ICS4Wrapper.
+// If a middleware (e.g. PFM) is writing an error ack for a packet that was
+// previously received with a nil (async) ack, the inflow from OnRecvPacket
+// was already committed. Reverse it now.
 func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
+	if !ack.Success() {
+		if chanPacket, ok := packet.(channeltypes.Packet); ok {
+			if err := im.keeper.UndoReceivePacket(ctx, chanPacket); err != nil {
+				return err
+			}
+		}
+	}
+
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 

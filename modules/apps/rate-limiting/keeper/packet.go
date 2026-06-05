@@ -266,3 +266,30 @@ func (k *Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 
 	return k.UndoSendPacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom, packetInfo.Amount)
 }
+
+// UndoReceivePacket reverses the inflow increment from a receive that was later
+// invalidated, for example when PFM writes an async error acknowledgement for a
+// failed forward.
+func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) error {
+	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
+	if err != nil {
+		return err
+	}
+
+	rateLimit, found := k.GetRateLimit(ctx, packetInfo.Denom, packetInfo.ChannelID)
+	if !found {
+		return nil
+	}
+
+	// Clamp to zero: if an epoch reset already cleared the inflow,
+	// the decrement would go negative. This is safe to ignore.
+	newInflow := rateLimit.Flow.Inflow.Sub(packetInfo.Amount)
+	if newInflow.IsNegative() {
+		newInflow = sdkmath.ZeroInt()
+	}
+
+	rateLimit.Flow.Inflow = newInflow
+	k.SetRateLimit(ctx, rateLimit)
+
+	return nil
+}
