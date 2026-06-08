@@ -529,48 +529,112 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 func (s *KeeperTestSuite) TestUndoReceivePacket() {
 	packetAmount := sdkmath.NewInt(10)
 	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, channelOnStride, uosmo))
-
-	packetData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: packetAmount.String()})
-	s.Require().NoError(err)
-
-	packet := channeltypes.Packet{
-		SourcePort:         transferPort,
-		SourceChannel:      channelOnHost,
-		DestinationPort:    transferPort,
-		DestinationChannel: channelOnStride,
-		Data:               packetData,
-	}
+	var (
+		initialInflow sdkmath.Int
+		setRateLimit  bool
+		packetData    []byte
+	)
 
 	testCases := []struct {
-		name           string
-		initialInflow  sdkmath.Int
-		expectedInflow sdkmath.Int
+		name                 string
+		malleate             func()
+		expErr               error
+		expErrContains       string
+		expRateLimitFound    bool
+		expectedInflowAmount sdkmath.Int
 	}{
 		{
-			name:           "decrement inflow",
-			initialInflow:  sdkmath.NewInt(100),
-			expectedInflow: sdkmath.NewInt(90),
+			name: "success: decrement inflow",
+			malleate: func() {
+			},
+			expRateLimitFound:    true,
+			expectedInflowAmount: sdkmath.NewInt(90),
 		},
 		{
-			name:           "clamp negative inflow to zero",
-			initialInflow:  sdkmath.NewInt(5),
-			expectedInflow: sdkmath.ZeroInt(),
+			name: "success: clamp negative inflow to zero",
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(5)
+			},
+			expRateLimitFound:    true,
+			expectedInflowAmount: sdkmath.ZeroInt(),
+		},
+		{
+			name: "success: no existing rate limit",
+			malleate: func() {
+				setRateLimit = false
+			},
+			expRateLimitFound: false,
+		},
+		{
+			name: "failure: packet data cannot be parsed",
+			malleate: func() {
+				packetData = []byte("invalid packet data")
+			},
+			expErrContains:       "invalid character",
+			expRateLimitFound:    true,
+			expectedInflowAmount: sdkmath.NewInt(100),
+		},
+		{
+			name: "failure: packet amount cannot be parsed",
+			malleate: func() {
+				var err error
+				packetData, err = json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: "invalid"})
+				s.Require().NoError(err)
+			},
+			expErr:               sdkerrors.ErrInvalidRequest,
+			expErrContains:       "Unable to cast packet amount",
+			expRateLimitFound:    true,
+			expectedInflowAmount: sdkmath.NewInt(100),
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
-				Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
-				Flow: &types.Flow{Inflow: tc.initialInflow},
-			})
+			initialInflow = sdkmath.NewInt(100)
+			setRateLimit = true
 
-			err = s.chainA.GetSimApp().RateLimitKeeper.UndoReceivePacket(s.chainA.GetContext(), packet)
+			var err error
+			packetData, err = json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: packetAmount.String()})
 			s.Require().NoError(err)
 
+			if tc.malleate != nil {
+				tc.malleate()
+			}
+
+			s.chainA.GetSimApp().RateLimitKeeper.RemoveRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
+			if setRateLimit {
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+			}
+
+			packet := channeltypes.Packet{
+				SourcePort:         transferPort,
+				SourceChannel:      channelOnHost,
+				DestinationPort:    transferPort,
+				DestinationChannel: channelOnStride,
+				Data:               packetData,
+			}
+
+			err = s.chainA.GetSimApp().RateLimitKeeper.UndoReceivePacket(s.chainA.GetContext(), packet)
+			if tc.expErr == nil && tc.expErrContains == "" {
+				s.Require().NoError(err)
+			} else {
+				s.Require().Error(err)
+				if tc.expErr != nil {
+					s.Require().ErrorIs(err, tc.expErr)
+				}
+				if tc.expErrContains != "" {
+					s.Require().ErrorContains(err, tc.expErrContains)
+				}
+			}
+
 			rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
-			s.Require().True(found)
-			s.Require().Equal(tc.expectedInflow, rateLimit.Flow.Inflow)
+			s.Require().Equal(tc.expRateLimitFound, found)
+			if found {
+				s.Require().Equal(tc.expectedInflowAmount, rateLimit.Flow.Inflow)
+			}
 		})
 	}
 }
