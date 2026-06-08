@@ -2,10 +2,12 @@ package v2
 
 import (
 	"encoding/json"
+	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
@@ -14,16 +16,29 @@ import (
 )
 
 var _ api.IBCModule = (*IBCMiddleware)(nil)
+var _ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
 
 type IBCMiddleware struct {
-	app    api.IBCModule
-	keeper keeper.Keeper
+	app             api.IBCModule
+	keeper          keeper.Keeper
+	writeAckWrapper api.WriteAcknowledgementWrapper
+	chanKeeperV2    ratelimitingtypes.ChannelKeeperV2
 }
 
-func NewIBCMiddleware(k keeper.Keeper, app api.IBCModule) IBCMiddleware {
+func NewIBCMiddleware(k keeper.Keeper, app api.IBCModule, writeAckWrapper api.WriteAcknowledgementWrapper, chanKeeperV2 ratelimitingtypes.ChannelKeeperV2) IBCMiddleware {
+	if writeAckWrapper == nil {
+		panic(errors.New("write acknowledgement wrapper cannot be nil"))
+	}
+
+	if chanKeeperV2 == nil {
+		panic(errors.New("channel keeper v2 cannot be nil"))
+	}
+
 	return IBCMiddleware{
-		app:    app,
-		keeper: k,
+		app:             app,
+		keeper:          k,
+		writeAckWrapper: writeAckWrapper,
+		chanKeeperV2:    chanKeeperV2,
 	}
 }
 
@@ -87,6 +102,25 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, sourceClient st
 		return err
 	}
 	return im.app.OnAcknowledgementPacket(ctx, sourceClient, destinationClient, sequence, acknowledgement, payload, relayer)
+}
+
+func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ack channeltypesv2.Acknowledgement) error {
+	if im.chanKeeperV2 != nil && len(ack.AppAcknowledgements) > 0 && !ack.Success() {
+		packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
+		if found && len(packet.Payloads) > 0 {
+			v1Packet, err := v2ToV1Packet(packet.Payloads[0], packet.SourceClient, packet.DestinationClient, packet.Sequence)
+			if err != nil {
+				im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to convert v2 packet to v1 packet", "error", err)
+				return err
+			}
+			if err := im.keeper.UndoReceivePacket(ctx, v1Packet); err != nil {
+				im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to undo receive packet", "error", err)
+				return err
+			}
+		}
+	}
+
+	return im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
 }
 
 // TODO: Something looks off about this, please review carefully
