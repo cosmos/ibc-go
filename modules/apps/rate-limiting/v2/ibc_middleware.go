@@ -105,9 +105,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, sourceClient st
 }
 
 func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ack channeltypesv2.Acknowledgement) error {
-	if im.chanKeeperV2 != nil && len(ack.AppAcknowledgements) > 0 && !ack.Success() {
+	// NOTE: async acknowledgements can only be for single payload packets
+	if len(ack.AppAcknowledgements) == 1 && !ack.Success() {
 		packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
-		if found && len(packet.Payloads) > 0 {
+		if found && len(packet.Payloads) == 1 {
 			v1Packet, err := v2ToV1Packet(packet.Payloads[0], packet.SourceClient, packet.DestinationClient, packet.Sequence)
 			if err != nil {
 				im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to convert v2 packet to v1 packet", "error", err)
