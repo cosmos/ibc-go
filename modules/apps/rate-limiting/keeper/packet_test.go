@@ -526,6 +526,55 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should not have changed")
 }
 
+func (s *KeeperTestSuite) TestUndoReceivePacket() {
+	packetAmount := sdkmath.NewInt(10)
+	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, channelOnStride, uosmo))
+
+	packetData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: packetAmount.String()})
+	s.Require().NoError(err)
+
+	packet := channeltypes.Packet{
+		SourcePort:         transferPort,
+		SourceChannel:      channelOnHost,
+		DestinationPort:    transferPort,
+		DestinationChannel: channelOnStride,
+		Data:               packetData,
+	}
+
+	testCases := []struct {
+		name           string
+		initialInflow  sdkmath.Int
+		expectedInflow sdkmath.Int
+	}{
+		{
+			name:           "decrement inflow",
+			initialInflow:  sdkmath.NewInt(100),
+			expectedInflow: sdkmath.NewInt(90),
+		},
+		{
+			name:           "clamp negative inflow to zero",
+			initialInflow:  sdkmath.NewInt(5),
+			expectedInflow: sdkmath.ZeroInt(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+				Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+				Flow: &types.Flow{Inflow: tc.initialInflow},
+			})
+
+			err = s.chainA.GetSimApp().RateLimitKeeper.UndoReceivePacket(s.chainA.GetContext(), packet)
+			s.Require().NoError(err)
+
+			rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
+			s.Require().True(found)
+			s.Require().Equal(tc.expectedInflow, rateLimit.Flow.Inflow)
+		})
+	}
+}
+
 // --- Middleware Tests ---
 
 // TestOnRecvPacket_Allowed tests the middleware's OnRecvPacket when the packet is allowed
