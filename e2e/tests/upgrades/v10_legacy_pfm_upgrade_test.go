@@ -133,14 +133,12 @@ func (s *LegacyV10IBCAppsUpgradeTestSuite) UpgradeChain(ctx context.Context, cha
 	s.Require().NoError(err, "error populating query paths after upgrade")
 }
 
-func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) uint64 {
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) {
 	proposalID := s.nextGovV1ProposalID(ctx, chain)
 	s.submitGovV1Proposal(ctx, chain, proposer, proposal, proposalID)
 
 	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes))
 	s.waitForGovV1ProposalToPass(ctx, chain, proposalID)
-
-	return proposalID
 }
 
 func (s *LegacyV10IBCAppsUpgradeTestSuite) submitGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1, proposalID uint64) {

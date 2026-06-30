@@ -96,7 +96,8 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 	chains := s.GetAllChains()
 	chainA := chains[0]
 	chainB := chains[1]
-	cosmosChainB := chainB.(*cosmos.CosmosChain)
+	cosmosChainB, ok := chainB.(*cosmos.CosmosChain)
+	s.Require().True(ok)
 
 	relayer := s.GetRelayerForTest(testName)
 	s.CreatePath(ctx, relayer, chainB, chainA, ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
