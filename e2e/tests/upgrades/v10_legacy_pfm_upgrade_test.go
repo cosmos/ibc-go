@@ -32,11 +32,11 @@ import (
 
 const (
 	legacyV10IBCAppsImageTag        = "compat-v10-with-legacy-ibc-apps"
-	legacyV10IBCAppsUpgradePlanName = "v11.1-legacy-ibc-apps"
+	legacyV10IBCAppsUpgradePlanName = "v11.2-legacy-ibc-apps"
 )
 
 // TestV10LegacyPFMUpgradeTestSuite upgrades a legacy v10 ibc-apps fixture chain to the current target image.
-// It is intended for main/v11.1+ targets that include the v11.1-legacy-ibc-apps upgrade handler.
+// It is intended for main/v11.2+ targets that include the v11.2-legacy-ibc-apps upgrade handler.
 func TestV10LegacyPFMUpgradeTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(V10LegacyPFMUpgradeTestSuite))
 }

@@ -27,7 +27,7 @@ import (
 )
 
 // TestV10LegacyRateLimitUpgradeTestSuite upgrades a legacy v10 ibc-apps rate-limit fixture chain to the current target image.
-// It is intended for main/v11.1+ targets that include the v11.1-legacy-ibc-apps upgrade handler.
+// It is intended for main/v11.2+ targets that include the v11.2-legacy-ibc-apps upgrade handler.
 func TestV10LegacyRateLimitUpgradeTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(V10LegacyRateLimitUpgradeTestSuite))
 }

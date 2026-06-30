@@ -85,9 +85,11 @@ func (app *SimApp) registerUpgradeHandlers() {
 		v11Point1UpgradeHandler,
 	)
 
+	v11Point2UpgradeHandler := v11Point1UpgradeHandler
+
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrades.V11_1LegacyIBCApps,
-		v11Point1UpgradeHandler,
+		upgrades.V11_2LegacyIBCApps,
+		v11Point2UpgradeHandler,
 	)
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -119,7 +121,7 @@ func (app *SimApp) registerUpgradeHandlers() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 
-	if upgradeInfo.Name == upgrades.V11_1LegacyIBCApps && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrades.V11_2LegacyIBCApps && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{gmptypes.StoreKey},
 		}
