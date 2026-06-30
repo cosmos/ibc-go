@@ -13,6 +13,10 @@ import (
 	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
+	ratelimit "github.com/cosmos/ibc-apps/modules/rate-limiting/v10"
+	ratelimitkeeper "github.com/cosmos/ibc-apps/modules/rate-limiting/v10/keeper"
+	ratelimittypes "github.com/cosmos/ibc-apps/modules/rate-limiting/v10/types"
+	ratelimitv2 "github.com/cosmos/ibc-apps/modules/rate-limiting/v10/v2"
 	"github.com/spf13/cast"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
@@ -179,6 +183,7 @@ type SimApp struct {
 	AuthzKeeper           authzkeeper.Keeper
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
+	RateLimitKeeper       ratelimitkeeper.Keeper
 	ICAControllerKeeper   icacontrollerkeeper.Keeper
 	ICAHostKeeper         icahostkeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
@@ -271,7 +276,7 @@ func NewSimApp(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey, crisistypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, group.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
-		evidencetypes.StoreKey, packetforwardtypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
+		evidencetypes.StoreKey, packetforwardtypes.StoreKey, ratelimittypes.StoreKey, ibctransfertypes.StoreKey, icacontrollertypes.StoreKey, icahosttypes.StoreKey,
 		authzkeeper.StoreKey, consensusparamtypes.StoreKey, circuittypes.StoreKey,
 	)
 
@@ -403,6 +408,17 @@ func NewSimApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	app.RateLimitKeeper = *ratelimitkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[ratelimittypes.StoreKey]),
+		app.GetSubspace(ratelimittypes.ModuleName),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.IBCKeeper.ChannelKeeper,
+	)
+
 	// Create IBC Router
 	ibcRouter := porttypes.NewRouter()
 	ibcRouterV2 := ibcapi.NewRouter()
@@ -412,7 +428,7 @@ func NewSimApp(
 	// Create Transfer Keeper
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]), app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
+		app.RateLimitKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		app.AccountKeeper, app.BankKeeper,
@@ -422,12 +438,14 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> channel.SendPacket
+	// PFM is skipped since it is not involved in sending or writing acknowledgements
+	// transferKeeper.SendPacket -> ratelimitKeeper.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> ratelimit.OnRecvPacket -> pfm.OnRecvPacket -> transfer.OnRecvPacket
 
 	// transfer stack contains (from top to bottom):
+	// - Rate Limit Middleware
 	// - Packet Forward Middleware
 	// - Transfer
 
@@ -439,6 +457,7 @@ func NewSimApp(
 		0,
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 	)
+	transferStack = ratelimit.NewIBCMiddleware(app.RateLimitKeeper, transferStack)
 
 	// Add transfer stack to IBC Router
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
@@ -459,7 +478,8 @@ func NewSimApp(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// register the transfer v2 module.
-	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+	transferStackV2 := ratelimitv2.NewIBCMiddleware(app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferStackV2)
 
 	// Set the IBC Routers
 	app.IBCKeeper.SetRouter(ibcRouter)
@@ -515,6 +535,7 @@ func NewSimApp(
 		// IBC modules
 		ibc.NewAppModule(app.IBCKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		ratelimit.NewAppModule(appCodec, app.RateLimitKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 
@@ -558,6 +579,7 @@ func NewSimApp(
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
@@ -569,6 +591,7 @@ func NewSimApp(
 		stakingtypes.ModuleName,
 		ibcexported.ModuleName,
 		packetforwardtypes.ModuleName,
+		ratelimittypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		feegrant.ModuleName,
@@ -583,7 +606,7 @@ func NewSimApp(
 		authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, stakingtypes.ModuleName,
 		slashingtypes.ModuleName, govtypes.ModuleName, minttypes.ModuleName, crisistypes.ModuleName,
-		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, packetforwardtypes.ModuleName, ibctransfertypes.ModuleName,
+		ibcexported.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, packetforwardtypes.ModuleName, ratelimittypes.ModuleName, ibctransfertypes.ModuleName,
 		icatypes.ModuleName, feegrant.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName,
 		vestingtypes.ModuleName, group.ModuleName, consensusparamtypes.ModuleName, circuittypes.ModuleName,
 	}
@@ -918,6 +941,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	keyTable.RegisterParamSet(&ibcconnectiontypes.Params{})
 	paramsKeeper.Subspace(ibcexported.ModuleName).WithKeyTable(keyTable)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName).WithKeyTable(ibctransfertypes.ParamKeyTable())
+	paramsKeeper.Subspace(ratelimittypes.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName).WithKeyTable(icacontrollertypes.ParamKeyTable())
 	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 
