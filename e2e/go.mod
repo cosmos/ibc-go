@@ -23,7 +23,7 @@ require (
 	github.com/cosmos/ibc-go/v11 v11.0.0
 	github.com/cosmos/interchaintest/v11 v11.0.0-20260325172338-08abe11c26f0
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/ethereum/go-ethereum v1.17.3
+	github.com/ethereum/go-ethereum v1.17.4
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/pelletier/go-toml v1.9.5
 	github.com/stretchr/testify v1.11.1
@@ -260,7 +260,7 @@ require (
 	github.com/pion/sdp/v3 v3.0.13 // indirect
 	github.com/pion/srtp/v3 v3.0.6 // indirect
 	github.com/pion/stun v0.6.1 // indirect
-	github.com/pion/stun/v3 v3.0.0 // indirect
+	github.com/pion/stun/v3 v3.1.2 // indirect
 	github.com/pion/transport/v2 v2.2.10 // indirect
 	github.com/pion/transport/v3 v3.0.7 // indirect
 	github.com/pion/transport/v4 v4.0.1 // indirect
