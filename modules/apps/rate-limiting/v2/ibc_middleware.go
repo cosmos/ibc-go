@@ -15,8 +15,10 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/core/api"
 )
 
-var _ api.IBCModule = (*IBCMiddleware)(nil)
-var _ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
+var (
+	_ api.IBCModule                   = (*IBCMiddleware)(nil)
+	_ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
+)
 
 type IBCMiddleware struct {
 	app             api.IBCModule
