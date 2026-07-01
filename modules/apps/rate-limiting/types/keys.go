@@ -8,7 +8,7 @@ import (
 
 const (
 	// ModuleName defines the IBC rate-limiting name
-	ModuleName = "ratelimiting"
+	ModuleName = "ratelimit"
 
 	// StoreKey is the store key string for IBC rate-limiting
 	StoreKey = ModuleName
