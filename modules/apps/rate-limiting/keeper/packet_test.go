@@ -540,7 +540,6 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 	testCases := []struct {
 		name     string
 		malleate func()
-		expErr   string
 	}{
 		{
 			name: "success: decrement inflow",
@@ -574,7 +573,7 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 			},
 		},
 		{
-			name: "failure: packet data cannot be parsed",
+			name: "success: packet data cannot be parsed",
 			malleate: func() {
 				initialInflow = sdkmath.NewInt(100)
 				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
@@ -585,10 +584,9 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 				packetData = []byte("invalid packet data")
 				expectedInflowAmount = &initialInflow
 			},
-			expErr: "invalid character",
 		},
 		{
-			name: "failure: packet amount cannot be parsed",
+			name: "success: packet amount cannot be parsed",
 			malleate: func() {
 				initialInflow = sdkmath.NewInt(100)
 				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
@@ -601,7 +599,6 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 				s.Require().NoError(err)
 				expectedInflowAmount = &initialInflow
 			},
-			expErr: "Unable to cast packet amount",
 		},
 	}
 
@@ -627,12 +624,7 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 			}
 
 			err = s.chainA.GetSimApp().RateLimitKeeper.UndoReceivePacket(s.chainA.GetContext(), packet)
-			if tc.expErr == "" {
-				s.Require().NoError(err)
-			} else {
-				s.Require().Error(err)
-				s.Require().ErrorContains(err, tc.expErr)
-			}
+			s.Require().NoError(err)
 
 			rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
 			if expectedInflowAmount == nil {

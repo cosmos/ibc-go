@@ -273,7 +273,10 @@ func (k *Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
 	if err != nil {
-		return err
+		// If the receive was allowed because the packet data could not be parsed,
+		// no inflow was recorded and there is nothing to undo.
+		k.Logger(ctx).Error("Unable to parse packet data for rate limiting", "error", err)
+		return nil
 	}
 
 	rateLimit, found := k.GetRateLimit(ctx, packetInfo.Denom, packetInfo.ChannelID)
