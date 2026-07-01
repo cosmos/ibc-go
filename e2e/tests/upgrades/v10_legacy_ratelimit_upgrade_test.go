@@ -4,6 +4,7 @@ package upgrades
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -36,6 +37,8 @@ type V10LegacyRateLimitUpgradeTestSuite struct {
 	LegacyV10IBCAppsUpgradeTestSuite
 }
 
+const legacyPendingSendPacketChannelLength = 16
+
 func (s *V10LegacyRateLimitUpgradeTestSuite) SetupSuite() {
 	s.SetupLegacyV10IBCAppsChains(2)
 }
@@ -63,21 +66,44 @@ func (s *LegacyV10IBCAppsUpgradeTestSuite) submitLegacyRateLimitProposal(ctx con
 		Summary:  "configure legacy v10 ibc-apps rate limit",
 	}
 
-	s.submitAndPassGovV1Proposal(ctx, chain, proposer, proposal)
+	s.submitAndPassLegacyGovV1Proposal(ctx, chain, proposer, proposal)
 
 	stdout, _, err := chain.GetNode().ExecQuery(ctx, ratelimitingtypes.ModuleName, "rate-limit", channelID, "--denom", denom)
 	s.Require().NoError(err)
 	s.Require().Contains(string(stdout), denom)
 }
 
-func (s *V10LegacyRateLimitUpgradeTestSuite) assertNoRateLimitPendingSendPacket(ctx context.Context, chain *cosmos.CosmosChain, channelID string, sequence uint64) {
+func (s *V10LegacyRateLimitUpgradeTestSuite) migratedPendingSendPacketKey(channelID string, sequence uint64) []byte {
 	key, err := ratelimitingtypes.PendingSendPacketKey(channelID, sequence)
 	s.Require().NoError(err)
+	return key
+}
 
+func (s *V10LegacyRateLimitUpgradeTestSuite) legacyPendingSendPacketKey(channelID string, sequence uint64) []byte {
+	s.Require().LessOrEqual(len(channelID), legacyPendingSendPacketChannelLength)
+
+	key := make([]byte, legacyPendingSendPacketChannelLength+8)
+	copy(key, channelID)
+	binary.BigEndian.PutUint64(key[legacyPendingSendPacketChannelLength:], sequence)
+
+	return key
+}
+
+func (s *V10LegacyRateLimitUpgradeTestSuite) assertRateLimitPendingSendPacketExists(ctx context.Context, chain *cosmos.CosmosChain, key []byte) {
+	s.Require().NotEmpty(s.rateLimitPendingSendPacketValue(ctx, chain, key))
+}
+
+func (s *V10LegacyRateLimitUpgradeTestSuite) assertNoRateLimitPendingSendPacket(ctx context.Context, chain *cosmos.CosmosChain, key []byte) {
+	s.Require().Empty(s.rateLimitPendingSendPacketValue(ctx, chain, key))
+}
+
+func (s *V10LegacyRateLimitUpgradeTestSuite) rateLimitPendingSendPacketValue(ctx context.Context, chain *cosmos.CosmosChain, key []byte) []byte {
 	fullKey := append(append([]byte{}, ratelimitingtypes.PendingSendPacketPrefix...), key...)
 	res, err := chain.GetNode().Client.ABCIQuery(ctx, fmt.Sprintf("store/%s/key", ratelimitingtypes.StoreKey), fullKey)
 	s.Require().NoError(err)
-	s.Require().Empty(res.Response.Value)
+	s.Require().Zero(res.Response.Code, res.Response.Log)
+
+	return res.Response.Value
 }
 
 func (s *V10LegacyRateLimitUpgradeTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom, channelID string) *ratelimitingtypes.RateLimit {
@@ -122,6 +148,10 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 		Timeout: &ibc.IBCTimeout{NanoSeconds: uint64((5 * time.Second).Nanoseconds())},
 	})
 	s.Require().NoError(err)
+	migratedPendingSendKey := s.migratedPendingSendPacketKey(chanBA.ChannelID, timeoutTx.Packet.Sequence)
+	legacyPendingSendKey := s.legacyPendingSendPacketKey(chanBA.ChannelID, timeoutTx.Packet.Sequence)
+	s.assertRateLimitPendingSendPacketExists(ctx, cosmosChainB, legacyPendingSendKey)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, migratedPendingSendKey)
 
 	s.UpgradeChain(
 		ctx,
@@ -135,6 +165,8 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 	rateLimit := s.rateLimit(ctx, chainB, denomB, chanBA.ChannelID)
 	s.Require().NotNil(rateLimit)
 	s.Require().Equal(timeoutAmount, rateLimit.Flow.Outflow)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyPendingSendKey)
+	s.assertRateLimitPendingSendPacketExists(ctx, cosmosChainB, migratedPendingSendKey)
 
 	bHeightBeforeFlush, err := chainB.Height(ctx)
 	s.Require().NoError(err)
@@ -158,5 +190,6 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 	s.Require().NoError(err)
 	s.Require().True(escrowBABalance.IsZero())
 
-	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, chanBA.ChannelID, timeoutTx.Packet.Sequence)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyPendingSendKey)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, migratedPendingSendKey)
 }

@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path"
+	"strconv"
 	"testing"
 	"time"
 
@@ -134,33 +134,40 @@ func (s *LegacyV10IBCAppsUpgradeTestSuite) UpgradeChain(ctx context.Context, cha
 }
 
 func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) {
-	proposalID := s.nextGovV1ProposalID(ctx, chain)
-	s.submitGovV1Proposal(ctx, chain, proposer, proposal, proposalID)
+	proposalID := s.submitGovV1Proposal(ctx, chain, proposer, proposal)
 
 	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes))
 	s.waitForGovV1ProposalToPass(ctx, chain, proposalID)
 }
 
-func (s *LegacyV10IBCAppsUpgradeTestSuite) submitGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1, proposalID uint64) {
-	proposalJSON, err := json.MarshalIndent(proposal, "", " ")
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) uint64 {
+	tx, err := chain.SubmitProposal(ctx, proposer.KeyName(), proposal)
+	s.Require().NoError(err)
+	proposalID, err := strconv.ParseUint(tx.ProposalID, 10, 64)
 	s.Require().NoError(err)
 
-	proposalFile := fmt.Sprintf("proposal-%d.json", proposalID)
-	err = chain.GetNode().WriteFile(ctx, proposalJSON, proposalFile)
-	s.Require().NoError(err)
-
-	stdout, _, err := chain.GetNode().Exec(ctx, chain.GetNode().TxCommand(
-		proposer.KeyName(),
-		"gov", "submit-proposal", path.Join(chain.GetNode().HomeDir(), proposalFile), "--gas", "auto",
-	), chain.Config().Env)
-	s.Require().NoError(err)
-
-	var tx cosmos.CosmosTx
-	s.Require().NoError(json.Unmarshal(stdout, &tx))
-	s.Require().Zero(tx.Code, tx.RawLog)
 	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.waitForGovV1ProposalVotingPeriod(ctx, chain, proposalID)
 
-	err = test.WaitForCondition(time.Minute, time.Second, func() (bool, error) {
+	return proposalID
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassLegacyGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) {
+	proposalID := s.nextGovV1ProposalID(ctx, chain)
+
+	// CosmosChain.SubmitProposal queries and decodes the transaction after broadcast.
+	// Legacy ibc-apps proposals can contain message types that are intentionally not registered in the current codec.
+	_, err := chain.GetNode().SubmitProposal(ctx, proposer.KeyName(), proposal)
+	s.Require().NoError(err)
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.waitForGovV1ProposalVotingPeriod(ctx, chain, proposalID)
+
+	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes))
+	s.waitForGovV1ProposalToPass(ctx, chain, proposalID)
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) waitForGovV1ProposalVotingPeriod(ctx context.Context, chain ibc.Chain, proposalID uint64) {
+	err := test.WaitForCondition(time.Minute, time.Second, func() (bool, error) {
 		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
 			ProposalId: proposalID,
 		})
