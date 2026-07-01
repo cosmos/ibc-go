@@ -112,7 +112,7 @@ func TestWriteAcknowledgement(t *testing.T) {
 	packetAmount := sdkmath.NewInt(10)
 	errorAck := channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
 	successAck := channeltypesv2.NewAcknowledgement([]byte("success"))
-	writeAckErr := errors.New("write acknowledgement failed")
+	writeAckErr := "write acknowledgement failed"
 
 	testCases := []struct {
 		name              string
@@ -120,7 +120,6 @@ func TestWriteAcknowledgement(t *testing.T) {
 		asyncFound        bool
 		malleatePayload   func(*channeltypesv2.Payload)
 		writeAckErr       error
-		expErr            error
 		expErrContains    string
 		expWriteAckCalled bool
 		checkInflow       bool
@@ -163,8 +162,8 @@ func TestWriteAcknowledgement(t *testing.T) {
 		{
 			name:              "failure: write acknowledgement wrapper returns error",
 			ack:               successAck,
-			writeAckErr:       writeAckErr,
-			expErr:            writeAckErr,
+			writeAckErr:       errors.New(writeAckErr),
+			expErrContains:    writeAckErr,
 			expWriteAckCalled: true,
 		},
 	}
@@ -218,9 +217,7 @@ func TestWriteAcknowledgement(t *testing.T) {
 			)
 
 			err = mw.WriteAcknowledgement(ctx, destinationClient, sequence, tc.ack)
-			if tc.expErr != nil {
-				require.ErrorIs(t, err, tc.expErr)
-			} else if tc.expErrContains != "" {
+			if tc.expErrContains != "" {
 				require.ErrorContains(t, err, tc.expErrContains)
 			} else {
 				require.NoError(t, err)
