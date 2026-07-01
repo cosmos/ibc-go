@@ -95,6 +95,7 @@ import (
 	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
 	ratelimitkeeper "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	ratelimitingv2 "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/v2"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
@@ -468,8 +469,9 @@ func NewSimApp(
 	ibcRouterV2.AddRoute(mockv2.PortIDB, mockV2B)
 	app.MockModuleV2B = mockV2B
 
-	// register the transfer v2 module.
-	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+	// register the transfer v2 module wrapped by rate limiting middleware.
+	transferModuleV2 := ratelimitingv2.NewIBCMiddleware(app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper))
+	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferModuleV2)
 
 	// Register the ICS-27 GMP module
 	ibcRouterV2.AddRoute(gmptypes.PortID, gmp.NewIBCModule(app.GMPKeeper))
