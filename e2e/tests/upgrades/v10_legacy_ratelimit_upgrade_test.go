@@ -74,7 +74,7 @@ func (s *LegacyV10IBCAppsUpgradeTestSuite) submitLegacyRateLimitProposal(ctx con
 }
 
 func (s *V10LegacyRateLimitUpgradeTestSuite) migratedPendingSendPacketKey(channelID string, sequence uint64) []byte {
-	key, err := ratelimitingtypes.PendingSendPacketKey(channelID, sequence)
+	key, err := ratelimitingtypes.PendingPacketKey(channelID, sequence)
 	s.Require().NoError(err)
 	return key
 }
