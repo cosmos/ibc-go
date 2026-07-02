@@ -51,6 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) Increase pending send packet channel length key size from 16 to 64
+* (core/04-channel) [\#8983](https://github.com/cosmos/ibc-go/pull/8983) Reject in `SendPacket` a timeout height whose revision number exceeds the counterparty client's current revision number (an unreachable timeout). See [\#8653](https://github.com/cosmos/ibc-go/issues/8653).
 
 ### Improvements
 
