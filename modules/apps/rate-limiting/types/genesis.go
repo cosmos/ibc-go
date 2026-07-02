@@ -10,19 +10,19 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
-// Splits a pending send packet of the form {channelId}/{sequenceNumber} into the channel Id
+// Splits a pending packet of the form {channelId}/{sequenceNumber} into the channel Id
 // and sequence number respectively
 func ParsePendingPacketID(pendingPacketID string) (string, uint64, error) {
 	splits := strings.Split(pendingPacketID, "/")
 	if len(splits) != 2 {
-		return "", 0, fmt.Errorf("invalid pending send packet (%s), must be of form: {channelId}/{sequenceNumber}", pendingPacketID)
+		return "", 0, fmt.Errorf("invalid pending packet (%s), must be of form: {channelId}/{sequenceNumber}", pendingPacketID)
 	}
 	channelID := splits[0]
 	sequenceString := splits[1]
 
 	sequence, err := strconv.ParseUint(sequenceString, 10, 64)
 	if err != nil {
-		return "", 0, errorsmod.Wrapf(err, "unable to parse sequence number (%s) from pending send packet, %s", sequenceString, err)
+		return "", 0, errorsmod.Wrapf(err, "unable to parse sequence number (%s) from pending packet, %s", sequenceString, err)
 	}
 
 	return channelID, sequence, nil
@@ -35,6 +35,7 @@ func DefaultGenesis() *GenesisState {
 		WhitelistedAddressPairs:          []WhitelistedAddressPair{},
 		BlacklistedDenoms:                make([]string, 0),
 		PendingSendPacketSequenceNumbers: make([]string, 0),
+		PendingRecvPacketSequenceNumbers: make([]string, 0),
 		HourEpoch: HourEpoch{
 			EpochNumber: 0,
 			Duration:    time.Hour,
@@ -46,6 +47,11 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	for _, pendingPacketID := range gs.PendingSendPacketSequenceNumbers {
+		if _, _, err := ParsePendingPacketID(pendingPacketID); err != nil {
+			return err
+		}
+	}
+	for _, pendingPacketID := range gs.PendingRecvPacketSequenceNumbers {
 		if _, _, err := ParsePendingPacketID(pendingPacketID); err != nil {
 			return err
 		}

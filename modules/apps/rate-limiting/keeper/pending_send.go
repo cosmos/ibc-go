@@ -89,6 +89,11 @@ func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 	return k.getAllPendingPackets(ctx, types.PendingSendPacketPrefix)
 }
 
+// Get all pending receive packet sequence numbers
+func (k *Keeper) GetAllPendingReceivePackets(ctx sdk.Context) ([]string, error) {
+	return k.getAllPendingPackets(ctx, types.PendingReceivePacketPrefix)
+}
+
 func (k *Keeper) getAllPendingPackets(ctx sdk.Context, keyPrefix []byte) ([]string, error) {
 	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
 	store := prefix.NewStore(adapter, keyPrefix)

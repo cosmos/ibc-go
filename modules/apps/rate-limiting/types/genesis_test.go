@@ -31,6 +31,7 @@ func TestValidateGenesis(t *testing.T) {
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2/3"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-4/5", "channel-6/7"},
 				HourEpoch: types.HourEpoch{
 					EpochNumber:      1,
 					EpochStartTime:   blockTime,
@@ -44,14 +45,28 @@ func TestValidateGenesis(t *testing.T) {
 			genesisState: types.GenesisState{
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
 			},
-			expectedError: "invalid pending send packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
 		},
 		{
 			name: "invalid packet sequence - invalid sequence",
 			genesisState: types.GenesisState{
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2/X"},
 			},
-			expectedError: "unable to parse sequence number (X) from pending send packet",
+			expectedError: "unable to parse sequence number (X) from pending packet",
+		},
+		{
+			name: "invalid receive packet sequence - wrong delimiter",
+			genesisState: types.GenesisState{
+				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
+			},
+			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+		},
+		{
+			name: "invalid receive packet sequence - invalid sequence",
+			genesisState: types.GenesisState{
+				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2/X"},
+			},
+			expectedError: "unable to parse sequence number (X) from pending packet",
 		},
 		{
 			name: "invalid hour epoch - no duration",
