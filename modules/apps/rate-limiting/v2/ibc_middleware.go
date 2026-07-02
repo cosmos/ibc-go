@@ -76,8 +76,15 @@ func (im IBCMiddleware) OnRecvPacket(ctx sdk.Context, sourceClient string, desti
 		}
 	}
 
-	// If the packet was not rate-limited, pass it down to the Transfer OnRecvPacket callback
-	return im.app.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
+	// If the acknowledgement is not async, remove the pending receive packet from the store.
+	result := im.app.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, relayer)
+	if result.Status != channeltypesv2.PacketStatus_Async {
+		if err := im.keeper.RemovePendingReceivePacket(ctx, destinationClient, sequence); err != nil {
+			im.keeper.Logger(ctx).Error("ICS20 rate limiting OnRecvPacket failed to remove pending receive packet", "error", err)
+		}
+	}
+
+	return result
 }
 
 func (im IBCMiddleware) OnTimeoutPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, relayer sdk.AccAddress) error {
@@ -107,19 +114,32 @@ func (im IBCMiddleware) OnAcknowledgementPacket(ctx sdk.Context, sourceClient st
 }
 
 func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence uint64, ack channeltypesv2.Acknowledgement) error {
+	packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
+	if !found {
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed: async packet not found", "clientID", clientID, "sequence", sequence)
+		return ratelimitingtypes.ErrAsyncPacketNotFound.Wrapf("clientID: %s, sequence: %d", clientID, sequence)
+	}
+
 	// NOTE: async acknowledgements can only be for single payload packets
-	if len(ack.AppAcknowledgements) == 1 && !ack.Success() {
-		packet, found := im.chanKeeperV2.GetAsyncPacket(ctx, clientID, sequence)
-		if found && len(packet.Payloads) == 1 {
-			v1Packet, err := v2ToV1Packet(packet.Payloads[0], packet.SourceClient, packet.DestinationClient, packet.Sequence)
-			if err != nil {
-				im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to convert v2 packet to v1 packet", "error", err)
-				return err
-			}
-			if err := im.keeper.UndoReceivePacket(ctx, v1Packet); err != nil {
-				im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to undo receive packet", "error", err)
-				return err
-			}
+	if len(ack.AppAcknowledgements) != 1 || len(packet.Payloads) != 1 {
+		im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed: async acknowledgements can only be for single payload packets", "clientID", clientID, "sequence", sequence)
+		return im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
+	}
+
+	if ack.Success() {
+		if err := im.keeper.RemovePendingReceivePacket(ctx, clientID, sequence); err != nil {
+			im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to remove pending receive packet", "error", err)
+			return err
+		}
+	} else {
+		v1Packet, err := v2ToV1Packet(packet.Payloads[0], packet.SourceClient, packet.DestinationClient, packet.Sequence)
+		if err != nil {
+			im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to convert v2 packet to v1 packet", "error", err)
+			return err
+		}
+		if err := im.keeper.UndoReceivePacket(ctx, v1Packet); err != nil {
+			im.keeper.Logger(ctx).Error("ICS20 rate limiting WriteAcknowledgement failed to undo receive packet", "error", err)
+			return err
 		}
 	}
 

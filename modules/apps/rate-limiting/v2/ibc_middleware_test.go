@@ -206,6 +206,10 @@ func TestWriteAcknowledgement(t *testing.T) {
 					Path: &ratelimitingtypes.Path{Denom: packetInfo.Denom, ChannelOrClientId: packetInfo.ChannelID},
 					Flow: &ratelimitingtypes.Flow{Inflow: sdkmath.NewInt(100)},
 				})
+				if tc.asyncFound {
+					err = chain.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(ctx, packetInfo.ChannelID, sequence)
+					require.NoError(t, err)
+				}
 			}
 
 			writeAckWrapper := &mockWriteAckWrapper{callErr: tc.writeAckErr}
@@ -234,6 +238,10 @@ func TestWriteAcknowledgement(t *testing.T) {
 				rateLimit, found := chain.GetSimApp().RateLimitKeeper.GetRateLimit(ctx, packetInfo.Denom, packetInfo.ChannelID)
 				require.True(t, found)
 				require.Equal(t, tc.expectedInflow, rateLimit.Flow.Inflow)
+
+				found, err = chain.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, packetInfo.ChannelID, sequence)
+				require.NoError(t, err)
+				require.False(t, found)
 			}
 		})
 	}

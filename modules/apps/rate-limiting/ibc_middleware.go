@@ -68,8 +68,15 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// If the packet was not rate-limited, pass it down to the underlying app's OnRecvPacket callback
-	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	// If the acknowledgement is not async (nil), remove the pending receive packet from the store.
+	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	if ack != nil {
+		if err := im.keeper.RemovePendingReceivePacket(ctx, packet.GetDestChannel(), packet.GetSequence()); err != nil {
+			im.keeper.Logger(ctx).Error("Rate limit OnRecvPacket failed to remove pending receive packet", "error", err)
+		}
+	}
+
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface.
@@ -111,8 +118,12 @@ func (im *IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCh
 // previously received with a nil (async) ack, the inflow from OnRecvPacket
 // was already committed. Reverse it now.
 func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
-	if !ack.Success() {
-		if chanPacket, ok := packet.(channeltypes.Packet); ok {
+	if chanPacket, ok := packet.(channeltypes.Packet); ok {
+		if ack.Success() {
+			if err := im.keeper.RemovePendingReceivePacket(ctx, chanPacket.GetDestChannel(), chanPacket.GetSequence()); err != nil {
+				return err
+			}
+		} else {
 			if err := im.keeper.UndoReceivePacket(ctx, chanPacket); err != nil {
 				return err
 			}

@@ -228,9 +228,17 @@ func (k *Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 	}
 
 	// If parsing was successful, check the rate limit
-	_, err = k.CheckRateLimitAndUpdateFlow(ctx, types.PACKET_RECV, packetInfo)
+	updatedFlow, err := k.CheckRateLimitAndUpdateFlow(ctx, types.PACKET_RECV, packetInfo)
 	// If CheckRateLimitAndUpdateFlow returns an error (e.g., quota exceeded), return it to generate an error ack.
-	return err
+	if err != nil {
+		return err
+	}
+
+	if updatedFlow {
+		return k.SetPendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence)
+	}
+
+	return nil
 }
 
 // AcknowledgeRateLimitedPacket implements for OnAckPacket for porttypes.Middleware.
@@ -284,8 +292,17 @@ func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) 
 		return nil
 	}
 
-	// Clamp to zero: if an epoch reset already cleared the inflow,
-	// the decrement would go negative. This is safe to ignore.
+	// Only undo receives from the current quota. If the quota reset before the
+	// async ack was written, the corresponding pending receive marker was cleared.
+	found, err = k.CheckPacketReceivedDuringCurrentQuota(ctx, packetInfo.ChannelID, packet.Sequence)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return nil
+	}
+
+	// Clamp defensively in case the stored inflow is lower than the packet amount.
 	newInflow := rateLimit.Flow.Inflow.Sub(packetInfo.Amount)
 	if newInflow.IsNegative() {
 		newInflow = sdkmath.ZeroInt()
@@ -294,5 +311,5 @@ func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) 
 	rateLimit.Flow.Inflow = newInflow
 	k.SetRateLimit(ctx, rateLimit)
 
-	return nil
+	return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence)
 }
