@@ -9,7 +9,7 @@ on:
 
 jobs:
   proto-breaking-check:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Run proto-breaking check
