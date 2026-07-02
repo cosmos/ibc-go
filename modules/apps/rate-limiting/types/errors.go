@@ -18,4 +18,5 @@ var (
 	ErrInvalidEpoce           = errorsmod.Register(ModuleName, 11, "invalid hour epoch")
 	ErrInvalidChannelID       = errorsmod.Register(ModuleName, 12, "invalid channel")
 	ErrAsyncPacketNotFound    = errorsmod.Register(ModuleName, 13, "async packet not found")
+	ErrAsyncAckNil            = errorsmod.Register(ModuleName, 14, "async ack is nil")
 )
