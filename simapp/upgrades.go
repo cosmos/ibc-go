@@ -3,7 +3,7 @@ package simapp
 import (
 	"context"
 
-	runtime "github.com/cosmos/cosmos-sdk/runtime"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -85,6 +85,13 @@ func (app *SimApp) registerUpgradeHandlers() {
 		v11Point1UpgradeHandler,
 	)
 
+	v11Point2UpgradeHandler := v11Point1UpgradeHandler
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		upgrades.V11_2LegacyIBCApps,
+		v11Point2UpgradeHandler,
+	)
+
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(err)
@@ -109,6 +116,14 @@ func (app *SimApp) registerUpgradeHandlers() {
 	if upgradeInfo.Name == upgrades.V11_1LegacyPFM && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{gmptypes.StoreKey, ratelimittypes.StoreKey},
+		}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	if upgradeInfo.Name == upgrades.V11_2LegacyIBCApps && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{gmptypes.StoreKey},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
