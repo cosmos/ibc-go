@@ -6,8 +6,13 @@ on:
       - opened
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tidy:
+    timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
       contents: write
