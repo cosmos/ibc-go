@@ -142,12 +142,11 @@ func TestWriteAcknowledgement(t *testing.T) {
 			expectedInflow:    sdkmath.NewInt(100),
 		},
 		{
-			name:              "success: missing async packet does not undo receive inflow",
-			ack:               errorAck,
-			asyncFound:        false,
-			expWriteAckCalled: true,
-			checkInflow:       true,
-			expectedInflow:    sdkmath.NewInt(100),
+			name:           "failure: missing async packet",
+			ack:            errorAck,
+			checkInflow:    true,
+			expectedInflow: sdkmath.NewInt(100),
+			expErrContains: "async packet not found",
 		},
 		{
 			name:       "failure: async packet cannot be converted",
@@ -162,6 +161,7 @@ func TestWriteAcknowledgement(t *testing.T) {
 		{
 			name:              "failure: write acknowledgement wrapper returns error",
 			ack:               successAck,
+			asyncFound:        true,
 			writeAckErr:       errors.New(writeAckErr),
 			expErrContains:    writeAckErr,
 			expWriteAckCalled: true,
