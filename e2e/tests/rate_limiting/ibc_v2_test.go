@@ -166,7 +166,7 @@ func (s *RateLimV2TestSuite) TestRateLimitIBCV2() {
 	})
 
 	t.Run("set outflow quota to 0: ibc v2 transfer fails", func(t *testing.T) {
-		s.updateRateLimit(ctx, chainA, userA, denomA, clientIDA, authorityA.String(), 0, 0)
+		s.updateRateLimit(ctx, chainA, userA, denomA, clientIDA, authorityA.String(), 0, 1)
 
 		msgSend := s.newMsgSendPacketIBCV2(userA, clientIDA, denomA, testvalues.IBCTransferAmount, userB.FormattedAddress())
 		txResp := s.BroadcastMessages(ctx, chainA, userA, msgSend)
