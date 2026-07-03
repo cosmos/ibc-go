@@ -6,13 +6,18 @@ on:
       - opened
       - synchronize
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tidy:
+    timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
       contents: write
       pull-requests: write
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out PR
         uses: actions/checkout@v7
