@@ -436,7 +436,7 @@ func NewSimApp(
 		AddRoute(icahosttypes.SubModuleName, icaHostStack)
 
 	// register the transfer v2 module wrapped by rate limiting middleware.
-	transferModuleV2 := ratelimitingv2.NewIBCMiddleware(app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper))
+	transferModuleV2 := ratelimitingv2.NewIBCMiddleware(*app.RateLimitKeeper, transferv2.NewIBCModule(app.TransferKeeper), app.IBCKeeper.ChannelKeeperV2, app.IBCKeeper.ChannelKeeperV2)
 	ibcRouterV2.AddRoute(ibctransfertypes.PortID, transferModuleV2)
 
 	// register the gmp module.

@@ -50,6 +50,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2/3"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-4/5", "channel-6/7"},
 				HourEpoch: types.HourEpoch{
 					EpochNumber:      1,
 					EpochStartTime:   blockTime,
@@ -65,7 +66,15 @@ func (s *KeeperTestSuite) TestGenesis() {
 				RateLimits:                       createRateLimits(),
 				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
 			},
-			panicError: "invalid pending send packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+		},
+		{
+			name: "invalid receive packet sequence - wrong delimiter",
+			genesisState: types.GenesisState{
+				RateLimits:                       createRateLimits(),
+				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
+			},
+			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
 		},
 	}
 

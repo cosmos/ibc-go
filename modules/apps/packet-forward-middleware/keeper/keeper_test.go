@@ -86,7 +86,7 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			pfmKeeperC := s.chainC.GetSimApp().PFMKeeper
 
 			srcPacket := channeltypes.Packet{
-				Data:               []byte{1},
+				Data:               transfertypes.NewFungibleTokenPacketData(sdk.DefaultBondDenom, ibctesting.DefaultCoinAmount.String(), "sender", "receiver", "").GetBytes(),
 				Sequence:           1,
 				SourcePort:         pathBC.EndpointA.ChannelConfig.PortID,
 				SourceChannel:      pathBC.EndpointA.ChannelID,
