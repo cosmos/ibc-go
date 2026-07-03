@@ -219,7 +219,7 @@ func (s *RateLimV2TestSuite) sendTransferIBCV2(ctx context.Context, chain ibc.Ch
 	return packet
 }
 
-func (s *RateLimV2TestSuite) newMsgSendPacketIBCV2(user ibc.Wallet, clientID, denom string, amount int64, receiver string) *channeltypesv2.MsgSendPacket {
+func (*RateLimV2TestSuite) newMsgSendPacketIBCV2(user ibc.Wallet, clientID, denom string, amount int64, receiver string) *channeltypesv2.MsgSendPacket {
 	token := transfertypes.Token{
 		Denom:  transfertypes.NewDenom(denom),
 		Amount: strconv.FormatInt(amount, 10),
