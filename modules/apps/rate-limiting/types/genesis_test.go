@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -55,6 +56,13 @@ func TestValidateGenesis(t *testing.T) {
 			expectedError: "unable to parse sequence number (X) from pending packet",
 		},
 		{
+			name: "invalid packet sequence - ID too long",
+			genesisState: types.GenesisState{
+				PendingSendPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1"},
+			},
+			expectedError: "greater than the allowed length 64",
+		},
+		{
 			name: "invalid receive packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
 				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
@@ -67,6 +75,13 @@ func TestValidateGenesis(t *testing.T) {
 				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2/X"},
 			},
 			expectedError: "unable to parse sequence number (X) from pending packet",
+		},
+		{
+			name: "invalid receive packet sequence - ID too long",
+			genesisState: types.GenesisState{
+				PendingRecvPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1"},
+			},
+			expectedError: "greater than the allowed length 64",
 		},
 		{
 			name: "invalid hour epoch - no duration",

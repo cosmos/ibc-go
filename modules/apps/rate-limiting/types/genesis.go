@@ -47,12 +47,12 @@ func DefaultGenesis() *GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	for _, pendingPacketID := range gs.PendingSendPacketSequenceNumbers {
-		if _, _, err := ParsePendingPacketID(pendingPacketID); err != nil {
+		if err := validatePendingPacketID(pendingPacketID); err != nil {
 			return err
 		}
 	}
 	for _, pendingPacketID := range gs.PendingRecvPacketSequenceNumbers {
-		if _, _, err := ParsePendingPacketID(pendingPacketID); err != nil {
+		if err := validatePendingPacketID(pendingPacketID); err != nil {
 			return err
 		}
 	}
@@ -73,4 +73,14 @@ func (gs GenesisState) Validate() error {
 	}
 
 	return nil
+}
+
+func validatePendingPacketID(pendingPacketID string) error {
+	channelOrClientID, sequence, err := ParsePendingPacketID(pendingPacketID)
+	if err != nil {
+		return err
+	}
+
+	_, err = PendingPacketKey(channelOrClientID, sequence)
+	return err
 }
