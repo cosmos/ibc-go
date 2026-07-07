@@ -43,7 +43,7 @@ type RateLimV2TestSuite struct {
 	testsuite.E2ETestSuite
 }
 
-// compatibility:from_version: v10.5.1
+// compatibility:from_version: v11.2.0
 func TestRateLimitV2Suite(t *testing.T) {
 	testifysuite.Run(t, new(RateLimV2TestSuite))
 }
