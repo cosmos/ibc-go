@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/binary"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 )
 
@@ -25,13 +26,20 @@ func bytes(p string) []byte {
 }
 
 var (
-	RateLimitKeyPrefix         = bytes("rate-limit")
-	PendingSendPacketPrefix    = bytes("pending-send-packet")
+	RateLimitKeyPrefix = bytes("rate-limit")
+	// PendingSendPacketPrefix is the legacy pending send packet prefix. It is
+	// only used by migrations that clear old pending packet state.
+	PendingSendPacketPrefix = bytes("pending-send-packet")
+	// PendingReceivePacketPrefix is the legacy pending receive packet prefix. It
+	// is only used by migrations that clear old pending packet state.
 	PendingReceivePacketPrefix = bytes("pending-receive-packet")
 	DenomBlacklistKeyPrefix    = bytes("denom-blacklist")
 	// TODO: Fix IBCGO-2368
 	AddressWhitelistKeyPrefix = bytes("address-blacklist")
 	HourEpochKey              = bytes("hour-epoch")
+
+	PendingSendPacketsKey    = collections.NewPrefix(0)
+	PendingReceivePacketsKey = collections.NewPrefix(1)
 
 	PendingSendPacketChannelLength = 64
 )

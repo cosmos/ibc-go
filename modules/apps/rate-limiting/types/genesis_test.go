@@ -31,8 +31,8 @@ func TestValidateGenesis(t *testing.T) {
 					{Sender: "senderB", Receiver: "receiverB"},
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2/3"},
-				PendingRecvPacketSequenceNumbers: []string{"channel-4/5", "channel-6/7"},
+				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/3/denomB"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-4/5/transfer/channel-0/denomC", "channel-6/7/denomD"},
 				HourEpoch: types.HourEpoch{
 					EpochNumber:      1,
 					EpochStartTime:   blockTime,
@@ -44,42 +44,42 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			name: "invalid packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
+				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
 			},
-			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
 		{
 			name: "invalid packet sequence - invalid sequence",
 			genesisState: types.GenesisState{
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1", "channel-2/X"},
+				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/X/denomB"},
 			},
 			expectedError: "unable to parse sequence number (X) from pending packet",
 		},
 		{
 			name: "invalid packet sequence - ID too long",
 			genesisState: types.GenesisState{
-				PendingSendPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1"},
+				PendingSendPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1/denomA"},
 			},
 			expectedError: "greater than the allowed length 64",
 		},
 		{
 			name: "invalid receive packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
-				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2|3"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
 			},
-			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}",
+			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
 		{
 			name: "invalid receive packet sequence - invalid sequence",
 			genesisState: types.GenesisState{
-				PendingRecvPacketSequenceNumbers: []string{"channel-0/1", "channel-2/X"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/X/denomB"},
 			},
 			expectedError: "unable to parse sequence number (X) from pending packet",
 		},
 		{
 			name: "invalid receive packet sequence - ID too long",
 			genesisState: types.GenesisState{
-				PendingRecvPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1"},
+				PendingRecvPacketSequenceNumbers: []string{strings.Repeat("a", types.PendingSendPacketChannelLength+1) + "/1/denomA"},
 			},
 			expectedError: "greater than the allowed length 64",
 		},
