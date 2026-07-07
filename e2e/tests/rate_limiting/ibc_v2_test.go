@@ -131,8 +131,31 @@ func (s *RateLimV2TestSuite) TestRateLimitIBCV2() {
 		s.Require().Equal(testvalues.IBCTransferAmount, balance.Int64())
 	})
 
-	t.Run("add incoming v2 rate limit on chainB", func(t *testing.T) {
-		s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), clientIDB, authorityB.String(), 100, 0, 1)
+	t.Run("add permissive incoming v2 rate limit on chainB", func(t *testing.T) {
+		s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), clientIDB, authorityB.String(), 100, 100, 1)
+
+		rateLimit := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), clientIDB)
+		s.Require().NotNil(rateLimit)
+		s.Require().Equal(int64(100), rateLimit.Quota.MaxPercentRecv.Int64())
+		s.Require().Zero(rateLimit.Flow.Inflow.Int64())
+	})
+
+	t.Run("successful recv updates incoming flow", func(t *testing.T) {
+		inflowBefore := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), clientIDB).Flow.Inflow.Int64()
+
+		packet = s.sendTransferIBCV2(ctx, chainA, userA, clientIDA, denomA, testvalues.IBCTransferAmount, userB.FormattedAddress())
+		ack = s.recvPacketIBCV2(ctx, chainA, chainB, chainACosmos, rlyWalletB, packet)
+		s.Require().True(ack.Success())
+
+		rateLimit := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), clientIDB)
+		s.Require().NotNil(rateLimit)
+		s.Require().Equal(inflowBefore+testvalues.IBCTransferAmount, rateLimit.Flow.Inflow.Int64())
+
+		s.acknowledgePacketIBCV2(ctx, chainB, chainA, chainBCosmos, rlyWalletA, packet, ack)
+	})
+
+	t.Run("set incoming v2 rate limit on chainB to deny all", func(t *testing.T) {
+		s.updateRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), clientIDB, authorityB.String(), 100, 0)
 
 		rateLimit := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), clientIDB)
 		s.Require().NotNil(rateLimit)
