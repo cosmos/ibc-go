@@ -34,9 +34,7 @@ func TestRateLimitSuite(t *testing.T) {
 }
 
 func (s *RateLimTestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), 3, nil, func(options *testsuite.ChainOptions) {
-		options.RelayerCount = 2
-	})
+	s.SetupChains(context.TODO(), 3, nil)
 }
 
 func (s *RateLimTestSuite) TestRateLimit() {
