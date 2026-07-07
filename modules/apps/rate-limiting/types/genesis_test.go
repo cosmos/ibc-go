@@ -10,6 +10,8 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
+const pendingGenesisPacketID = "channel-0/1/denomA"
+
 func TestValidateGenesis(t *testing.T) {
 	currentHour := 13
 	blockTime := time.Date(2024, 1, 1, currentHour, 55, 8, 0, time.UTC) // 13:55:08
@@ -31,7 +33,7 @@ func TestValidateGenesis(t *testing.T) {
 					{Sender: "senderB", Receiver: "receiverB"},
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/3/denomB"},
+				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2/3/denomB"},
 				PendingRecvPacketSequenceNumbers: []string{"channel-4/5/transfer/channel-0/denomC", "channel-6/7/denomD"},
 				HourEpoch: types.HourEpoch{
 					EpochNumber:      1,
@@ -44,14 +46,14 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			name: "invalid packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
+				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
 			},
 			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
 		{
 			name: "invalid packet sequence - invalid sequence",
 			genesisState: types.GenesisState{
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/X/denomB"},
+				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2/X/denomB"},
 			},
 			expectedError: "unable to parse sequence number (X) from pending packet",
 		},
@@ -65,14 +67,14 @@ func TestValidateGenesis(t *testing.T) {
 		{
 			name: "invalid receive packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
-				PendingRecvPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
+				PendingRecvPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
 			},
 			expectedError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
 		{
 			name: "invalid receive packet sequence - invalid sequence",
 			genesisState: types.GenesisState{
-				PendingRecvPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/X/denomB"},
+				PendingRecvPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2/X/denomB"},
 			},
 			expectedError: "unable to parse sequence number (X) from pending packet",
 		},

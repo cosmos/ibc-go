@@ -9,6 +9,8 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
+const pendingGenesisPacketID = "channel-0/1/denomA"
+
 func createRateLimits() []types.RateLimit {
 	rateLimits := []types.RateLimit{}
 	for i := int64(1); i <= 3; i++ {
@@ -49,7 +51,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 					{Sender: "senderB", Receiver: "receiverB"},
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2/3/denomB"},
+				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2/3/denomB"},
 				PendingRecvPacketSequenceNumbers: []string{"channel-4/5/denomC", "channel-6/7/transfer/channel-0/denomD"},
 				HourEpoch: types.HourEpoch{
 					EpochNumber:      1,
@@ -64,7 +66,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 			name: "invalid packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
 				RateLimits:                       createRateLimits(),
-				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
+				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
 			},
 			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
@@ -72,7 +74,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 			name: "invalid receive packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
 				RateLimits:                       createRateLimits(),
-				PendingRecvPacketSequenceNumbers: []string{"channel-0/1/denomA", "channel-2|3"},
+				PendingRecvPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
 			},
 			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
