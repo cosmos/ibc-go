@@ -58,7 +58,7 @@ func (k *Keeper) CheckRateLimitAndUpdateFlow(ctx sdk.Context, direction types.Pa
 func (k *Keeper) UndoSendPacket(ctx sdk.Context, channelOrClientID string, sequence uint64, denom string, amount sdkmath.Int) error {
 	rateLimit, found := k.GetRateLimit(ctx, denom, channelOrClientID)
 	if !found {
-		return nil
+		return k.RemovePendingSendPacket(ctx, channelOrClientID, sequence)
 	}
 
 	// If the packet was sent during this quota, decrement the outflow

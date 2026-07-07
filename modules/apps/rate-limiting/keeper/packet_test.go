@@ -596,7 +596,8 @@ func (s *KeeperTestSuite) TestUndoReceivePacket() {
 			},
 		},
 		{
-			name: "success: no existing rate limit",
+			name:              "success: no existing rate limit",
+			setPendingReceive: true,
 			malleate: func() {
 				expectedInflowAmount = nil
 			},

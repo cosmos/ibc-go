@@ -289,7 +289,7 @@ func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) 
 
 	rateLimit, found := k.GetRateLimit(ctx, packetInfo.Denom, packetInfo.ChannelID)
 	if !found {
-		return nil
+		return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence)
 	}
 
 	// Only undo receives from the current quota. If the quota reset before the

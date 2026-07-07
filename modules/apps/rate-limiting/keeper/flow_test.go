@@ -448,4 +448,18 @@ func (s *KeeperTestSuite) TestUndoSendPacket() {
 	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, 2)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", channelID, 2)
 	s.Require().False(found, "packet sequence number should have been removed")
+
+	// If the rate limit was removed after the send, the pending marker must still be cleared.
+	err = s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, 3)
+	s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %d", channelID, 3)
+
+	s.chainA.GetSimApp().RateLimitKeeper.RemoveRateLimit(s.chainA.GetContext(), denom, channelID)
+	err = s.chainA.GetSimApp().RateLimitKeeper.UndoSendPacket(s.chainA.GetContext(), channelID, 3, denom, packetSendAmount)
+	s.Require().NoError(err, "no error expected when undoing send packet without a rate limit")
+
+	_, found = s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
+	s.Require().False(found, "rate limit should have been removed")
+	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, 3)
+	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", channelID, 3)
+	s.Require().False(found, "packet sequence number should have been removed")
 }
