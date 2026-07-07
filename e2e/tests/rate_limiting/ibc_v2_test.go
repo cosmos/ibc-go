@@ -165,6 +165,26 @@ func (s *RateLimV2TestSuite) TestRateLimitIBCV2() {
 		s.Require().Equal(balanceBefore, balanceAfter)
 	})
 
+	t.Run("timeout packet refunds source outflow", func(t *testing.T) {
+		outflowBefore := s.rateLimit(ctx, chainA, denomA, clientIDA).Flow.Outflow.Int64()
+		balanceBefore, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+
+		timeoutTimestamp := uint64(time.Now().Add(10 * time.Second).Unix())
+		packet = s.sendTransferIBCV2WithTimeout(ctx, chainA, userA, clientIDA, denomA, testvalues.IBCTransferAmount, userB.FormattedAddress(), timeoutTimestamp)
+		s.Require().Equal(outflowBefore+testvalues.IBCTransferAmount, s.rateLimit(ctx, chainA, denomA, clientIDA).Flow.Outflow.Int64())
+
+		time.Sleep(11 * time.Second)
+		s.Require().NoError(test.WaitForBlocks(ctx, 1, chainA, chainB), "failed to wait for blocks after timeout")
+
+		s.timeoutPacketIBCV2(ctx, chainA, chainB, chainBCosmos, rlyWalletA, packet)
+
+		s.Require().Equal(outflowBefore, s.rateLimit(ctx, chainA, denomA, clientIDA).Flow.Outflow.Int64())
+		balanceAfter, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+		s.Require().Equal(balanceBefore, balanceAfter)
+	})
+
 	t.Run("set outflow quota to 0: ibc v2 transfer fails", func(t *testing.T) {
 		s.updateRateLimit(ctx, chainA, userA, denomA, clientIDA, authorityA.String(), 0, 1)
 
@@ -208,7 +228,12 @@ func (s *RateLimV2TestSuite) updateRateLimit(ctx context.Context, chain ibc.Chai
 }
 
 func (s *RateLimV2TestSuite) sendTransferIBCV2(ctx context.Context, chain ibc.Chain, user ibc.Wallet, clientID, denom string, amount int64, receiver string) channeltypesv2.Packet {
-	msgSend := s.newMsgSendPacketIBCV2(user, clientID, denom, amount, receiver)
+	timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
+	return s.sendTransferIBCV2WithTimeout(ctx, chain, user, clientID, denom, amount, receiver, timeoutTimestamp)
+}
+
+func (s *RateLimV2TestSuite) sendTransferIBCV2WithTimeout(ctx context.Context, chain ibc.Chain, user ibc.Wallet, clientID, denom string, amount int64, receiver string, timeoutTimestamp uint64) channeltypesv2.Packet {
+	msgSend := s.newMsgSendPacketIBCV2WithTimeout(user, clientID, denom, amount, receiver, timeoutTimestamp)
 	txResp := s.BroadcastMessages(ctx, chain, user, msgSend)
 	s.AssertTxSuccess(txResp)
 
@@ -219,7 +244,12 @@ func (s *RateLimV2TestSuite) sendTransferIBCV2(ctx context.Context, chain ibc.Ch
 	return packet
 }
 
-func (*RateLimV2TestSuite) newMsgSendPacketIBCV2(user ibc.Wallet, clientID, denom string, amount int64, receiver string) *channeltypesv2.MsgSendPacket {
+func (s *RateLimV2TestSuite) newMsgSendPacketIBCV2(user ibc.Wallet, clientID, denom string, amount int64, receiver string) *channeltypesv2.MsgSendPacket {
+	timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
+	return s.newMsgSendPacketIBCV2WithTimeout(user, clientID, denom, amount, receiver, timeoutTimestamp)
+}
+
+func (*RateLimV2TestSuite) newMsgSendPacketIBCV2WithTimeout(user ibc.Wallet, clientID, denom string, amount int64, receiver string, timeoutTimestamp uint64) *channeltypesv2.MsgSendPacket {
 	token := transfertypes.Token{
 		Denom:  transfertypes.NewDenom(denom),
 		Amount: strconv.FormatInt(amount, 10),
@@ -236,7 +266,6 @@ func (*RateLimV2TestSuite) newMsgSendPacketIBCV2(user ibc.Wallet, clientID, deno
 		transfertypes.V1, transfertypes.EncodingJSON, packetData.GetBytes(),
 	)
 
-	timeoutTimestamp := uint64(time.Now().Add(10 * time.Minute).Unix())
 	return channeltypesv2.NewMsgSendPacket(clientID, timeoutTimestamp, user.FormattedAddress(), payload)
 }
 
@@ -269,6 +298,18 @@ func (s *RateLimV2TestSuite) acknowledgePacketIBCV2(ctx context.Context, sourceC
 
 	msgAck := channeltypesv2.NewMsgAcknowledgement(packet, ack, proof, proofHeight, relayer.FormattedAddress())
 	txResp := s.BroadcastMessages(ctx, destinationChain, relayer, msgAck)
+	s.AssertTxSuccess(txResp)
+}
+
+func (s *RateLimV2TestSuite) timeoutPacketIBCV2(ctx context.Context, sourceChain, destinationChain ibc.Chain, destinationChainCosmos *cosmos.CosmosChain, relayer ibc.Wallet, packet channeltypesv2.Packet) {
+	targetHeight := s.manualRelayTargetHeight(ctx, destinationChainCosmos, sourceChain, packet.SourceClient)
+	s.updateTendermintClient(ctx, sourceChain, destinationChain, packet.SourceClient, relayer, targetHeight)
+
+	proofUnreceived, proofHeight := s.queryPacketReceiptProof(ctx, destinationChain, packet.DestinationClient, packet.Sequence, targetHeight)
+	s.Require().Equal(uint64(targetHeight), proofHeight.GetRevisionHeight())
+
+	msgTimeout := channeltypesv2.NewMsgTimeout(packet, proofUnreceived, proofHeight, relayer.FormattedAddress())
+	txResp := s.BroadcastMessages(ctx, sourceChain, relayer, msgTimeout)
 	s.AssertTxSuccess(txResp)
 }
 
@@ -348,6 +389,13 @@ func (s *RateLimV2TestSuite) queryPacketCommitmentProof(ctx context.Context, cha
 
 func (s *RateLimV2TestSuite) queryPacketAcknowledgementProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64, targetHeight int64) ([]byte, clienttypes.Height) {
 	proofKey := hostv2.PacketAcknowledgementKey(clientID, sequence)
+	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey, targetHeight)
+	s.Require().NoError(err)
+	return proof, proofHeight
+}
+
+func (s *RateLimV2TestSuite) queryPacketReceiptProof(ctx context.Context, chain ibc.Chain, clientID string, sequence uint64, targetHeight int64) ([]byte, clienttypes.Height) {
+	proofKey := hostv2.PacketReceiptKey(clientID, sequence)
 	proof, proofHeight, err := s.queryProofForIBCStore(ctx, chain, proofKey, targetHeight)
 	s.Require().NoError(err)
 	return proof, proofHeight
