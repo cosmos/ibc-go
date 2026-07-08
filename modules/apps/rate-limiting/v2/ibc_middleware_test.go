@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/api"
 )
 
 type mockIBCModule struct{}
@@ -29,6 +30,20 @@ func (mockIBCModule) OnTimeoutPacket(sdk.Context, string, string, uint64, channe
 
 func (mockIBCModule) OnAcknowledgementPacket(sdk.Context, string, string, uint64, []byte, channeltypesv2.Payload, sdk.AccAddress) error {
 	return nil
+}
+
+type mockPacketUnmarshalerModule struct {
+	mockIBCModule
+
+	called     bool
+	payload    channeltypesv2.Payload
+	packetData any
+}
+
+func (m *mockPacketUnmarshalerModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+	m.called = true
+	m.payload = payload
+	return m.packetData, nil
 }
 
 type mockWriteAckWrapper struct {
@@ -92,6 +107,21 @@ func TestNewIBCMiddleware(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUnmarshalPacketData(t *testing.T) {
+	payload := channeltypesv2.Payload{Value: []byte("payload")}
+	expPacketData := "packet data"
+	app := &mockPacketUnmarshalerModule{packetData: expPacketData}
+
+	middleware := NewIBCMiddleware(keeper.Keeper{}, app, &mockWriteAckWrapper{}, mockChannelKeeperV2{})
+	require.Implements(t, (*api.PacketUnmarshalerModuleV2)(nil), middleware)
+
+	packetData, err := middleware.UnmarshalPacketData(payload)
+	require.NoError(t, err)
+	require.True(t, app.called)
+	require.Equal(t, payload, app.payload)
+	require.Equal(t, expPacketData, packetData)
 }
 
 func TestV2ToV1Packet(t *testing.T) {

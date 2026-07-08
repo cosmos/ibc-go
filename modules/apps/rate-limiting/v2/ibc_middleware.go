@@ -17,6 +17,7 @@ import (
 
 var (
 	_ api.IBCModule                   = (*IBCMiddleware)(nil)
+	_ api.PacketUnmarshalerModuleV2   = (*IBCMiddleware)(nil)
 	_ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
 )
 
@@ -42,6 +43,15 @@ func NewIBCMiddleware(k keeper.Keeper, app api.IBCModule, writeAckWrapper api.Wr
 		writeAckWrapper: writeAckWrapper,
 		chanKeeperV2:    chanKeeperV2,
 	}
+}
+
+func (im IBCMiddleware) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+	packetDataUnmarshaler, ok := im.app.(api.PacketDataUnmarshaler)
+	if !ok {
+		return nil, errors.New("underlying application does not implement packet data unmarshaler")
+	}
+
+	return packetDataUnmarshaler.UnmarshalPacketData(payload)
 }
 
 func (im IBCMiddleware) OnSendPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
