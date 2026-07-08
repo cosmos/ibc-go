@@ -26,6 +26,16 @@ func TestValidateGenesis(t *testing.T) {
 			genesisState: *types.DefaultGenesis(),
 		},
 		{
+			name: "valid legacy pending packet sequences",
+			genesisState: types.GenesisState{
+				PendingSendPacketSequenceNumbers: []string{"channel-0/1"},
+				PendingRecvPacketSequenceNumbers: []string{"channel-2/3"},
+				HourEpoch: types.HourEpoch{
+					Duration: time.Hour,
+				},
+			},
+		},
+		{
 			name: "valid custom state",
 			genesisState: types.GenesisState{
 				WhitelistedAddressPairs: []types.WhitelistedAddressPair{
@@ -124,6 +134,38 @@ func TestValidateGenesis(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestIsLegacyPendingPacketID(t *testing.T) {
+	testCases := []struct {
+		name       string
+		packetID   string
+		isLegacyID bool
+	}{
+		{
+			name:       "valid legacy ID",
+			packetID:   "channel-0/1",
+			isLegacyID: true,
+		},
+		{
+			name:     "invalid legacy sequence",
+			packetID: "channel-0/X",
+		},
+		{
+			name:     "denom-scoped ID",
+			packetID: pendingGenesisPacketID,
+		},
+		{
+			name:     "wrong delimiter",
+			packetID: "channel-0|1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.isLegacyID, types.IsLegacyPendingPacketID(tc.packetID))
 		})
 	}
 }

@@ -32,6 +32,24 @@ func ParsePendingPacketID(pendingPacketID string) (string, uint64, string, error
 	return channelID, sequence, denom, nil
 }
 
+// IsLegacyPendingPacketID returns true if the pending packet ID is in the pre-denom
+// genesis format. These IDs cannot be safely migrated to denom-scoped markers and
+// are dropped on import, mirroring the store migration behavior.
+func IsLegacyPendingPacketID(pendingPacketID string) bool {
+	splits := strings.Split(pendingPacketID, "/")
+	if len(splits) != 2 {
+		return false
+	}
+
+	sequence, err := strconv.ParseUint(splits[1], 10, 64)
+	if err != nil {
+		return false
+	}
+
+	_, err = PendingPacketKey(splits[0], sequence)
+	return err == nil
+}
+
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -82,6 +100,9 @@ func (gs GenesisState) Validate() error {
 func validatePendingPacketID(pendingPacketID string) error {
 	channelOrClientID, sequence, _, err := ParsePendingPacketID(pendingPacketID)
 	if err != nil {
+		if IsLegacyPendingPacketID(pendingPacketID) {
+			return nil
+		}
 		return err
 	}
 

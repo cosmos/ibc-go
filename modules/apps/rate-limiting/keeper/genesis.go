@@ -25,6 +25,9 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, pendingPacketID := range state.PendingSendPacketSequenceNumbers {
 		channelOrClientID, sequence, denom, err := types.ParsePendingPacketID(pendingPacketID)
 		if err != nil {
+			if types.IsLegacyPendingPacketID(pendingPacketID) {
+				continue
+			}
 			panic(err.Error())
 		}
 		if err := k.SetPendingSendPacket(ctx, channelOrClientID, sequence, denom); err != nil {
@@ -34,6 +37,9 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, pendingPacketID := range state.PendingRecvPacketSequenceNumbers {
 		channelOrClientID, sequence, denom, err := types.ParsePendingPacketID(pendingPacketID)
 		if err != nil {
+			if types.IsLegacyPendingPacketID(pendingPacketID) {
+				continue
+			}
 			panic(err.Error())
 		}
 		if err := k.SetPendingReceivePacket(ctx, channelOrClientID, sequence, denom); err != nil {

@@ -119,3 +119,17 @@ func (s *KeeperTestSuite) TestGenesis() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestInitGenesisDropsLegacyPendingPackets() {
+	genesisState := *types.DefaultGenesis()
+	genesisState.PendingSendPacketSequenceNumbers = []string{"channel-0/1", pendingGenesisPacketID}
+	genesisState.PendingRecvPacketSequenceNumbers = []string{"channel-2/3", "channel-4/5/denomB"}
+
+	s.Require().NotPanics(func() {
+		s.chainA.GetSimApp().RateLimitKeeper.InitGenesis(s.chainA.GetContext(), genesisState)
+	})
+
+	exportedState := s.chainA.GetSimApp().RateLimitKeeper.ExportGenesis(s.chainA.GetContext())
+	s.Require().Equal([]string{pendingGenesisPacketID}, exportedState.PendingSendPacketSequenceNumbers)
+	s.Require().Equal([]string{"channel-4/5/denomB"}, exportedState.PendingRecvPacketSequenceNumbers)
+}
