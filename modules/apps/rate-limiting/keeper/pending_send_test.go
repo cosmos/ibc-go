@@ -1,12 +1,18 @@
 package keeper_test
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+)
 
 const (
 	pendingPacketChannelToRemove = "channel-1"
 	pendingPacketClientToRemove  = "07-tendermint-1005"
 	pendingPacketDenomA          = "denom-a"
 	pendingPacketDenomB          = "denom-b"
+	pendingPacketDenomErr        = "pending packet denom must be specified"
 )
 
 func (s *KeeperTestSuite) TestPendingSendPacketPrefix() {
@@ -113,5 +119,59 @@ func (s *KeeperTestSuite) TestPendingReceivePacketPrefix() {
 				s.Require().Equal(!removed, actual, "receive packet after removal - channel: %s, sequence: %d, denom: %s", channelID, sequence, denom)
 			}
 		}
+	}
+}
+
+func (s *KeeperTestSuite) TestPendingPacketValidation() {
+	longChannelID := strings.Repeat("a", types.PendingSendPacketChannelLength+1)
+
+	testCases := []struct {
+		name      string
+		call      func() error
+		expErrMsg string
+	}{
+		{
+			name: "set send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, 1, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "set receive invalid channel",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(s.chainA.GetContext(), longChannelID, 1, denom)
+			},
+			expErrMsg: "greater than the allowed length 64",
+		},
+		{
+			name: "remove send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 1, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "check receive empty denom",
+			call: func() error {
+				_, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelID, 1, "")
+				return err
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "remove all send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), channelID, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			err := tc.call()
+			s.Require().ErrorContains(err, tc.expErrMsg)
+		})
 	}
 }

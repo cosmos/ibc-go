@@ -18,14 +18,16 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
-type mockIBCModule struct{}
+type mockIBCModule struct {
+	recvResult channeltypesv2.RecvPacketResult
+}
 
 func (mockIBCModule) OnSendPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
 	return nil
 }
 
-func (mockIBCModule) OnRecvPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) channeltypesv2.RecvPacketResult {
-	return channeltypesv2.RecvPacketResult{}
+func (m mockIBCModule) OnRecvPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) channeltypesv2.RecvPacketResult {
+	return m.recvResult
 }
 
 func (mockIBCModule) OnTimeoutPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
@@ -56,6 +58,11 @@ type mockChannelKeeperV2 struct {
 	packet channeltypesv2.Packet
 	found  bool
 }
+
+const (
+	testPacketSender   = "sender"
+	testPacketReceiver = "receiver"
+)
 
 func (m mockChannelKeeperV2) GetAsyncPacket(sdk.Context, string, uint64) (channeltypesv2.Packet, bool) {
 	return m.packet, m.found
@@ -177,8 +184,8 @@ func TestWriteAcknowledgement(t *testing.T) {
 			packetData := transfertypes.FungibleTokenPacketData{
 				Denom:    uosmo,
 				Amount:   packetAmount.String(),
-				Sender:   "sender",
-				Receiver: "receiver",
+				Sender:   testPacketSender,
+				Receiver: testPacketReceiver,
 			}
 			packetDataBz, err := transfertypes.MarshalPacketData(packetData, transfertypes.V1, transfertypes.EncodingJSON)
 			require.NoError(t, err)
@@ -243,6 +250,90 @@ func TestWriteAcknowledgement(t *testing.T) {
 				require.NoError(t, err)
 				require.False(t, found)
 			}
+		})
+	}
+}
+
+func TestOnRecvPacket(t *testing.T) {
+	const (
+		sequence          = uint64(1)
+		sourceClient      = "sourceClient"
+		destinationClient = "destinationClient"
+		uosmo             = "uosmo"
+		transferPort      = "transfer"
+	)
+
+	packetAmount := sdkmath.NewInt(10)
+
+	testCases := []struct {
+		name         string
+		resultStatus channeltypesv2.PacketStatus
+		expPending   bool
+	}{
+		{
+			name:         "success: sync result removes pending receive packet",
+			resultStatus: channeltypesv2.PacketStatus_Success,
+		},
+		{
+			name:         "success: async result leaves pending receive packet",
+			resultStatus: channeltypesv2.PacketStatus_Async,
+			expPending:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			coordinator := ibctesting.NewCoordinator(t, 1)
+			chain := coordinator.GetChain(ibctesting.GetChainID(1))
+			ctx := chain.GetContext()
+
+			packetData := transfertypes.FungibleTokenPacketData{
+				Denom:    uosmo,
+				Amount:   packetAmount.String(),
+				Sender:   testPacketSender,
+				Receiver: testPacketReceiver,
+			}
+			packetDataBz, err := transfertypes.MarshalPacketData(packetData, transfertypes.V1, transfertypes.EncodingJSON)
+			require.NoError(t, err)
+
+			payload := channeltypesv2.Payload{
+				SourcePort:      transferPort,
+				DestinationPort: transferPort,
+				Version:         transfertypes.V1,
+				Encoding:        transfertypes.EncodingJSON,
+				Value:           packetDataBz,
+			}
+			v1Packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
+			require.NoError(t, err)
+			packetInfo, err := keeper.ParsePacketInfo(v1Packet, ratelimitingtypes.PACKET_RECV)
+			require.NoError(t, err)
+
+			chain.GetSimApp().RateLimitKeeper.SetRateLimit(ctx, ratelimitingtypes.RateLimit{
+				Path: &ratelimitingtypes.Path{Denom: packetInfo.Denom, ChannelOrClientId: packetInfo.ChannelID},
+				Quota: &ratelimitingtypes.Quota{
+					MaxPercentSend: sdkmath.NewInt(100),
+					MaxPercentRecv: sdkmath.NewInt(100),
+				},
+				Flow: &ratelimitingtypes.Flow{
+					Inflow:       sdkmath.ZeroInt(),
+					Outflow:      sdkmath.ZeroInt(),
+					ChannelValue: sdkmath.NewInt(100),
+				},
+			})
+
+			mw := NewIBCMiddleware(
+				*chain.GetSimApp().RateLimitKeeper,
+				mockIBCModule{recvResult: channeltypesv2.RecvPacketResult{Status: tc.resultStatus}},
+				&mockWriteAckWrapper{},
+				mockChannelKeeperV2{},
+			)
+
+			result := mw.OnRecvPacket(ctx, sourceClient, destinationClient, sequence, payload, nil)
+			require.Equal(t, tc.resultStatus, result.Status)
+
+			found, err := chain.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, packetInfo.ChannelID, sequence, packetInfo.Denom)
+			require.NoError(t, err)
+			require.Equal(t, tc.expPending, found)
 		})
 	}
 }

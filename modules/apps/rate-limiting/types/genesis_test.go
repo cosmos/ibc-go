@@ -127,3 +127,42 @@ func TestValidateGenesis(t *testing.T) {
 		})
 	}
 }
+
+func TestParsePendingPacketID(t *testing.T) {
+	testCases := []struct {
+		name          string
+		packetID      string
+		expChannelID  string
+		expSequence   uint64
+		expDenom      string
+		expectedError string
+	}{
+		{
+			name:         "valid denom with slashes",
+			packetID:     "channel-0/1/transfer/channel-1/uatom",
+			expChannelID: "channel-0",
+			expSequence:  1,
+			expDenom:     "transfer/channel-1/uatom",
+		},
+		{
+			name:          "empty denom",
+			packetID:      "channel-0/1/",
+			expectedError: "denom must be specified",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			channelID, sequence, denom, err := types.ParsePendingPacketID(tc.packetID)
+			if tc.expectedError != "" {
+				require.ErrorContains(t, err, tc.expectedError)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.expChannelID, channelID)
+			require.Equal(t, tc.expSequence, sequence)
+			require.Equal(t, tc.expDenom, denom)
+		})
+	}
+}
