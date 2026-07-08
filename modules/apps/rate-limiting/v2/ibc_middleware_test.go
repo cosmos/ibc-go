@@ -11,6 +11,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	callbacksimapp "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/testing/simapp"
+	callbacksv2 "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/v2"
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
@@ -36,6 +38,10 @@ func (mockIBCModule) OnTimeoutPacket(sdk.Context, string, string, uint64, channe
 
 func (mockIBCModule) OnAcknowledgementPacket(sdk.Context, string, string, uint64, []byte, channeltypesv2.Payload, sdk.AccAddress) error {
 	return nil
+}
+
+func (mockIBCModule) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+	return payload.Value, nil
 }
 
 type mockWriteAckWrapper struct {
@@ -105,6 +111,24 @@ func TestNewIBCMiddleware(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUnmarshalPacketData(t *testing.T) {
+	payload := channeltypesv2.Payload{Value: []byte("packet data")}
+	mw := NewIBCMiddleware(keeper.Keeper{}, mockIBCModule{}, &mockWriteAckWrapper{}, mockChannelKeeperV2{})
+
+	packetData, err := mw.UnmarshalPacketData(payload)
+
+	require.NoError(t, err)
+	require.Equal(t, payload.Value, packetData)
+}
+
+func TestCallbacksOverRateLimitingConstruction(t *testing.T) {
+	mw := NewIBCMiddleware(keeper.Keeper{}, mockIBCModule{}, &mockWriteAckWrapper{}, mockChannelKeeperV2{})
+
+	require.NotPanics(t, func() {
+		_ = callbacksv2.NewIBCMiddleware(mw, &mockWriteAckWrapper{}, callbacksimapp.ContractKeeper{}, mockChannelKeeperV2{}, 1)
+	})
 }
 
 func TestWriteAcknowledgement(t *testing.T) {
