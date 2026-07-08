@@ -6,34 +6,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channelkeeperv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
 	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
 	"github.com/cosmos/ibc-go/v11/modules/core/api"
+	ibcmockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
 
-type mockIBCModule struct{}
-
-func (mockIBCModule) OnSendPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
-
-func (mockIBCModule) OnRecvPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) channeltypesv2.RecvPacketResult {
-	return channeltypesv2.RecvPacketResult{}
-}
-
-func (mockIBCModule) OnTimeoutPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
-
-func (mockIBCModule) OnAcknowledgementPacket(sdk.Context, string, string, uint64, []byte, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
-
 type mockPacketUnmarshalerModule struct {
-	mockIBCModule
+	ibcmockv2.IBCModule
 
 	called     bool
 	payload    channeltypesv2.Payload
@@ -46,30 +28,6 @@ func (m *mockPacketUnmarshalerModule) UnmarshalPacketData(payload channeltypesv2
 	return m.packetData, nil
 }
 
-type mockWriteAckWrapper struct {
-	called bool
-	ack    channeltypesv2.Acknowledgement
-	client string
-	seq    uint64
-}
-
-func (m *mockWriteAckWrapper) WriteAcknowledgement(_ sdk.Context, clientID string, sequence uint64, ack channeltypesv2.Acknowledgement) error {
-	m.called = true
-	m.client = clientID
-	m.seq = sequence
-	m.ack = ack
-	return nil
-}
-
-type mockChannelKeeperV2 struct {
-	packet channeltypesv2.Packet
-	found  bool
-}
-
-func (m mockChannelKeeperV2) GetAsyncPacket(sdk.Context, string, uint64) (channeltypesv2.Packet, bool) {
-	return m.packet, m.found
-}
-
 func TestNewIBCMiddleware(t *testing.T) {
 	testCases := []struct {
 		name          string
@@ -79,20 +37,20 @@ func TestNewIBCMiddleware(t *testing.T) {
 		{
 			name: "success",
 			instantiateFn: func() {
-				_ = NewIBCMiddleware(keeper.Keeper{}, mockIBCModule{}, &mockWriteAckWrapper{}, mockChannelKeeperV2{})
+				_ = NewIBCMiddleware(keeper.Keeper{}, ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, &channelkeeperv2.Keeper{})
 			},
 		},
 		{
 			name: "failure: nil write acknowledgement wrapper",
 			instantiateFn: func() {
-				_ = NewIBCMiddleware(keeper.Keeper{}, mockIBCModule{}, nil, mockChannelKeeperV2{})
+				_ = NewIBCMiddleware(keeper.Keeper{}, ibcmockv2.IBCModule{}, nil, &channelkeeperv2.Keeper{})
 			},
 			expPanic: "write acknowledgement wrapper cannot be nil",
 		},
 		{
 			name: "failure: nil channel keeper v2",
 			instantiateFn: func() {
-				_ = NewIBCMiddleware(keeper.Keeper{}, mockIBCModule{}, &mockWriteAckWrapper{}, nil)
+				_ = NewIBCMiddleware(keeper.Keeper{}, ibcmockv2.IBCModule{}, &channelkeeperv2.Keeper{}, nil)
 			},
 			expPanic: "channel keeper v2 cannot be nil",
 		},
@@ -114,7 +72,7 @@ func TestUnmarshalPacketData(t *testing.T) {
 	expPacketData := "packet data"
 	app := &mockPacketUnmarshalerModule{packetData: expPacketData}
 
-	middleware := NewIBCMiddleware(keeper.Keeper{}, app, &mockWriteAckWrapper{}, mockChannelKeeperV2{})
+	middleware := NewIBCMiddleware(keeper.Keeper{}, app, &channelkeeperv2.Keeper{}, &channelkeeperv2.Keeper{})
 	require.Implements(t, (*api.PacketUnmarshalerModuleV2)(nil), middleware)
 
 	packetData, err := middleware.UnmarshalPacketData(payload)

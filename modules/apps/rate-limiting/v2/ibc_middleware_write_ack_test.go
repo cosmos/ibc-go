@@ -1,7 +1,6 @@
 package v2_test
 
 import (
-	"encoding/json"
 	"errors"
 	"testing"
 
@@ -15,28 +14,10 @@ import (
 	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	ratelimitingv2 "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/v2"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcmockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
 )
-
-type mockIBCModule struct{}
-
-func (mockIBCModule) OnSendPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
-
-func (mockIBCModule) OnRecvPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) channeltypesv2.RecvPacketResult {
-	return channeltypesv2.RecvPacketResult{}
-}
-
-func (mockIBCModule) OnTimeoutPacket(sdk.Context, string, string, uint64, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
-
-func (mockIBCModule) OnAcknowledgementPacket(sdk.Context, string, string, uint64, []byte, channeltypesv2.Payload, sdk.AccAddress) error {
-	return nil
-}
 
 type mockWriteAckWrapper struct {
 	called  bool
@@ -176,7 +157,7 @@ func TestWriteAcknowledgement(t *testing.T) {
 			writeAckWrapper := &mockWriteAckWrapper{callErr: tc.writeAckErr}
 			mw := ratelimitingv2.NewIBCMiddleware(
 				*chain.GetSimApp().RateLimitKeeper,
-				mockIBCModule{},
+				ibcmockv2.IBCModule{},
 				writeAckWrapper,
 				mockChannelKeeperV2{packet: packet, found: tc.asyncFound},
 			)
@@ -209,29 +190,10 @@ func TestWriteAcknowledgement(t *testing.T) {
 }
 
 func recvPacketInfo(payload channeltypesv2.Payload, sourceClient, destinationClient string, sequence uint64) (keeper.RateLimitedPacketInfo, error) {
-	transferRepresentation, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
+	packet, err := ratelimitingv2.V2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
 		return keeper.RateLimitedPacketInfo{}, err
 	}
 
-	packetData := transfertypes.FungibleTokenPacketData{
-		Denom:    transferRepresentation.Token.Denom.Path(),
-		Amount:   transferRepresentation.Token.Amount,
-		Sender:   transferRepresentation.Sender,
-		Receiver: transferRepresentation.Receiver,
-		Memo:     transferRepresentation.Memo,
-	}
-	packetDataBz, err := json.Marshal(packetData)
-	if err != nil {
-		return keeper.RateLimitedPacketInfo{}, err
-	}
-
-	return keeper.ParsePacketInfo(channeltypes.Packet{
-		Sequence:           sequence,
-		SourcePort:         payload.SourcePort,
-		SourceChannel:      sourceClient,
-		DestinationPort:    payload.DestinationPort,
-		DestinationChannel: destinationClient,
-		Data:               packetDataBz,
-	}, ratelimitingtypes.PACKET_RECV)
+	return keeper.ParsePacketInfo(packet, ratelimitingtypes.PACKET_RECV)
 }
