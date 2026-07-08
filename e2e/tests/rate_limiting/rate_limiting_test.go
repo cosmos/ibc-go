@@ -198,8 +198,12 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	t.Run("Remove rate limit -> transfer succeeds again", func(_ *testing.T) {
 		s.removeRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
-		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
-		s.Require().Nil(rateLimit)
+		respRateLim, err := query.GRPCQuery[ratelimitingtypes.QueryRateLimitResponse](ctx, chainA, &ratelimitingtypes.QueryRateLimitRequest{
+			Denom:             denomA,
+			ChannelOrClientId: chanAB.ChannelID,
+		})
+		s.Require().NoError(err)
+		s.Require().Nil(respRateLim.RateLimit)
 
 		// Transfer works again
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
@@ -297,6 +301,7 @@ func (s *RateLimTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom
 		ChannelOrClientId: chanID,
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(respRateLim.RateLimit, "rate limit not found for denom %s and channel ID %s", denom, chanID)
 	return respRateLim.RateLimit
 }
 

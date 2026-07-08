@@ -223,6 +223,7 @@ func (s *RateLimV2TestSuite) rateLimit(ctx context.Context, chain ibc.Chain, den
 		ChannelOrClientId: clientID,
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(respRateLim.RateLimit, "rate limit not found for denom %s and client ID %s", denom, clientID)
 	return respRateLim.RateLimit
 }
 
