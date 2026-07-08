@@ -4,9 +4,9 @@ queue_rules:
       - "#approved-reviews-by>=1"
       - base=main
       - label=automerge
-    commit_message_template: |
-      {{ title }} (#{{ number }})
-      {{ body }}
+    commit_message_format:
+      title: pr-title
+      body: pr-body
     merge_conditions:
       - "#approved-reviews-by>=1"
       - base=main
