@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ api.PacketUnmarshalerModuleV2   = (*IBCMiddleware)(nil)
+	_ api.IBCModule                   = (*IBCMiddleware)(nil)
 	_ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
 )
 
@@ -155,12 +155,6 @@ func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, clientID string, s
 	}
 
 	return im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
-}
-
-// UnmarshalPacketData implements the PacketDataUnmarshaler interface.
-// It defers to the underlying app to unmarshal the packet data.
-func (im IBCMiddleware) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
-	return im.app.(api.PacketDataUnmarshaler).UnmarshalPacketData(payload)
 }
 
 // TODO: Something looks off about this, please review carefully
