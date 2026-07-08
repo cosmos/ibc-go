@@ -15,6 +15,11 @@ import (
 // Migrate clears legacy pending packet markers. The old markers were keyed by
 // (channelOrClientID, sequence) and did not contain the denom, so they cannot be
 // migrated into the new denom-scoped collections state.
+//
+// Migrate intentionally does not compensate RateLimit.Flow values for packets
+// that were pending at upgrade time. Without the denom, the migration cannot
+// identify which rate limit to adjust, so that pre-upgrade flow remains charged
+// until the next quota reset.
 func Migrate(ctx sdk.Context, storeService corestore.KVStoreService) error {
 	adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 
