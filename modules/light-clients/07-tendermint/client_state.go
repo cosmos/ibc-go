@@ -1,6 +1,7 @@
 package tendermint
 
 import (
+	"math/bits"
 	"strings"
 	"time"
 
@@ -296,7 +297,11 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 		}
 
 		currentTimestamp := uint64(ctx.BlockTime().UnixNano())
-		validTime := processedTime + delayTimePeriod
+		validTime, carry := bits.Add64(processedTime, delayTimePeriod, 0)
+		if carry != 0 {
+			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "delay time period overflows: processed time: %d, delay time period: %d",
+				processedTime, delayTimePeriod)
+		}
 
 		// NOTE: delay time period is inclusive, so if currentTimestamp is validTime, then we return no error
 		if currentTimestamp < validTime {
@@ -313,7 +318,12 @@ func verifyDelayPeriodPassed(ctx sdk.Context, store storetypes.KVStore, proofHei
 		}
 
 		currentHeight := clienttypes.GetSelfHeight(ctx)
-		validHeight := clienttypes.NewHeight(processedHeight.GetRevisionNumber(), processedHeight.GetRevisionHeight()+delayBlockPeriod)
+		validRevisionHeight, carry := bits.Add64(processedHeight.GetRevisionHeight(), delayBlockPeriod, 0)
+		if carry != 0 {
+			return errorsmod.Wrapf(ErrDelayPeriodNotPassed, "delay block period overflows: processed height: %s, delay block period: %d",
+				processedHeight, delayBlockPeriod)
+		}
+		validHeight := clienttypes.NewHeight(processedHeight.GetRevisionNumber(), validRevisionHeight)
 
 		// NOTE: delay block period is inclusive, so if currentHeight is validHeight, then we return no error
 		if currentHeight.LT(validHeight) {

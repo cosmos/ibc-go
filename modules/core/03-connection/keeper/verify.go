@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"math"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -220,8 +218,13 @@ func (k *Keeper) getBlockDelay(ctx sdk.Context, connection types.ConnectionEnd) 
 	if expectedTimePerBlock == 0 {
 		return 0
 	}
-	// calculate minimum block delay by dividing time delay period
-	// by the expected time per block. Round up the block delay.
+	// Calculate the minimum block delay by dividing the time delay period
+	// by the expected time per block and rounding up.
 	timeDelay := connection.DelayPeriod
-	return uint64(math.Ceil(float64(timeDelay) / float64(expectedTimePerBlock)))
+	blockDelay := timeDelay / expectedTimePerBlock
+	if timeDelay%expectedTimePerBlock != 0 {
+		blockDelay++
+	}
+
+	return blockDelay
 }
