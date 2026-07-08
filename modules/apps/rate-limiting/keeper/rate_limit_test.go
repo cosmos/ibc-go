@@ -65,14 +65,27 @@ func (s *KeeperTestSuite) TestResetRateLimit() {
 	rateLimitToReset := rateLimits[0]
 	denomToRemove := rateLimitToReset.Path.Denom
 	channelIDToRemove := rateLimitToReset.Path.ChannelOrClientId
+	sequence := uint64(10)
 
-	err := s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denomToRemove, channelIDToRemove)
+	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelIDToRemove, sequence)
+	s.Require().NoError(err)
+	err = s.chainA.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(s.chainA.GetContext(), channelIDToRemove, sequence)
+	s.Require().NoError(err)
+
+	err = s.chainA.GetSimApp().RateLimitKeeper.ResetRateLimit(s.chainA.GetContext(), denomToRemove, channelIDToRemove)
 	s.Require().NoError(err)
 
 	rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denomToRemove, channelIDToRemove)
 	s.Require().True(found, "element should have been found, but was not")
 	s.Require().Zero(rateLimit.Flow.Inflow.Int64(), "Inflow should have been reset to 0")
 	s.Require().Zero(rateLimit.Flow.Outflow.Int64(), "Outflow should have been reset to 0")
+
+	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelIDToRemove, sequence)
+	s.Require().NoError(err)
+	s.Require().False(found, "pending send packet should have been reset")
+	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelIDToRemove, sequence)
+	s.Require().NoError(err)
+	s.Require().False(found, "pending receive packet should have been reset")
 }
 
 func (s *KeeperTestSuite) TestGetAllRateLimits() {
