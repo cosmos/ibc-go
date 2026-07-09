@@ -11,17 +11,22 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
-// Sets the sequence number of a packet that was just sent
+// SetPendingSendPacket records a packet whose send flow was applied and may be
+// reverted later. Callers pass (channelID, sequence, denom), but the collection
+// key is stored as (channelID, denom, sequence) for channel+denom range resets.
 func (k *Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
 	return setPendingPacket(ctx, k.PendingSendPackets, channelID, sequence, denom)
 }
 
-// Sets the sequence number of a packet that was just received
+// SetPendingReceivePacket records a packet whose receive flow was applied and
+// may be reverted later. Callers pass (channelID, sequence, denom), but the
+// collection key is stored as (channelID, denom, sequence) for channel+denom
+// range resets.
 func (k *Keeper) SetPendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
 	return setPendingPacket(ctx, k.PendingReceivePackets, channelID, sequence, denom)
 }
 
-func setPendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, uint64, string]], channelID string, sequence uint64, denom string) error {
+func setPendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) error {
 	key, err := pendingPacketKey(channelID, sequence, denom)
 	if err != nil {
 		return err
@@ -30,19 +35,19 @@ func setPendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Tr
 	return packets.Set(ctx, key)
 }
 
-// Remove a pending packet sequence number from the store
-// Used after the ack or timeout for a packet has been received
+// RemovePendingSendPacket removes a send marker after the packet is finalized by
+// acknowledgement or timeout.
 func (k *Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
 	return removePendingPacket(ctx, k.PendingSendPackets, channelID, sequence, denom)
 }
 
-// Remove a pending receive packet sequence number from the store
-// Used after an async error acknowledgement has been written
+// RemovePendingReceivePacket removes a receive marker after a synchronous
+// acknowledgement or async acknowledgement finalizes the packet.
 func (k *Keeper) RemovePendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
 	return removePendingPacket(ctx, k.PendingReceivePackets, channelID, sequence, denom)
 }
 
-func removePendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, uint64, string]], channelID string, sequence uint64, denom string) error {
+func removePendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) error {
 	key, err := pendingPacketKey(channelID, sequence, denom)
 	if err != nil {
 		return err
@@ -51,19 +56,19 @@ func removePendingPacket(ctx sdk.Context, packets collections.KeySet[collections
 	return packets.Remove(ctx, key)
 }
 
-// Checks whether the packet sequence number is in the store - indicating that it was
-// sent during the current quota
+// CheckPacketSentDuringCurrentQuota checks whether a send marker exists for the
+// provided (channelID, sequence, denom).
 func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64, denom string) (bool, error) {
 	return checkPacketDuringCurrentQuota(ctx, k.PendingSendPackets, channelID, sequence, denom)
 }
 
-// Checks whether the packet sequence number is in the store - indicating that it was
-// received during the current quota
+// CheckPacketReceivedDuringCurrentQuota checks whether a receive marker exists
+// for the provided (channelID, sequence, denom).
 func (k *Keeper) CheckPacketReceivedDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64, denom string) (bool, error) {
 	return checkPacketDuringCurrentQuota(ctx, k.PendingReceivePackets, channelID, sequence, denom)
 }
 
-func checkPacketDuringCurrentQuota(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, uint64, string]], channelID string, sequence uint64, denom string) (bool, error) {
+func checkPacketDuringCurrentQuota(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) (bool, error) {
 	key, err := pendingPacketKey(channelID, sequence, denom)
 	if err != nil {
 		return false, err
@@ -72,20 +77,22 @@ func checkPacketDuringCurrentQuota(ctx sdk.Context, packets collections.KeySet[c
 	return packets.Has(ctx, key)
 }
 
-// Get all pending packet sequence numbers
+// GetAllPendingSendPackets returns all pending send markers formatted as
+// {channelID}/{sequence}/{denom}.
 func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
 	return getAllPendingPackets(ctx, k.PendingSendPackets)
 }
 
-// Get all pending receive packet sequence numbers
+// GetAllPendingReceivePackets returns all pending receive markers formatted as
+// {channelID}/{sequence}/{denom}.
 func (k *Keeper) GetAllPendingReceivePackets(ctx sdk.Context) ([]string, error) {
 	return getAllPendingPackets(ctx, k.PendingReceivePackets)
 }
 
-func getAllPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, uint64, string]]) ([]string, error) {
+func getAllPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]]) ([]string, error) {
 	pendingPackets := make([]string, 0)
-	err := packets.Walk(ctx, nil, func(key collections.Triple[string, uint64, string]) (bool, error) {
-		packetID := fmt.Sprintf("%s/%d/%s", key.K1(), key.K2(), key.K3())
+	err := packets.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (bool, error) {
+		packetID := fmt.Sprintf("%s/%d/%s", key.K1(), key.K3(), key.K2())
 		pendingPackets = append(pendingPackets, packetID)
 		return false, nil
 	})
@@ -93,28 +100,26 @@ func getAllPendingPackets(ctx sdk.Context, packets collections.KeySet[collection
 	return pendingPackets, err
 }
 
-// Remove all pending sequence numbers from the store
-// This is executed when the quota resets
+// RemoveAllChannelPendingSendPackets removes all pending send markers for the
+// given channelID and denom.
 func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string, denom string) error {
 	return removeAllChannelPendingPackets(ctx, k.PendingSendPackets, channelID, denom)
 }
 
-// Remove all pending receive sequence numbers from the store
-// This is executed when the quota resets
+// RemoveAllChannelPendingReceivePackets removes all pending receive markers for
+// the given channelID and denom.
 func (k *Keeper) RemoveAllChannelPendingReceivePackets(ctx sdk.Context, channelID string, denom string) error {
 	return removeAllChannelPendingPackets(ctx, k.PendingReceivePackets, channelID, denom)
 }
 
-func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, uint64, string]], channelID string, denom string) error {
+func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, denom string) error {
 	if _, err := pendingPacketKey(channelID, 1, denom); err != nil {
 		return err
 	}
 
-	var keys []collections.Triple[string, uint64, string]
-	if err := packets.Walk(ctx, collections.NewPrefixedTripleRange[string, uint64, string](channelID), func(key collections.Triple[string, uint64, string]) (bool, error) {
-		if key.K3() == denom {
-			keys = append(keys, key)
-		}
+	var keys []collections.Triple[string, string, uint64]
+	if err := packets.Walk(ctx, collections.NewSuperPrefixedTripleRange[string, string, uint64](channelID, denom), func(key collections.Triple[string, string, uint64]) (bool, error) {
+		keys = append(keys, key)
 		return false, nil
 	}); err != nil {
 		return err
@@ -129,13 +134,16 @@ func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[
 	return nil
 }
 
-func pendingPacketKey(channelID string, sequence uint64, denom string) (collections.Triple[string, uint64, string], error) {
+// pendingPacketKey validates the public pending packet tuple
+// (channelID, sequence, denom) and returns the collection key in storage order:
+// (channelID, denom, sequence).
+func pendingPacketKey(channelID string, sequence uint64, denom string) (collections.Triple[string, string, uint64], error) {
 	if _, err := types.PendingPacketKey(channelID, sequence); err != nil {
-		return collections.Triple[string, uint64, string]{}, err
+		return collections.Triple[string, string, uint64]{}, err
 	}
 	if denom == "" {
-		return collections.Triple[string, uint64, string]{}, errors.New("pending packet denom must be specified")
+		return collections.Triple[string, string, uint64]{}, errors.New("pending packet denom must be specified")
 	}
 
-	return collections.Join3(channelID, sequence, denom), nil
+	return collections.Join3(channelID, denom, sequence), nil
 }

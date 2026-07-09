@@ -24,8 +24,14 @@ type Keeper struct {
 	addressCodec address.Codec
 	Schema       collections.Schema
 
-	PendingSendPackets    collections.KeySet[collections.Triple[string, uint64, string]]
-	PendingReceivePackets collections.KeySet[collections.Triple[string, uint64, string]]
+	// PendingSendPackets stores packets whose send flow was applied and may need
+	// to be reverted on timeout or error acknowledgement. The key order is
+	// (channelID, denom, sequence) to support efficient channel+denom range resets.
+	PendingSendPackets collections.KeySet[collections.Triple[string, string, uint64]]
+	// PendingReceivePackets stores packets whose receive flow was applied and may
+	// need to be reverted when an async acknowledgement fails. The key order is
+	// (channelID, denom, sequence) to support efficient channel+denom range resets.
+	PendingReceivePackets collections.KeySet[collections.Triple[string, string, uint64]]
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -42,7 +48,7 @@ func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService c
 	}
 
 	sb := collections.NewSchemaBuilder(storeService)
-	pendingPacketKeyCodec := collections.TripleKeyCodec(collections.StringKey, collections.Uint64Key, collections.StringKey)
+	pendingPacketKeyCodec := collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.Uint64Key)
 	k := Keeper{
 		cdc:          cdc,
 		addressCodec: addressCodec,
