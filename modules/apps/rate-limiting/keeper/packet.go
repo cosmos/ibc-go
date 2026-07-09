@@ -195,6 +195,12 @@ func (k *Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChanne
 		Data:             data,
 	}
 
+	return k.SendRateLimitedPacketWithSequence(ctx, packet)
+}
+
+// SendRateLimitedPacketWithSequence rate limits an outgoing packet whose sequence
+// has already been allocated by the packet handler.
+func (k *Keeper) SendRateLimitedPacketWithSequence(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_SEND)
 	if err != nil {
 		return err
