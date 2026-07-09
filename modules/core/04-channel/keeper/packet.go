@@ -65,6 +65,23 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
 	}
 
+	// A timeout height whose revision number is greater than the counterparty
+	// client's current revision number can never be reached (revision numbers
+	// only increase through a coordinated upgrade). Combined with a zero timeout
+	// timestamp this produces a packet that never times out. Reject it at send.
+	// The check is scoped to clients that use revision-numbered heights
+	// (revision number > 0, i.e. Tendermint); clients such as solomachine report
+	// revision 0 and legitimately use non-matching timeout-height revisions.
+	// See https://github.com/cosmos/ibc-go/issues/8653.
+	if !timeoutHeight.IsZero() && latestHeight.RevisionNumber > 0 &&
+		timeoutHeight.RevisionNumber > latestHeight.RevisionNumber {
+		return 0, errorsmod.Wrapf(
+			clienttypes.ErrInvalidHeight,
+			"packet timeout height revision number (%d) cannot exceed the counterparty client's current revision number (%d)",
+			timeoutHeight.RevisionNumber, latestHeight.RevisionNumber,
+		)
+	}
+
 	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err

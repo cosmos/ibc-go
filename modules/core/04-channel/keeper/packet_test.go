@@ -151,6 +151,18 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			s.Require().True(ok)
 		}, types.ErrTimeoutElapsed},
+		{"timeout height has invalid revision number", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			// a timeout height on a revision number higher than the counterparty
+			// client's current revision can never be reached, which combined with a
+			// zero timeout timestamp yields a packet that never times out. it must
+			// be rejected at send. see https://github.com/cosmos/ibc-go/issues/8653.
+			latestHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			s.Require().True(ok)
+			timeoutHeight = clienttypes.NewHeight(latestHeight.RevisionNumber+1, 100)
+		}, clienttypes.ErrInvalidHeight},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
