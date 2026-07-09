@@ -13,21 +13,12 @@ import (
 
 func (s *KeeperTestSuite) TestMigrate1to2() {
 	const oldPendingSendPacketChannelLength = 16
-	const newPendingSendPacketChannelLength = 64
 	const oldKeyLen = oldPendingSendPacketChannelLength + 8
-	const newKeyLen = newPendingSendPacketChannelLength + 8
 
 	writeLegacy := func(store prefix.Store, channelID string, sequence uint64) {
 		key := make([]byte, oldKeyLen)
 		copy(key, channelID)
 		binary.BigEndian.PutUint64(key[oldPendingSendPacketChannelLength:], sequence)
-		store.Set(key, []byte{1})
-	}
-
-	writeNewLayout := func(store prefix.Store, channelID string, sequence uint64) {
-		key := make([]byte, newKeyLen)
-		copy(key, channelID)
-		binary.BigEndian.PutUint64(key[newPendingSendPacketChannelLength:], sequence)
 		store.Set(key, []byte{1})
 	}
 
@@ -48,109 +39,39 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 		migrator keeper.Migrator
 	)
 
-	tests := []struct {
-		name      string
-		malleate  func(store prefix.Store)
-		expectAll []string
-		expectErr string
-	}{
-		{
-			name:     "success: empty store",
-			malleate: func(_ prefix.Store) {},
-		},
-		{
-			name: "success: legacy entries rewritten",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 1)
-				writeLegacy(store, "channel-1", 2)
-				writeLegacy(store, "channel-11", 1)
-				writeLegacy(store, "channel-11", 7)
-				writeLegacy(store, "07-tendermint-10", 500)
-				// note this following channelID will get truncated when written to the store
-				writeLegacy(store, "07-tendermint-5011", 600)
-			},
-			expectAll: []string{
-				"channel-1/1", "channel-1/2",
-				"channel-11/1", "channel-11/7",
-				"07-tendermint-10/500", "07-tendermint-50/600",
-			},
-		},
-		{
-			name: "failure: already migrated entry",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 1)
-				writeNewLayout(store, "channel-99", 5)
-			},
-			expectErr: "unexpected pending-send-packet key length",
-		},
-		{
-			name: "failure: unexpected key length",
-			malleate: func(store prefix.Store) {
-				// key length is does not match oldKeyLen
-				store.Set(make([]byte, oldKeyLen+1), []byte{1})
-			},
-			expectErr: "unexpected pending-send-packet key length",
-		},
-		{
-			name: "failure: existing channel ID too short",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "abc", 1)
-			},
-			expectErr: "invalid channel or client ID",
-		},
-		{
-			name: "failure: invalid existing channelID",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "ch/1", 1)
-			},
-			expectErr: "invalid channel or client ID",
-		},
-		{
-			name: "failure: existing sequence 0",
-			malleate: func(store prefix.Store) {
-				writeLegacy(store, "channel-1", 0)
-			},
-			expectErr: "invalid sequence 0",
-		},
-	}
+	s.SetupTest()
 
-	for _, tc := range tests {
-		s.Run(tc.name, func() {
-			s.SetupTest()
+	ctx = s.chainA.GetContext()
+	rlKeeper = s.chainA.GetSimApp().RateLimitKeeper
+	migrator = keeper.NewMigrator(rlKeeper)
 
-			ctx = s.chainA.GetContext()
-			rlKeeper = s.chainA.GetSimApp().RateLimitKeeper
-			migrator = keeper.NewMigrator(rlKeeper)
+	storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey))
+	adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
+	pendingSendStore := prefix.NewStore(adapter, ratelimittypes.PendingSendPacketPrefix)
+	pendingReceiveStore := prefix.NewStore(adapter, ratelimittypes.PendingReceivePacketPrefix)
 
-			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey))
-			adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
-			prefixStore := prefix.NewStore(adapter, ratelimittypes.PendingSendPacketPrefix)
+	writeLegacy(pendingSendStore, "channel-1", 1)
+	writeLegacy(pendingSendStore, "channel-1", 2)
+	writeLegacy(pendingReceiveStore, "channel-1", 1)
+	writeLegacy(pendingReceiveStore, "channel-2", 1)
+	pendingSendStore.Set([]byte("unexpected-length-send"), []byte{1})
+	pendingReceiveStore.Set([]byte("unexpected-length-receive"), []byte{1})
 
-			// set initial store state
-			tc.malleate(prefixStore)
+	err := rlKeeper.SetPendingSendPacket(ctx, "channel-3", 1, "denom-a")
+	s.Require().NoError(err)
+	err = rlKeeper.SetPendingReceivePacket(ctx, "channel-3", 1, "denom-a")
+	s.Require().NoError(err)
 
-			// perform migration
-			err := migrator.Migrate1to2(ctx)
+	err = migrator.Migrate1to2(ctx)
+	s.Require().NoError(err)
 
-			if tc.expectErr != "" {
-				s.Require().ErrorContains(err, tc.expectErr)
-				return
-			}
-			s.Require().NoError(err)
+	s.Require().Empty(readAllKeys(pendingSendStore), "legacy pending send packet store")
+	s.Require().Empty(readAllKeys(pendingReceiveStore), "legacy pending receive packet store")
 
-			// assert that all keys match our expected keys, or there are no
-			// keys at all
-			for _, k := range readAllKeys(prefixStore) {
-				s.Require().Len(k, newKeyLen, "every post-migration key must be in the new layout")
-			}
-
-			pendingSendPackets, err := rlKeeper.GetAllPendingSendPackets(ctx)
-			s.Require().NoError(err)
-			if tc.expectAll == nil {
-				s.Require().Empty(pendingSendPackets)
-			} else {
-				s.Require().ElementsMatch(tc.expectAll, pendingSendPackets)
-			}
-		})
-	}
+	found, err := rlKeeper.CheckPacketSentDuringCurrentQuota(ctx, "channel-3", 1, "denom-a")
+	s.Require().NoError(err)
+	s.Require().True(found, "collections pending send packet should be preserved")
+	found, err = rlKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, "channel-3", 1, "denom-a")
+	s.Require().NoError(err)
+	s.Require().True(found, "collections pending receive packet should be preserved")
 }

@@ -1,146 +1,145 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
-	"strings"
 
-	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/collections"
 
-	"github.com/cosmos/cosmos-sdk/runtime"
-	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
-// Sets the sequence number of a packet that was just sent
-func (k *Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) error {
-	return k.setPendingPacket(ctx, types.PendingSendPacketPrefix, channelID, sequence)
+// SetPendingSendPacket records a packet whose send flow was applied and may be
+// reverted later. Callers pass (channelID, sequence, denom), but the collection
+// key is stored as (channelID, denom, sequence) for channel+denom range resets.
+func (k *Keeper) SetPendingSendPacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
+	return setPendingPacket(ctx, k.PendingSendPackets, channelID, sequence, denom)
 }
 
-// Sets the sequence number of a packet that was just received
-func (k *Keeper) SetPendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64) error {
-	return k.setPendingPacket(ctx, types.PendingReceivePacketPrefix, channelID, sequence)
+// SetPendingReceivePacket records a packet whose receive flow was applied and
+// may be reverted later. Callers pass (channelID, sequence, denom), but the
+// collection key is stored as (channelID, denom, sequence) for channel+denom
+// range resets.
+func (k *Keeper) SetPendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
+	return setPendingPacket(ctx, k.PendingReceivePackets, channelID, sequence, denom)
 }
 
-func (k *Keeper) setPendingPacket(ctx sdk.Context, keyPrefix []byte, channelID string, sequence uint64) error {
-	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, keyPrefix)
-	key, err := types.PendingPacketKey(channelID, sequence)
-	if err != nil {
-		return err
-	}
-	store.Set(key, []byte{1})
-	return nil
-}
-
-// Remove a pending packet sequence number from the store
-// Used after the ack or timeout for a packet has been received
-func (k *Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64) error {
-	return k.removePendingPacket(ctx, types.PendingSendPacketPrefix, channelID, sequence)
-}
-
-// Remove a pending receive packet sequence number from the store
-// Used after an async error acknowledgement has been written
-func (k *Keeper) RemovePendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64) error {
-	return k.removePendingPacket(ctx, types.PendingReceivePacketPrefix, channelID, sequence)
-}
-
-func (k *Keeper) removePendingPacket(ctx sdk.Context, keyPrefix []byte, channelID string, sequence uint64) error {
-	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, keyPrefix)
-	key, err := types.PendingPacketKey(channelID, sequence)
+func setPendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) error {
+	key, err := pendingPacketKey(channelID, sequence, denom)
 	if err != nil {
 		return err
 	}
 
-	store.Delete(key)
-	return nil
+	return packets.Set(ctx, key)
 }
 
-// Checks whether the packet sequence number is in the store - indicating that it was
-// sent during the current quota
-func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64) (bool, error) {
-	return k.checkPacketDuringCurrentQuota(ctx, types.PendingSendPacketPrefix, channelID, sequence)
+// RemovePendingSendPacket removes a send marker after the packet is finalized by
+// acknowledgement or timeout.
+func (k *Keeper) RemovePendingSendPacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
+	return removePendingPacket(ctx, k.PendingSendPackets, channelID, sequence, denom)
 }
 
-// Checks whether the packet sequence number is in the store - indicating that it was
-// received during the current quota
-func (k *Keeper) CheckPacketReceivedDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64) (bool, error) {
-	return k.checkPacketDuringCurrentQuota(ctx, types.PendingReceivePacketPrefix, channelID, sequence)
+// RemovePendingReceivePacket removes a receive marker after a synchronous
+// acknowledgement or async acknowledgement finalizes the packet.
+func (k *Keeper) RemovePendingReceivePacket(ctx sdk.Context, channelID string, sequence uint64, denom string) error {
+	return removePendingPacket(ctx, k.PendingReceivePackets, channelID, sequence, denom)
 }
 
-func (k *Keeper) checkPacketDuringCurrentQuota(ctx sdk.Context, keyPrefix []byte, channelID string, sequence uint64) (bool, error) {
-	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, keyPrefix)
-	key, err := types.PendingPacketKey(channelID, sequence)
+func removePendingPacket(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) error {
+	key, err := pendingPacketKey(channelID, sequence, denom)
+	if err != nil {
+		return err
+	}
+
+	return packets.Remove(ctx, key)
+}
+
+// CheckPacketSentDuringCurrentQuota checks whether a send marker exists for the
+// provided (channelID, sequence, denom).
+func (k *Keeper) CheckPacketSentDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64, denom string) (bool, error) {
+	return checkPacketDuringCurrentQuota(ctx, k.PendingSendPackets, channelID, sequence, denom)
+}
+
+// CheckPacketReceivedDuringCurrentQuota checks whether a receive marker exists
+// for the provided (channelID, sequence, denom).
+func (k *Keeper) CheckPacketReceivedDuringCurrentQuota(ctx sdk.Context, channelID string, sequence uint64, denom string) (bool, error) {
+	return checkPacketDuringCurrentQuota(ctx, k.PendingReceivePackets, channelID, sequence, denom)
+}
+
+func checkPacketDuringCurrentQuota(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, sequence uint64, denom string) (bool, error) {
+	key, err := pendingPacketKey(channelID, sequence, denom)
 	if err != nil {
 		return false, err
 	}
-	valueBz := store.Get(key)
-	found := len(valueBz) != 0
-	return found, nil
+
+	return packets.Has(ctx, key)
 }
 
-// Get all pending packet sequence numbers
+// GetAllPendingSendPackets returns all pending send markers formatted as
+// {channelID}/{sequence}/{denom}.
 func (k *Keeper) GetAllPendingSendPackets(ctx sdk.Context) ([]string, error) {
-	return k.getAllPendingPackets(ctx, types.PendingSendPacketPrefix)
+	return getAllPendingPackets(ctx, k.PendingSendPackets)
 }
 
-// Get all pending receive packet sequence numbers
+// GetAllPendingReceivePackets returns all pending receive markers formatted as
+// {channelID}/{sequence}/{denom}.
 func (k *Keeper) GetAllPendingReceivePackets(ctx sdk.Context) ([]string, error) {
-	return k.getAllPendingPackets(ctx, types.PendingReceivePacketPrefix)
+	return getAllPendingPackets(ctx, k.PendingReceivePackets)
 }
 
-func (k *Keeper) getAllPendingPackets(ctx sdk.Context, keyPrefix []byte) ([]string, error) {
-	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, keyPrefix)
-
-	iterator := store.Iterator(nil, nil)
-
+func getAllPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]]) ([]string, error) {
 	pendingPackets := make([]string, 0)
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()
-
-		channelID := string(key[:types.PendingSendPacketChannelLength])
-		channelID = strings.TrimRight(channelID, "\x00") // removes null bytes from suffix
-		sequence := binary.BigEndian.Uint64(key[types.PendingSendPacketChannelLength:])
-
-		packetID := fmt.Sprintf("%s/%d", channelID, sequence)
+	err := packets.Walk(ctx, nil, func(key collections.Triple[string, string, uint64]) (bool, error) {
+		packetID := fmt.Sprintf("%s/%d/%s", key.K1(), key.K3(), key.K2())
 		pendingPackets = append(pendingPackets, packetID)
-	}
+		return false, nil
+	})
 
-	return pendingPackets, iterator.Close()
+	return pendingPackets, err
 }
 
-// Remove all pending sequence numbers from the store
-// This is executed when the quota resets
-func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string) error {
-	return k.removeAllChannelPendingPackets(ctx, types.PendingSendPacketPrefix, channelID)
+// RemoveAllChannelPendingSendPackets removes all pending send markers for the
+// given channelID and denom.
+func (k *Keeper) RemoveAllChannelPendingSendPackets(ctx sdk.Context, channelID string, denom string) error {
+	return removeAllChannelPendingPackets(ctx, k.PendingSendPackets, channelID, denom)
 }
 
-// Remove all pending receive sequence numbers from the store
-// This is executed when the quota resets
-func (k *Keeper) RemoveAllChannelPendingReceivePackets(ctx sdk.Context, channelID string) error {
-	return k.removeAllChannelPendingPackets(ctx, types.PendingReceivePacketPrefix, channelID)
+// RemoveAllChannelPendingReceivePackets removes all pending receive markers for
+// the given channelID and denom.
+func (k *Keeper) RemoveAllChannelPendingReceivePackets(ctx sdk.Context, channelID string, denom string) error {
+	return removeAllChannelPendingPackets(ctx, k.PendingReceivePackets, channelID, denom)
 }
 
-func (k *Keeper) removeAllChannelPendingPackets(ctx sdk.Context, keyPrefix []byte, channelID string) error {
-	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
-	store := prefix.NewStore(adapter, keyPrefix)
-
-	if len(channelID) > types.PendingSendPacketChannelLength {
-		return errorsmod.Wrapf(types.ErrInvalidChannelID, "channel %s with length %d is greater than the allowed length %d", channelID, len(channelID), types.PendingSendPacketChannelLength)
+func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, denom string) error {
+	if err := types.ValidatePendingPacketParts(channelID, denom); err != nil {
+		return err
 	}
 
-	channelIDBz := make([]byte, types.PendingSendPacketChannelLength)
-	copy(channelIDBz, channelID)
-
-	iterator := storetypes.KVStorePrefixIterator(store, channelIDBz)
-	for ; iterator.Valid(); iterator.Next() {
-		store.Delete(iterator.Key())
+	var keys []collections.Triple[string, string, uint64]
+	if err := packets.Walk(ctx, collections.NewSuperPrefixedTripleRange[string, string, uint64](channelID, denom), func(key collections.Triple[string, string, uint64]) (bool, error) {
+		keys = append(keys, key)
+		return false, nil
+	}); err != nil {
+		return err
 	}
-	return iterator.Close()
+
+	for _, key := range keys {
+		if err := packets.Remove(ctx, key); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// pendingPacketKey validates the public pending packet tuple
+// (channelID, sequence, denom) and returns the collection key in storage order:
+// (channelID, denom, sequence).
+func pendingPacketKey(channelID string, sequence uint64, denom string) (collections.Triple[string, string, uint64], error) {
+	if err := types.ValidatePendingPacketParts(channelID, denom); err != nil {
+		return collections.Triple[string, string, uint64]{}, err
+	}
+
+	return collections.Join3(channelID, denom, sequence), nil
 }

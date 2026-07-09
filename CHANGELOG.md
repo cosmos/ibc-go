@@ -50,7 +50,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) Increase pending send packet channel length key size from 16 to 64
+* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
 
 ### Improvements
 
