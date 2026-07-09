@@ -69,7 +69,13 @@ func (k *Keeper) UndoSendPacket(ctx sdk.Context, channelOrClientID string, seque
 	}
 
 	if found {
-		rateLimit.Flow.Outflow = rateLimit.Flow.Outflow.Sub(amount)
+		// Clamp defensively in case the stored outflow is lower than the packet amount.
+		newOutflow := rateLimit.Flow.Outflow.Sub(amount)
+		if newOutflow.IsNegative() {
+			newOutflow = sdkmath.ZeroInt()
+		}
+
+		rateLimit.Flow.Outflow = newOutflow
 		k.SetRateLimit(ctx, rateLimit)
 
 		return k.RemovePendingSendPacket(ctx, channelOrClientID, sequence, denom)
