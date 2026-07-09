@@ -17,6 +17,7 @@ import (
 
 var (
 	_ api.IBCModule                   = (*IBCMiddleware)(nil)
+	_ api.PacketUnmarshalerModuleV2   = (*IBCMiddleware)(nil)
 	_ api.WriteAcknowledgementWrapper = (*IBCMiddleware)(nil)
 )
 
@@ -44,13 +45,22 @@ func NewIBCMiddleware(k keeper.Keeper, app api.IBCModule, writeAckWrapper api.Wr
 	}
 }
 
+func (im IBCMiddleware) UnmarshalPacketData(payload channeltypesv2.Payload) (any, error) {
+	packetDataUnmarshaler, ok := im.app.(api.PacketDataUnmarshaler)
+	if !ok {
+		return nil, errors.New("underlying application does not implement packet data unmarshaler")
+	}
+
+	return packetDataUnmarshaler.UnmarshalPacketData(payload)
+}
+
 func (im IBCMiddleware) OnSendPacket(ctx sdk.Context, sourceClient string, destinationClient string, sequence uint64, payload channeltypesv2.Payload, signer sdk.AccAddress) error {
 	packet, err := v2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 	if err != nil {
 		im.keeper.Logger(ctx).Error("ICS20 rate limiting OnSendPacket failed to convert v2 packet to v1 packet", "error", err)
 		return err
 	}
-	if err := im.keeper.SendRateLimitedPacket(ctx, packet.SourcePort, packet.SourceChannel, packet.TimeoutHeight, packet.TimeoutTimestamp, packet.Data); err != nil {
+	if err := im.keeper.SendRateLimitedPacketWithSequence(ctx, packet); err != nil {
 		im.keeper.Logger(ctx).Error("ICS20 packet send was denied", "error", err)
 		return err
 	}
