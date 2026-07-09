@@ -75,6 +75,20 @@ func TestValidateGenesis(t *testing.T) {
 			expectedError: "greater than the allowed length 64",
 		},
 		{
+			name: "invalid packet sequence - channel ID contains 0x00",
+			genesisState: types.GenesisState{
+				PendingSendPacketSequenceNumbers: []string{"channel-\x00/1/denomA"},
+			},
+			expectedError: "cannot contain 0x00",
+		},
+		{
+			name: "invalid packet sequence - denom contains 0x00",
+			genesisState: types.GenesisState{
+				PendingSendPacketSequenceNumbers: []string{"channel-0/1/denom\x00A"},
+			},
+			expectedError: "pending packet denom cannot contain 0x00",
+		},
+		{
 			name: "invalid receive packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
 				PendingRecvPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
@@ -152,6 +166,10 @@ func TestIsLegacyPendingPacketID(t *testing.T) {
 		{
 			name:     "invalid legacy sequence",
 			packetID: "channel-0/X",
+		},
+		{
+			name:     "invalid legacy channel ID contains 0x00",
+			packetID: "channel-\x00/1",
 		},
 		{
 			name:     "denom-scoped ID",

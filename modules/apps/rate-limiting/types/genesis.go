@@ -32,6 +32,36 @@ func ParsePendingPacketID(pendingPacketID string) (string, uint64, string, error
 	return channelID, sequence, denom, nil
 }
 
+// ValidatePendingPacketParts validates the string fields used by pending packet
+// collection keys. Pending packet keys are stored as (channelID, denom,
+// sequence), where channelID and denom are non-terminal string keys and cannot
+// contain the collections string delimiter byte 0x00.
+func ValidatePendingPacketParts(channelID, denom string) error {
+	if err := validatePendingPacketChannelID(channelID); err != nil {
+		return err
+	}
+
+	if denom == "" {
+		return errors.New("pending packet denom must be specified")
+	}
+	if strings.ContainsRune(denom, '\x00') {
+		return errors.New("pending packet denom cannot contain 0x00")
+	}
+
+	return nil
+}
+
+func validatePendingPacketChannelID(channelID string) error {
+	if len(channelID) > PendingSendPacketChannelLength {
+		return errorsmod.Wrapf(ErrInvalidChannelID, "channel %s with length %d is greater than the allowed length %d", channelID, len(channelID), PendingSendPacketChannelLength)
+	}
+	if strings.ContainsRune(channelID, '\x00') {
+		return errorsmod.Wrapf(ErrInvalidChannelID, "channel ID %q cannot contain 0x00", channelID)
+	}
+
+	return nil
+}
+
 // IsLegacyPendingPacketID returns true if the pending packet ID is in the pre-denom
 // genesis format. These IDs cannot be safely migrated to denom-scoped markers and
 // are dropped on import, mirroring the store migration behavior.
@@ -41,13 +71,12 @@ func IsLegacyPendingPacketID(pendingPacketID string) bool {
 		return false
 	}
 
-	sequence, err := strconv.ParseUint(splits[1], 10, 64)
+	_, err := strconv.ParseUint(splits[1], 10, 64)
 	if err != nil {
 		return false
 	}
 
-	_, err = PendingPacketKey(splits[0], sequence)
-	return err == nil
+	return validatePendingPacketChannelID(splits[0]) == nil
 }
 
 // DefaultGenesis returns the default Capability genesis state
@@ -98,7 +127,7 @@ func (gs GenesisState) Validate() error {
 }
 
 func validatePendingPacketID(pendingPacketID string) error {
-	channelOrClientID, sequence, _, err := ParsePendingPacketID(pendingPacketID)
+	channelOrClientID, _, denom, err := ParsePendingPacketID(pendingPacketID)
 	if err != nil {
 		if IsLegacyPendingPacketID(pendingPacketID) {
 			return nil
@@ -106,6 +135,5 @@ func validatePendingPacketID(pendingPacketID string) error {
 		return err
 	}
 
-	_, err = PendingPacketKey(channelOrClientID, sequence)
-	return err
+	return ValidatePendingPacketParts(channelOrClientID, denom)
 }

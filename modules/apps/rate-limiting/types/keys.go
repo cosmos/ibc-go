@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 
 	"cosmossdk.io/collections"
-	errorsmod "cosmossdk.io/errors"
 )
 
 const (
@@ -53,8 +52,8 @@ func RateLimitItemKey(denom string, channelID string) []byte {
 // The channel ID must be fixed length to allow for extracting the underlying
 // values from a key
 func PendingPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
-	if len(channelID) > PendingSendPacketChannelLength {
-		return nil, errorsmod.Wrapf(ErrInvalidChannelID, "channel %s with length %d is greater than the allowed length %d", channelID, len(channelID), PendingSendPacketChannelLength)
+	if err := validatePendingPacketChannelID(channelID); err != nil {
+		return nil, err
 	}
 
 	channelIDBz := make([]byte, PendingSendPacketChannelLength)

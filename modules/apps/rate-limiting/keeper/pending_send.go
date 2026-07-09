@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	"cosmossdk.io/collections"
@@ -113,7 +112,7 @@ func (k *Keeper) RemoveAllChannelPendingReceivePackets(ctx sdk.Context, channelI
 }
 
 func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[collections.Triple[string, string, uint64]], channelID string, denom string) error {
-	if _, err := pendingPacketKey(channelID, 1, denom); err != nil {
+	if err := types.ValidatePendingPacketParts(channelID, denom); err != nil {
 		return err
 	}
 
@@ -138,11 +137,8 @@ func removeAllChannelPendingPackets(ctx sdk.Context, packets collections.KeySet[
 // (channelID, sequence, denom) and returns the collection key in storage order:
 // (channelID, denom, sequence).
 func pendingPacketKey(channelID string, sequence uint64, denom string) (collections.Triple[string, string, uint64], error) {
-	if _, err := types.PendingPacketKey(channelID, sequence); err != nil {
+	if err := types.ValidatePendingPacketParts(channelID, denom); err != nil {
 		return collections.Triple[string, string, uint64]{}, err
-	}
-	if denom == "" {
-		return collections.Triple[string, string, uint64]{}, errors.New("pending packet denom must be specified")
 	}
 
 	return collections.Join3(channelID, denom, sequence), nil

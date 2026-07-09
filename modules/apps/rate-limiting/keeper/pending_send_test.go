@@ -145,11 +145,25 @@ func (s *KeeperTestSuite) TestPendingPacketValidation() {
 			expErrMsg: "greater than the allowed length 64",
 		},
 		{
+			name: "set send invalid channel delimiter",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), "channel-\x00", 1, denom)
+			},
+			expErrMsg: "cannot contain 0x00",
+		},
+		{
 			name: "remove send empty denom",
 			call: func() error {
 				return s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 1, "")
 			},
 			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "remove receive invalid denom delimiter",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemovePendingReceivePacket(s.chainA.GetContext(), channelID, 1, "denom\x00")
+			},
+			expErrMsg: "pending packet denom cannot contain 0x00",
 		},
 		{
 			name: "check receive empty denom",
