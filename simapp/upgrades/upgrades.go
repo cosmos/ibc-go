@@ -20,6 +20,10 @@ const (
 	V11_1 = "v11.1"
 	// V11_1LegacyPFM defines the upgrade name for direct legacy v10 PFM upgrades to ibc-go/v11.1.
 	V11_1LegacyPFM = "v11.1-legacy-pfm"
+	// V11_2 defines the upgrade name for the ibc-go/v11.2 upgrade handler.
+	V11_2 = "v11.2"
+	// V11_2LegacyIBCApps defines the upgrade name for direct legacy v10 ibc-apps upgrades to ibc-go/v11.2.
+	V11_2LegacyIBCApps = "v11.2-legacy-ibc-apps"
 )
 
 // CreateDefaultUpgradeHandler creates an upgrade handler which can be used for regular upgrade tests
