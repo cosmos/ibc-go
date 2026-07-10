@@ -143,9 +143,11 @@ func TestV2ToV1Packet(t *testing.T) {
 
 	testCases := []struct {
 		name     string
+		version  string
 		encoding string
 		value    []byte
 		expErr   bool
+		expErrIs error
 	}{
 		{
 			name:     "success: JSON encoding",
@@ -173,14 +175,27 @@ func TestV2ToV1Packet(t *testing.T) {
 			value:    []byte{},
 			expErr:   true,
 		},
+		{
+			name:     "failure: unsupported version",
+			version:  "ics20-2",
+			encoding: transfertypes.EncodingJSON,
+			value:    mustMarshalPacketData(transfertypes.EncodingJSON),
+			expErr:   true,
+			expErrIs: ratelimitingtypes.ErrInvalidPacketData,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			version := transfertypes.V1
+			if tc.version != "" {
+				version = tc.version
+			}
+
 			payload := channeltypesv2.Payload{
 				SourcePort:      "sourcePort",
 				DestinationPort: "destinationPort",
-				Version:         transfertypes.V1,
+				Version:         version,
 				Encoding:        tc.encoding,
 				Value:           tc.value,
 			}
@@ -188,6 +203,9 @@ func TestV2ToV1Packet(t *testing.T) {
 			v1Packet, err := ratelimitingv2.V2ToV1Packet(payload, sourceClient, destinationClient, sequence)
 			if tc.expErr {
 				require.Error(t, err)
+				if tc.expErrIs != nil {
+					require.ErrorIs(t, err, tc.expErrIs)
+				}
 				return
 			}
 

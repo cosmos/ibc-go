@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"encoding/json"
 	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -167,8 +166,11 @@ func (im IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, clientID string, s
 	return im.writeAckWrapper.WriteAcknowledgement(ctx, clientID, sequence, ack)
 }
 
-// TODO: Something looks off about this, please review carefully
 func v2ToV1Packet(payload channeltypesv2.Payload, sourceClient, destinationClient string, sequence uint64) (channeltypes.Packet, error) {
+	if payload.Version != transfertypes.V1 {
+		return channeltypes.Packet{}, ratelimitingtypes.ErrInvalidPacketData.Wrapf("expected version %s, got %s", transfertypes.V1, payload.Version)
+	}
+
 	transferRepresentation, err := transfertypes.UnmarshalPacketData(payload.Value, payload.Version, payload.Encoding)
 	if err != nil {
 		return channeltypes.Packet{}, err
@@ -182,7 +184,7 @@ func v2ToV1Packet(payload channeltypesv2.Payload, sourceClient, destinationClien
 		Memo:     transferRepresentation.Memo,
 	}
 
-	packetDataBz, err := json.Marshal(packetData)
+	packetDataBz, err := transfertypes.MarshalPacketData(packetData, payload.Version, transfertypes.EncodingJSON)
 	if err != nil {
 		return channeltypes.Packet{}, err
 	}

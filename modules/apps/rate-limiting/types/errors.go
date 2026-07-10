@@ -19,4 +19,5 @@ var (
 	ErrInvalidChannelID       = errorsmod.Register(ModuleName, 12, "invalid channel")
 	ErrAsyncPacketNotFound    = errorsmod.Register(ModuleName, 13, "async packet not found")
 	ErrAsyncAckNil            = errorsmod.Register(ModuleName, 14, "async ack is nil")
+	ErrInvalidPacketData      = errorsmod.Register(ModuleName, 15, "invalid packet data")
 )
