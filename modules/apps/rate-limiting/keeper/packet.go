@@ -195,6 +195,12 @@ func (k *Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChanne
 		Data:             data,
 	}
 
+	return k.SendRateLimitedPacketWithSequence(ctx, packet)
+}
+
+// SendRateLimitedPacketWithSequence rate limits an outgoing packet whose sequence
+// has already been allocated by the packet handler.
+func (k *Keeper) SendRateLimitedPacketWithSequence(ctx sdk.Context, packet channeltypes.Packet) error {
 	packetInfo, err := ParsePacketInfo(packet, types.PACKET_SEND)
 	if err != nil {
 		return err
@@ -209,7 +215,7 @@ func (k *Keeper) SendRateLimitedPacket(ctx sdk.Context, sourcePort, sourceChanne
 	// Store the sequence number of the packet so that if the transfer fails,
 	// we can identify if it was sent during this quota and can revert the outflow
 	if updatedFlow {
-		return k.SetPendingSendPacket(ctx, packetInfo.ChannelID, packet.Sequence)
+		return k.SetPendingSendPacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 	}
 
 	return nil
@@ -235,7 +241,7 @@ func (k *Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 	}
 
 	if updatedFlow {
-		return k.SetPendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence)
+		return k.SetPendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 	}
 
 	return nil
@@ -257,7 +263,7 @@ func (k *Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltyp
 
 	// If the ack was successful, remove the pending packet
 	if ackSuccess {
-		return k.RemovePendingSendPacket(ctx, packetInfo.ChannelID, packet.Sequence)
+		return k.RemovePendingSendPacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 	}
 
 	// If the ack failed, undo the change to the rate limit Outflow
@@ -289,12 +295,12 @@ func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) 
 
 	rateLimit, found := k.GetRateLimit(ctx, packetInfo.Denom, packetInfo.ChannelID)
 	if !found {
-		return nil
+		return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 	}
 
 	// Only undo receives from the current quota. If the quota reset before the
 	// async ack was written, the corresponding pending receive marker was cleared.
-	found, err = k.CheckPacketReceivedDuringCurrentQuota(ctx, packetInfo.ChannelID, packet.Sequence)
+	found, err = k.CheckPacketReceivedDuringCurrentQuota(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 	if err != nil {
 		return err
 	}
@@ -311,5 +317,5 @@ func (k *Keeper) UndoReceivePacket(ctx sdk.Context, packet channeltypes.Packet) 
 	rateLimit.Flow.Inflow = newInflow
 	k.SetRateLimit(ctx, rateLimit)
 
-	return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence)
+	return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
 }

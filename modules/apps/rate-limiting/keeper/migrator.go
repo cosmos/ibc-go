@@ -16,8 +16,10 @@ func NewMigrator(k *Keeper) Migrator {
 	return Migrator{keeper: k}
 }
 
-// Migrate1to2 widens the PendingSendPacket key's channel-ID segment from
-// 16 to 64 bytes so IBC v2 channel IDs fit.
+// Migrate1to2 clears legacy pending packet markers so new denom-scoped
+// collections pending packet state starts empty. Flow charged by pre-upgrade
+// pending packets is not compensated and remains charged until the next quota
+// reset because the legacy markers do not include denoms.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	return v2.Migrate(ctx, m.keeper.storeService)
 }

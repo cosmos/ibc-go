@@ -73,7 +73,7 @@ func (s *LegacyV10IBCAppsUpgradeTestSuite) submitLegacyRateLimitProposal(ctx con
 	s.Require().Contains(string(stdout), denom)
 }
 
-func (s *V10LegacyRateLimitUpgradeTestSuite) migratedPendingSendPacketKey(channelID string, sequence uint64) []byte {
+func (s *V10LegacyRateLimitUpgradeTestSuite) legacyV2PendingSendPacketKey(channelID string, sequence uint64) []byte {
 	key, err := ratelimitingtypes.PendingPacketKey(channelID, sequence)
 	s.Require().NoError(err)
 	return key
@@ -115,7 +115,7 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) rateLimit(ctx context.Context, chai
 	return resp.RateLimit
 }
 
-func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigratesPendingSendPackets() {
+func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeClearsPendingSendPackets() {
 	ctx := context.Background()
 	testName := s.T().Name()
 
@@ -148,10 +148,10 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 		Timeout: &ibc.IBCTimeout{NanoSeconds: uint64((5 * time.Second).Nanoseconds())},
 	})
 	s.Require().NoError(err)
-	migratedPendingSendKey := s.migratedPendingSendPacketKey(chanBA.ChannelID, timeoutTx.Packet.Sequence)
+	legacyV2PendingSendKey := s.legacyV2PendingSendPacketKey(chanBA.ChannelID, timeoutTx.Packet.Sequence)
 	legacyPendingSendKey := s.legacyPendingSendPacketKey(chanBA.ChannelID, timeoutTx.Packet.Sequence)
 	s.assertRateLimitPendingSendPacketExists(ctx, cosmosChainB, legacyPendingSendKey)
-	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, migratedPendingSendKey)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyV2PendingSendKey)
 
 	s.UpgradeChain(
 		ctx,
@@ -166,7 +166,7 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 	s.Require().NotNil(rateLimit)
 	s.Require().Equal(timeoutAmount, rateLimit.Flow.Outflow)
 	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyPendingSendKey)
-	s.assertRateLimitPendingSendPacketExists(ctx, cosmosChainB, migratedPendingSendKey)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyV2PendingSendKey)
 
 	bHeightBeforeFlush, err := chainB.Height(ctx)
 	s.Require().NoError(err)
@@ -183,7 +183,7 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 
 	rateLimit = s.rateLimit(ctx, chainB, denomB, chanBA.ChannelID)
 	s.Require().NotNil(rateLimit)
-	s.Require().True(rateLimit.Flow.Outflow.IsZero())
+	s.Require().Equal(timeoutAmount, rateLimit.Flow.Outflow)
 
 	escrowAddrBA := transfertypes.GetEscrowAddress(chanBA.PortID, chanBA.ChannelID)
 	escrowBABalance, err := query.Balance(ctx, chainB, escrowAddrBA.String(), denomB)
@@ -191,5 +191,5 @@ func (s *V10LegacyRateLimitUpgradeTestSuite) TestV10LegacyRateLimitUpgradeMigrat
 	s.Require().True(escrowBABalance.IsZero())
 
 	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyPendingSendKey)
-	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, migratedPendingSendKey)
+	s.assertNoRateLimitPendingSendPacket(ctx, cosmosChainB, legacyV2PendingSendKey)
 }

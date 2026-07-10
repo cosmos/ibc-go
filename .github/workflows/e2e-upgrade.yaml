@@ -101,8 +101,8 @@ jobs:
             artifact: TestV10LegacyPFMUpgradeTestSuite-TestV10LegacyPFMUpgradePreservesInFlightPackets,
           },
           {
-            test: TestV10LegacyRateLimitUpgradeMigratesPendingSendPackets,
-            artifact: TestV10LegacyRateLimitUpgradeTestSuite-TestV10LegacyRateLimitUpgradeMigratesPendingSendPackets,
+            test: TestV10LegacyRateLimitUpgradeClearsPendingSendPackets,
+            artifact: TestV10LegacyRateLimitUpgradeTestSuite-TestV10LegacyRateLimitUpgradeClearsPendingSendPackets,
           },
         ]
     env:

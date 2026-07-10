@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log/v2"
@@ -21,6 +22,16 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
 	addressCodec address.Codec
+	Schema       collections.Schema
+
+	// PendingSendPackets stores packets whose send flow was applied and may need
+	// to be reverted on timeout or error acknowledgement. The key order is
+	// (channelID, denom, sequence) to support efficient channel+denom range resets.
+	PendingSendPackets collections.KeySet[collections.Triple[string, string, uint64]]
+	// PendingReceivePackets stores packets whose receive flow was applied and may
+	// need to be reverted when an async acknowledgement fails. The key order is
+	// (channelID, denom, sequence) to support efficient channel+denom range resets.
+	PendingReceivePackets collections.KeySet[collections.Triple[string, string, uint64]]
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
@@ -36,10 +47,16 @@ func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService c
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return &Keeper{
+	sb := collections.NewSchemaBuilder(storeService)
+	pendingPacketKeyCodec := collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.Uint64Key)
+	k := Keeper{
 		cdc:          cdc,
 		addressCodec: addressCodec,
 		storeService: storeService,
+
+		PendingSendPackets:    collections.NewKeySet(sb, types.PendingSendPacketsKey, "pending_send_packets", pendingPacketKeyCodec),
+		PendingReceivePackets: collections.NewKeySet(sb, types.PendingReceivePacketsKey, "pending_receive_packets", pendingPacketKeyCodec),
+
 		// Defaults to using the channel keeper as the ICS4Wrapper
 		// This can be overridden later with WithICS4Wrapper (e.g. by the middleware stack wiring)
 		ics4Wrapper:   channelKeeper,
@@ -48,6 +65,14 @@ func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService c
 		bankKeeper:    bankKeeper,
 		authority:     authority,
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.Schema = schema
+
+	return &k
 }
 
 // SetICS4Wrapper sets the ICS4Wrapper.
