@@ -107,10 +107,10 @@ func (app *SimApp) registerUpgradeHandlers() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 
-	// NOTE: Add gmptypes.StoreKey and packetforwardtypes.StoreKey here if you are upgrading directly from v10
+	// NOTE: Remove gmptypes.StoreKey here if you are upgrading from v11 to v11.1 as v11 upgrade handler will run
 	if upgradeInfo.Name == upgrades.V11_2 && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{ratelimittypes.StoreKey},
+			Added: []string{gmptypes.StoreKey, ratelimittypes.StoreKey},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
