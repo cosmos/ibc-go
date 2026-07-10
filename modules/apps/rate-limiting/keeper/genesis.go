@@ -21,13 +21,30 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		k.SetWhitelistedAddressPair(ctx, addressPair)
 	}
 
-	// Set pending sequence numbers - validating that they're in right format of {channelId}/{sequenceNumber}
+	// Set pending sequence numbers - validating that they're in right format of {channelId}/{sequenceNumber}/{denom}
 	for _, pendingPacketID := range state.PendingSendPacketSequenceNumbers {
-		channelOrClientID, sequence, err := types.ParsePendingPacketID(pendingPacketID)
+		channelOrClientID, sequence, denom, err := types.ParsePendingPacketID(pendingPacketID)
 		if err != nil {
+			if types.IsLegacyPendingPacketID(pendingPacketID) {
+				continue
+			}
 			panic(err.Error())
 		}
-		k.SetPendingSendPacket(ctx, channelOrClientID, sequence)
+		if err := k.SetPendingSendPacket(ctx, channelOrClientID, sequence, denom); err != nil {
+			panic(err)
+		}
+	}
+	for _, pendingPacketID := range state.PendingRecvPacketSequenceNumbers {
+		channelOrClientID, sequence, denom, err := types.ParsePendingPacketID(pendingPacketID)
+		if err != nil {
+			if types.IsLegacyPendingPacketID(pendingPacketID) {
+				continue
+			}
+			panic(err.Error())
+		}
+		if err := k.SetPendingReceivePacket(ctx, channelOrClientID, sequence, denom); err != nil {
+			panic(err)
+		}
 	}
 
 	// If the hour epoch has been initialized already (epoch number != 0), validate and then use it
@@ -55,11 +72,21 @@ func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 		panic(err)
 	}
 
+	pendingSendPackets, err := k.GetAllPendingSendPackets(ctx)
+	if err != nil {
+		panic(err)
+	}
+	pendingReceivePackets, err := k.GetAllPendingReceivePackets(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	return &types.GenesisState{
 		RateLimits:                       rateLimits,
 		BlacklistedDenoms:                k.GetAllBlacklistedDenoms(ctx),
 		WhitelistedAddressPairs:          k.GetAllWhitelistedAddressPairs(ctx),
-		PendingSendPacketSequenceNumbers: k.GetAllPendingSendPackets(ctx),
+		PendingSendPacketSequenceNumbers: pendingSendPackets,
+		PendingRecvPacketSequenceNumbers: pendingReceivePackets,
 		HourEpoch:                        hourEpoch,
 	}
 }
