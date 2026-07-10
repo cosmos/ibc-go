@@ -141,71 +141,72 @@ func TestV2ToV1Packet(t *testing.T) {
 		return bz
 	}
 
+	var payload channeltypesv2.Payload
+	newPayload := func(encoding string, value []byte) channeltypesv2.Payload {
+		return channeltypesv2.Payload{
+			SourcePort:      "sourcePort",
+			DestinationPort: "destinationPort",
+			Version:         transfertypes.V1,
+			Encoding:        encoding,
+			Value:           value,
+		}
+	}
+
 	testCases := []struct {
 		name     string
-		version  string
-		encoding string
-		value    []byte
-		expErr   bool
-		expErrIs error
+		malleate func()
+		expErr   string
 	}{
 		{
-			name:     "success: JSON encoding",
-			encoding: transfertypes.EncodingJSON,
-			value:    mustMarshalPacketData(transfertypes.EncodingJSON),
+			name: "success: JSON encoding",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingJSON, mustMarshalPacketData(transfertypes.EncodingJSON))
+			},
 		},
 		{
-			name:     "success: ABI encoding",
-			encoding: transfertypes.EncodingABI,
-			value:    mustMarshalPacketData(transfertypes.EncodingABI),
+			name: "success: ABI encoding",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingABI, mustMarshalPacketData(transfertypes.EncodingABI))
+			},
 		},
 		{
-			name:     "success: protobuf encoding",
-			encoding: transfertypes.EncodingProtobuf,
-			value:    mustMarshalPacketData(transfertypes.EncodingProtobuf),
+			name: "success: protobuf encoding",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingProtobuf, mustMarshalPacketData(transfertypes.EncodingProtobuf))
+			},
 		},
 		{
-			name:     "failure: nil payload",
-			encoding: transfertypes.EncodingABI,
-			expErr:   true,
+			name: "failure: nil payload",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingABI, nil)
+			},
+			expErr: "cannot unmarshal ICS20-V1 transfer packet data",
 		},
 		{
-			name:     "failure: empty payload",
-			encoding: transfertypes.EncodingABI,
-			value:    []byte{},
-			expErr:   true,
+			name: "failure: empty payload",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingABI, []byte{})
+			},
+			expErr: "cannot unmarshal ICS20-V1 transfer packet data",
 		},
 		{
-			name:     "failure: unsupported version",
-			version:  "ics20-2",
-			encoding: transfertypes.EncodingJSON,
-			value:    mustMarshalPacketData(transfertypes.EncodingJSON),
-			expErr:   true,
-			expErrIs: ratelimitingtypes.ErrInvalidPacketData,
+			name: "failure: unsupported version",
+			malleate: func() {
+				payload = newPayload(transfertypes.EncodingJSON, mustMarshalPacketData(transfertypes.EncodingJSON))
+				payload.Version = "ics20-2"
+			},
+			expErr: "invalid packet data",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			version := transfertypes.V1
-			if tc.version != "" {
-				version = tc.version
-			}
-
-			payload := channeltypesv2.Payload{
-				SourcePort:      "sourcePort",
-				DestinationPort: "destinationPort",
-				Version:         version,
-				Encoding:        tc.encoding,
-				Value:           tc.value,
-			}
+			payload = channeltypesv2.Payload{}
+			tc.malleate()
 
 			v1Packet, err := ratelimitingv2.V2ToV1Packet(payload, sourceClient, destinationClient, sequence)
-			if tc.expErr {
-				require.Error(t, err)
-				if tc.expErrIs != nil {
-					require.ErrorIs(t, err, tc.expErrIs)
-				}
+			if tc.expErr != "" {
+				require.ErrorContains(t, err, tc.expErr)
 				return
 			}
 
