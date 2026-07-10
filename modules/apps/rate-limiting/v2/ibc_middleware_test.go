@@ -500,7 +500,7 @@ func (s *RateLimitMiddlewareTestSuite) TestV2TransferTimeoutUndoSend() {
 	s.Require().Equal(senderInitialBalance, s.balance(s.chainA, s.chainA.SenderAccount.GetAddress(), sdk.DefaultBondDenom))
 }
 
-func (s *RateLimitMiddlewareTestSuite) setRateLimit(chain *ibctesting.TestChain, denom, clientID string, maxPercentSend, maxPercentRecv int64) {
+func (*RateLimitMiddlewareTestSuite) setRateLimit(chain *ibctesting.TestChain, denom, clientID string, maxPercentSend, maxPercentRecv int64) {
 	chain.GetSimApp().RateLimitKeeper.SetRateLimit(chain.GetContext(), ratelimitingtypes.RateLimit{
 		Path: &ratelimitingtypes.Path{
 			Denom:             denom,
@@ -556,6 +556,6 @@ func (s *RateLimitMiddlewareTestSuite) assertPendingPacket(chain *ibctesting.Tes
 	s.Require().Equal(expected, found)
 }
 
-func (s *RateLimitMiddlewareTestSuite) balance(chain *ibctesting.TestChain, address sdk.AccAddress, denom string) sdk.Coin {
+func (*RateLimitMiddlewareTestSuite) balance(chain *ibctesting.TestChain, address sdk.AccAddress, denom string) sdk.Coin {
 	return chain.GetSimApp().BankKeeper.GetBalance(chain.GetContext(), address, denom)
 }
