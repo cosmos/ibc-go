@@ -1,0 +1,36 @@
+package types
+
+import (
+	"context"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+)
+
+// BankKeeper defines the expected bank keeper
+type BankKeeper interface {
+	GetSupply(ctx context.Context, denom string) sdk.Coin
+}
+
+// ChannelKeeper defines the expected IBC channel keeper
+type ChannelKeeper interface {
+	porttypes.ICS4Wrapper
+	GetChannel(ctx sdk.Context, srcPort, srcChan string) (channel channeltypes.Channel, found bool)
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (clientID string, clientState exported.ClientState, err error)
+	GetNextSequenceSend(ctx sdk.Context, sourcePort, sourceChannel string) (uint64, bool)
+}
+
+// ChannelKeeperV2 defines the expected IBC v2 channel keeper methods.
+type ChannelKeeperV2 interface {
+	GetAsyncPacket(ctx sdk.Context, clientID string, sequence uint64) (channeltypesv2.Packet, bool)
+}
+
+// ClientKeeper defines the expected IBC client keeper
+type ClientKeeper interface {
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	GetClientStatus(ctx sdk.Context, clientID string) exported.Status
+}

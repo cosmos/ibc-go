@@ -26,6 +26,7 @@ import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
 	packetforwardtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	v7migrations "github.com/cosmos/ibc-go/v11/modules/core/02-client/migrations/v7"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
@@ -77,6 +78,7 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	attestationstypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
 	packetforwardtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	ratelimitingtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	// all other types
 	upgradetypes.RegisterInterfaces(cfg.InterfaceRegistry)
