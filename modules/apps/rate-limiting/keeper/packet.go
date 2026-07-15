@@ -27,9 +27,9 @@ type RateLimitedPacketInfo struct {
 	Receiver  string
 }
 
-// CheckAcknowledementSucceeded unmarshals IBC Acknowledgements, and determines
+// CheckAcknowledgementSucceeded unmarshals IBC acknowledgements and determines
 // whether the tx was successful
-func (k *Keeper) CheckAcknowledementSucceeded(ctx sdk.Context, ack []byte) (bool, error) {
+func (k *Keeper) CheckAcknowledgementSucceeded(ctx sdk.Context, ack []byte) (bool, error) {
 	// Check if the ack is the IBC v2 universal error acknowledgement
 	if bytes.Equal(ack, channeltypesv2.ErrorAcknowledgement[:]) {
 		return false, nil
@@ -250,7 +250,7 @@ func (k *Keeper) ReceiveRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 // AcknowledgeRateLimitedPacket implements for OnAckPacket for porttypes.Middleware.
 // If the packet failed, we should decrement the Outflow.
 func (k *Keeper) AcknowledgeRateLimitedPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte) error {
-	ackSuccess, err := k.CheckAcknowledementSucceeded(ctx, acknowledgement)
+	ackSuccess, err := k.CheckAcknowledgementSucceeded(ctx, acknowledgement)
 	if err != nil {
 		return err
 	}
