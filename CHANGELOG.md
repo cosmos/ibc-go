@@ -44,7 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-* (apps/rate-limiting) [\#](https://github.com/cosmos/ibc-go/pull/) Paginate the rate-limiting queries to avoid return the full store contents in a single response.
+* (apps/rate-limiting) [\#8996](https://github.com/cosmos/ibc-go/pull/8996) Paginate the rate-limiting queries to avoid return the full store contents in a single response.
 
 ### Dependencies
 
