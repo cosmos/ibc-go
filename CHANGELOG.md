@@ -40,6 +40,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/rate-limiting) [\#8991](https://github.com/cosmos/ibc-go/pull/8991) feat: rate limiting middleware. (backport of [\#8268](https://github.com/cosmos/ibc-go/pull/8268))
 
+### Improvements
+
+* (apps/rate-limiting) [\#8995](https://github.com/cosmos/ibc-go/pull/8995) style(ratelimit)!: fix typos (backport of [\#8994](https://github.com/cosmos/ibc-go/pull/8994))
+
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
 ### Features
