@@ -268,7 +268,7 @@ func (s *KeeperTestSuite) TestCheckAcknowledgementSucceeded() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), tc.ack)
+			success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledgementSucceeded(s.chainA.GetContext(), tc.ack)
 
 			if tc.wantErr != nil {
 				s.Require().ErrorIs(err, tc.wantErr, tc.name)
