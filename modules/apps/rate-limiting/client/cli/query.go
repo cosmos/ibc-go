@@ -50,8 +50,13 @@ Example:
 
 			// Query all rate limits for the channel/client ID if denom is not specified.
 			if denom == "" {
+				pageReq, err := client.ReadPageRequest(cmd.Flags())
+				if err != nil {
+					return err
+				}
 				req := &types.QueryRateLimitsByChannelOrClientIDRequest{
 					ChannelOrClientId: channelOrClientID,
+					Pagination:        pageReq,
 				}
 				res, err := queryClient.RateLimitsByChannelOrClientID(context.Background(), req)
 				if err != nil {
@@ -76,6 +81,7 @@ Example:
 
 	cmd.Flags().String(FlagDenom, "", "The denom identifying a specific rate limit")
 	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "rate limits")
 
 	return cmd
 }
@@ -86,14 +92,18 @@ func GetCmdQueryAllRateLimits() *cobra.Command {
 		Use:   "list-rate-limits",
 		Short: "Query for all rate limits",
 		Args:  cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-			req := &types.QueryAllRateLimitsRequest{}
+			req := &types.QueryAllRateLimitsRequest{Pagination: pageReq}
 			res, err := queryClient.AllRateLimits(context.Background(), req)
 			if err != nil {
 				return err
@@ -104,6 +114,7 @@ func GetCmdQueryAllRateLimits() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "rate limits")
 
 	return cmd
 }
@@ -124,8 +135,14 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
 			req := &types.QueryRateLimitsByChainIDRequest{
-				ChainId: chainID,
+				ChainId:    chainID,
+				Pagination: pageReq,
 			}
 			res, err := queryClient.RateLimitsByChainID(context.Background(), req)
 			if err != nil {
@@ -137,6 +154,7 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "rate limits")
 
 	return cmd
 }
