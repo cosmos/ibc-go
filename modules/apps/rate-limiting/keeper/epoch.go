@@ -49,7 +49,7 @@ func (k *Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
 	// If GetHourEpoch returned a zero-value epoch (due to error or missing key),
 	// we cannot proceed with the check.
 	if hourEpoch.Duration == 0 || hourEpoch.EpochStartTime.IsZero() {
-		return false, 0, errorsmod.Wrapf(types.ErrInvalidEpoce, "cannot check hour epoch starting. epoch: %v", hourEpoch)
+		return false, 0, errorsmod.Wrapf(types.ErrInvalidEpoch, "cannot check hour epoch starting. epoch: %v", hourEpoch)
 	}
 
 	// If the block time is later than the current epoch start time + epoch duration,
