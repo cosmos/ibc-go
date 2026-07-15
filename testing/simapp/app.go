@@ -417,15 +417,17 @@ func NewSimApp(
 
 	// Create Transfer Stack
 	// SendPacket, since it is originating from the application to core IBC:
-	// transferKeeper.SendPacket -> channel.SendPacket
+	// transferKeeper.SendPacket -> PFM.SendPacket -> RateLimit.SendPacket -> channel.SendPacket
 
 	// RecvPacket, message that originates from core IBC and goes down to app, the flow is the other way
-	// channel.RecvPacket -> transfer.OnRecvPacket
+	// channel.RecvPacket -> RateLimit.OnRecvPacket -> PFM.OnRecvPacket -> transfer.OnRecvPacket
 
-	// create IBC module from bottom to top of stack
+	// transfer stack contains (from top to bottom):
 	// - Rate Limit
 	// - Packet Forward Middleware
 	// - Transfer
+
+	// create IBC module from bottom to top of stack
 	transferStack := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
 	transferApp := transfer.NewIBCModule(app.TransferKeeper)
 	transferStack.Base(transferApp).

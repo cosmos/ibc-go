@@ -95,7 +95,7 @@ func (s *KeeperTestSuite) TestCheckHourEpochStarting() {
 			initialEpoch: types.HourEpoch{
 				Duration: 0,
 			},
-			err: types.ErrInvalidEpoce,
+			err: types.ErrInvalidEpoch,
 		},
 	}
 
