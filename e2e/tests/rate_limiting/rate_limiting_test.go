@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
@@ -33,9 +34,7 @@ func TestRateLimitSuite(t *testing.T) {
 }
 
 func (s *RateLimTestSuite) SetupSuite() {
-	s.SetupChains(context.TODO(), 2, nil, func(options *testsuite.ChainOptions) {
-		options.RelayerCount = 1
-	})
+	s.SetupChains(context.TODO(), 3, nil)
 }
 
 func (s *RateLimTestSuite) TestRateLimit() {
@@ -52,9 +51,10 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	s.Require().NoError(err)
 	s.Require().NotNil(authority)
 
-	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 	relayer := s.GetRelayerForTest(testName)
+	s.CreatePath(ctx, relayer, chainA, chainB, ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
 	s.StartRelayer(relayer, testName)
+	defer s.StopRelayer(ctx, relayer)
 
 	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
 
@@ -198,12 +198,100 @@ func (s *RateLimTestSuite) TestRateLimit() {
 	t.Run("Remove rate limit -> transfer succeeds again", func(_ *testing.T) {
 		s.removeRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String())
 
-		rateLimit := s.rateLimit(ctx, chainA, denomA, chanAB.ChannelID)
-		s.Require().Nil(rateLimit)
+		respRateLim, err := query.GRPCQuery[ratelimitingtypes.QueryRateLimitResponse](ctx, chainA, &ratelimitingtypes.QueryRateLimitRequest{
+			Denom:             denomA,
+			ChannelOrClientId: chanAB.ChannelID,
+		})
+		s.Require().NoError(err)
+		s.Require().Nil(respRateLim.RateLimit)
 
 		// Transfer works again
 		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, testvalues.DefaultTransferAmount(denomA), userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
 		s.AssertTxSuccess(txResp)
+	})
+}
+
+func (s *RateLimTestSuite) TestRateLimitWithPFM() {
+	t := s.T()
+	ctx := context.TODO()
+	testName := t.Name()
+
+	chains := s.GetAllChains()
+	chainA, chainB, chainC := chains[0], chains[1], chains[2]
+
+	userA := s.CreateUserOnChainA(ctx, testvalues.StartingTokenAmount)
+	userB := s.CreateUserOnChainB(ctx, testvalues.StartingTokenAmount)
+	userC := s.CreateUserOnChainC(ctx, testvalues.StartingTokenAmount)
+
+	authorityB, err := query.ModuleAccountAddress(ctx, govtypes.ModuleName, chainB)
+	s.Require().NoError(err)
+	s.Require().NotNil(authorityB)
+
+	s.CreatePaths(ibc.DefaultClientOpts(), s.TransferChannelOptions(), testName)
+	relayer := s.GetRelayerForTest(testName)
+
+	chanAB := s.GetChannelBetweenChains(testName, chainA, chainB)
+	chanBC := s.GetChannelBetweenChains(testName, chainB, chainC)
+
+	denomA := chainA.Config().Denom
+	transferAmount := testvalues.DefaultTransferAmount(denomA)
+	seedAmount := sdk.NewInt64Coin(denomA, 10*testvalues.IBCTransferAmount)
+	ibcTokenB := testsuite.GetIBCToken(denomA, chanAB.Counterparty.PortID, chanAB.Counterparty.ChannelID)
+	ibcTokenC := testsuite.GetIBCToken(ibcTokenB.Path(), chanBC.Counterparty.PortID, chanBC.Counterparty.ChannelID)
+
+	seedTxResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, seedAmount, userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, "")
+	s.AssertTxSuccess(seedTxResp)
+	s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+	s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+
+	userBBalance, err := query.Balance(ctx, chainB, userB.FormattedAddress(), ibcTokenB.IBCDenom())
+	s.Require().NoError(err)
+	s.Require().Equal(seedAmount.Amount.Int64(), userBBalance.Int64())
+
+	s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID, authorityB.String(), 100, 100, 1)
+
+	t.Run("successful async ack keeps inflow", func(_ *testing.T) {
+		inflowBefore := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64()
+
+		memo := s.forwardMemo(userC.FormattedAddress(), chanBC)
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, transferAmount, userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
+		s.AssertTxSuccess(txResp)
+
+		s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+		s.Require().Equal(inflowBefore+testvalues.IBCTransferAmount, s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64())
+
+		s.flushPacketsOnChannel(ctx, relayer, chainB, chainC, chanBC.ChannelID)
+		s.flushPacketsOnChannel(ctx, relayer, chainB, chainC, chanBC.ChannelID)
+		s.Require().Equal(inflowBefore+testvalues.IBCTransferAmount, s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64())
+
+		s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+
+		balanceC, err := query.Balance(ctx, chainC, userC.FormattedAddress(), ibcTokenC.IBCDenom())
+		s.Require().NoError(err)
+		s.Require().Equal(testvalues.IBCTransferAmount, balanceC.Int64())
+	})
+
+	t.Run("failing async ack undoes inflow", func(_ *testing.T) {
+		inflowBefore := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64()
+		balanceABefore, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+
+		memo := s.forwardMemo("invalid-receiver", chanBC)
+		txResp := s.Transfer(ctx, chainA, userA, chanAB.PortID, chanAB.ChannelID, transferAmount, userA.FormattedAddress(), userB.FormattedAddress(), s.GetTimeoutHeight(ctx, chainA), 0, memo)
+		s.AssertTxSuccess(txResp)
+
+		s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+		s.Require().Equal(inflowBefore+testvalues.IBCTransferAmount, s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64())
+
+		s.flushPacketsOnChannel(ctx, relayer, chainB, chainC, chanBC.ChannelID)
+		s.flushPacketsOnChannel(ctx, relayer, chainB, chainC, chanBC.ChannelID)
+		s.Require().Equal(inflowBefore, s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64())
+
+		s.flushPacketsOnChannel(ctx, relayer, chainA, chainB, chanAB.ChannelID)
+
+		balanceAAfter, err := s.GetChainANativeBalance(ctx, userA)
+		s.Require().NoError(err)
+		s.Require().Equal(balanceABefore, balanceAAfter)
 	})
 }
 
@@ -213,6 +301,7 @@ func (s *RateLimTestSuite) rateLimit(ctx context.Context, chain ibc.Chain, denom
 		ChannelOrClientId: chanID,
 	})
 	s.Require().NoError(err)
+	s.Require().NotNil(respRateLim.RateLimit, "rate limit not found for denom %s and channel ID %s", denom, chanID)
 	return respRateLim.RateLimit
 }
 
@@ -256,4 +345,24 @@ func (s *RateLimTestSuite) removeRateLimit(ctx context.Context, chain ibc.Chain,
 		ChannelOrClientId: chanID,
 	}
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
+}
+
+func (s *RateLimTestSuite) forwardMemo(receiver string, channel ibc.ChannelOutput) string {
+	metadata := pfmtypes.PacketMetadata{
+		Forward: pfmtypes.ForwardMetadata{
+			Receiver: receiver,
+			Channel:  channel.ChannelID,
+			Port:     channel.PortID,
+		},
+	}
+
+	memo, err := metadata.ToMemo()
+	s.Require().NoError(err)
+	return memo
+}
+
+func (s *RateLimTestSuite) flushPacketsOnChannel(ctx context.Context, relayer ibc.Relayer, chainA, chainB ibc.Chain, channelID string) {
+	err := relayer.Flush(ctx, s.GetRelayerExecReporter(), s.GetPathByChains(chainA, chainB), channelID)
+	s.Require().NoError(err)
+	s.Require().NoError(testutil.WaitForBlocks(ctx, 1, chainA, chainB))
 }

@@ -2,7 +2,7 @@
   <h1>ibc-go</h1>
 </div>
 
-![banner](docs/static/img/IBC-go-cover.svg)
+![banner](.github/assets/cosmos-ibc-go-github.svg)
 
 <div align="center">
   <a href="https://github.com/cosmos/ibc-go/releases/latest">
@@ -33,13 +33,14 @@
   <a href="https://deepwiki.com/cosmos/ibc-go"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes — including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For a high-level explanation of what IBC is and how it works, please read [this article](https://ibcprotocol.dev/how-ibc-works).
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes — including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For information on what IBC is and how it works, please read [the docs](https://docs.cosmos.network/ibc/latest/intro).
 
-The IBC implementation in Golang `ibc-go` has been used in production by the majority of the 200+ chains that have utilized IBC. It is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as learn more about the IBC Protocol, please check out [our docs](./docs/docs/01-ibc/01-overview.md).
+
+The IBC implementation in Golang `ibc-go` has been used in production by the majority of the 200+ chains that have utilized IBC. It is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as learn more about the IBC Protocol, please check out [our docs](https://docs.cosmos.network/ibc/latest/intro).
 
 ## Releases
 
-The release lines currently supported are v8, v10, and v11. Please note that v9 has been retracted and has been replaced by v10.
+The release lines currently supported are v10 and v11. Please note that v9 has been retracted and has been replaced by v10.
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
@@ -51,7 +52,7 @@ IBC has an extensive list of applications, middleware, and tools, including rela
 
 The issue list of this repo is exclusively for bug reports and feature requests. We have active, helpful communities on Discord, Telegram, and Slack.
 
-**| Need Help? | Support & Community: [Discord](https://discord.com/invite/interchain) - [Telegram](https://t.me/CosmosOG) - [Talk to an Expert](https://cosmos.network/interest-form) - [Join the #Cosmos-tech Slack Channel](https://forms.gle/A8jawLgB8zuL1FN36) |**
+**| Need Help? | Support & Community: [Talk to an Expert](https://cosmos.network/interest-form) - [Join the #Cosmos-tech Slack Channel](https://forms.gle/A8jawLgB8zuL1FN36) |**
 
 ## Security
 
@@ -63,11 +64,13 @@ The following audits have been performed on the `ibc-go` source code:
 
 - [ICS20 Fungible Token Transfer](https://github.com/informalsystems/audits/tree/dc8b503727adcbb8e29c3d3a25a9070e0bf1ec87/IBC-GO) by Informal Systems.
 - [ICS20 Fungible Token Transfer V2](https://github.com/cosmos/ibc-go/blob/main/docs/audits/20-token-transfer/Atredis%20Partners%20-%20Interchain%20ICS20%20v2%20New%20Features%20Assessment%20-%20Report%20v1.0.pdf) by Atredis Partners.
-- ICS27 Interchain Accounts by [Trail of Bits](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) and [Informal Systems](https://github.com/cosmos/ibc-go/issues/631).
-- [ICS08 Wasm Clients](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio.
+- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits and [Informal Systems](https://github.com/cosmos/ibc-go/issues/631).
+- [ICS08 Wasm Clients](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio and [Halborn](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Halborn%20audit%20report.pdf).
 - [ICS04 Channel upgradability](https://github.com/cosmos/ibc-go/blob/main/docs/audits/04-channel-upgrades/Atredis%20Partners%20-%20Interchain%20Foundation%20IBC-Go%20Channel%20Upgrade%20Feature%20Assessment%20-%20Report%20v1.1.pdf) by Atredis Partners.
+- [IBC v2](https://github.com/cosmos/ibc-go/blob/main/docs/audits/IBC-v2/IBC-v2-April-2025-Collaborative-Audit-Report.pdf) — collaborative audit (April 2025).
 
 ## Maintainers
+
 [Cosmos Labs](https://cosmoslabs.io/) maintains the core components of the stack: Cosmos SDK, CometBFT, IBC, Cosmos EVM, and various developer tools and frameworks. The detailed maintenance policy can be found [here](https://github.com/cosmos/security/blob/main/POLICY.md). In addition to developing and maintaining the Cosmos Stack, Cosmos Labs provides advisory and engineering services for blockchain solutions. [Get in touch with Cosmos Labs](https://www.cosmoslabs.io/contact).
 
 Cosmos Labs is a wholly-owned subsidiary of the [Interchain Foundation](https://interchain.io/), the Swiss nonprofit responsible for treasury management, funding public goods, and supporting governance for Cosmos. 
@@ -124,9 +127,9 @@ If you are interested in working on an issue, please comment on it. We will be h
 ## Documentation and Resources
 
 ### IBC Information
-- [IBC Website](https://ibcprotocol.dev/)
+
 - [IBC Protocol Specification and Standards](https://github.com/cosmos/ibc)
-- [Documentation](./docs/docs/01-ibc/01-overview.md)
+- [Documentation](https://docs.cosmos.network/ibc/)
 
 ### Cosmos Stack Libraries
 

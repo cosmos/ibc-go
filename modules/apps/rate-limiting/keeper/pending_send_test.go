@@ -1,52 +1,191 @@
 package keeper_test
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+)
+
+const (
+	pendingPacketChannelToRemove = "channel-1"
+	pendingPacketClientToRemove  = "07-tendermint-1005"
+	pendingPacketDenomA          = "denom-a"
+	pendingPacketDenomB          = "denom-b"
+	pendingPacketDenomErr        = "pending packet denom must be specified"
+)
 
 func (s *KeeperTestSuite) TestPendingSendPacketPrefix() {
 	// Store 5 packets across 4 channels
-	channels := []string{"07-tendermint-1000", "07-tendermint-1005", "channel-1", "channel-11"}
+	channels := []string{"07-tendermint-1000", pendingPacketClientToRemove, pendingPacketChannelToRemove, "channel-11"}
+	denoms := []string{pendingPacketDenomA, pendingPacketDenomB}
 	sendPackets := []string{}
 	for _, channelID := range channels {
-		for sequence := range uint64(5) {
-			err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, sequence)
-			s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %s", channelID, sequence)
-			sendPackets = append(sendPackets, fmt.Sprintf("%s/%d", channelID, sequence))
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %s, denom %s", channelID, sequence, denom)
+				sendPackets = append(sendPackets, fmt.Sprintf("%s/%d/%s", channelID, sequence, denom))
+			}
 		}
 	}
 
 	// Check that each sequence number is found
 	for _, channelID := range channels {
-		for sequence := range uint64(5) {
-			found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence)
-			s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %s", channelID, sequence)
-			s.Require().True(found, "send packet should have been found - channel %s, sequence: %d", channelID, sequence)
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %s, denom %s", channelID, sequence, denom)
+				s.Require().True(found, "send packet should have been found - channel %s, sequence: %d, denom: %s", channelID, sequence, denom)
+			}
 		}
 	}
 
 	// Check lookup of all sequence numbers
 	actualSendPackets, err := s.chainA.GetSimApp().RateLimitKeeper.GetAllPendingSendPackets(s.chainA.GetContext())
 	s.Require().NoError(err, "unexpected error getting pending send packets")
-	s.Require().Equal(sendPackets, actualSendPackets, "all send packets")
+	s.Require().ElementsMatch(sendPackets, actualSendPackets, "all send packets")
 
-	// Remove 0 sequence numbers and all sequence numbers from channel-0 + 07-tendermint-1005
+	// Remove denom-a sequence 0 and all denom-scoped sequence numbers from channel-1 + 07-tendermint-1005
 	for _, channelID := range channels {
-		s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 0)
+		err = s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 0, pendingPacketDenomA)
+		s.Require().NoError(err, "unexpected error removing pending send packet - channel %s, sequence 0", channelID)
 	}
-	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), "channel-1")
-	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", "channel-1")
-	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), "07-tendermint-1005")
-	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", "07-tendermint-1005")
+	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), pendingPacketChannelToRemove, pendingPacketDenomA)
+	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", pendingPacketChannelToRemove)
+	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), pendingPacketClientToRemove, pendingPacketDenomB)
+	s.Require().NoError(err, "unexpected error removing all pending send packets - channel %s", pendingPacketClientToRemove)
 
 	// Check that only the remaining sequences are found
 	for _, channelID := range channels {
-		for sequence := range uint64(5) {
-			removed := (channelID == "channel-1") || (channelID == "07-tendermint-1005") || (sequence == 0)
-			actual, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence)
-			s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %s", channelID, sequence)
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				removed := (denom == pendingPacketDenomA && sequence == 0) || (channelID == pendingPacketChannelToRemove && denom == pendingPacketDenomA) || (channelID == pendingPacketClientToRemove && denom == pendingPacketDenomB)
+				actual, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %s, denom %s", channelID, sequence, denom)
 
-			// Assert that if we did not remove the packet, then we
-			// successfully find it when checking the quota
-			s.Require().Equal(!removed, actual, "send packet after removal - channel: %s, sequence: %d", channelID, sequence)
+				// Assert that if we did not remove the packet, then we
+				// successfully find it when checking the quota
+				s.Require().Equal(!removed, actual, "send packet after removal - channel: %s, sequence: %d, denom: %s", channelID, sequence, denom)
+			}
 		}
+	}
+}
+
+func (s *KeeperTestSuite) TestPendingReceivePacketPrefix() {
+	// Store 5 packets across 4 channels
+	channels := []string{"07-tendermint-1000", pendingPacketClientToRemove, pendingPacketChannelToRemove, "channel-11"}
+	denoms := []string{pendingPacketDenomA, pendingPacketDenomB}
+	for _, channelID := range channels {
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error setting pending receive packet sequence - channel %s, sequence %s, denom %s", channelID, sequence, denom)
+			}
+		}
+	}
+
+	// Check that each sequence number is found
+	for _, channelID := range channels {
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error checking packet received during current quota - channel %s, sequence %s, denom %s", channelID, sequence, denom)
+				s.Require().True(found, "receive packet should have been found - channel %s, sequence: %d, denom: %s", channelID, sequence, denom)
+			}
+		}
+	}
+
+	// Remove denom-a sequence 0 and all denom-scoped sequence numbers from channel-1 + 07-tendermint-1005
+	for _, channelID := range channels {
+		err := s.chainA.GetSimApp().RateLimitKeeper.RemovePendingReceivePacket(s.chainA.GetContext(), channelID, 0, pendingPacketDenomA)
+		s.Require().NoError(err, "unexpected error removing pending receive packet - channel %s, sequence 0", channelID)
+	}
+	err := s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingReceivePackets(s.chainA.GetContext(), pendingPacketChannelToRemove, pendingPacketDenomA)
+	s.Require().NoError(err, "unexpected error removing all pending receive packets - channel %s", pendingPacketChannelToRemove)
+	err = s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingReceivePackets(s.chainA.GetContext(), pendingPacketClientToRemove, pendingPacketDenomB)
+	s.Require().NoError(err, "unexpected error removing all pending receive packets - channel %s", pendingPacketClientToRemove)
+
+	// Check that only the remaining sequences are found
+	for _, channelID := range channels {
+		for _, denom := range denoms {
+			for sequence := range uint64(5) {
+				removed := (denom == pendingPacketDenomA && sequence == 0) || (channelID == pendingPacketChannelToRemove && denom == pendingPacketDenomA) || (channelID == pendingPacketClientToRemove && denom == pendingPacketDenomB)
+				actual, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence, denom)
+				s.Require().NoError(err, "unexpected error checking packet received during current quota - channel %s, sequence %s, denom %s", channelID, sequence, denom)
+
+				// Assert that if we did not remove the packet, then we
+				// successfully find it when checking the quota
+				s.Require().Equal(!removed, actual, "receive packet after removal - channel: %s, sequence: %d, denom: %s", channelID, sequence, denom)
+			}
+		}
+	}
+}
+
+func (s *KeeperTestSuite) TestPendingPacketValidation() {
+	longChannelID := strings.Repeat("a", types.PendingSendPacketChannelLength+1)
+
+	testCases := []struct {
+		name      string
+		call      func() error
+		expErrMsg string
+	}{
+		{
+			name: "set send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), channelID, 1, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "set receive invalid channel",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(s.chainA.GetContext(), longChannelID, 1, denom)
+			},
+			expErrMsg: "greater than the allowed length 64",
+		},
+		{
+			name: "set send invalid channel delimiter",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), "channel-\x00", 1, denom)
+			},
+			expErrMsg: "cannot contain 0x00",
+		},
+		{
+			name: "remove send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemovePendingSendPacket(s.chainA.GetContext(), channelID, 1, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "remove receive invalid denom delimiter",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemovePendingReceivePacket(s.chainA.GetContext(), channelID, 1, "denom\x00")
+			},
+			expErrMsg: "pending packet denom cannot contain 0x00",
+		},
+		{
+			name: "check receive empty denom",
+			call: func() error {
+				_, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelID, 1, "")
+				return err
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+		{
+			name: "remove all send empty denom",
+			call: func() error {
+				return s.chainA.GetSimApp().RateLimitKeeper.RemoveAllChannelPendingSendPackets(s.chainA.GetContext(), channelID, "")
+			},
+			expErrMsg: pendingPacketDenomErr,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			err := tc.call()
+			s.Require().ErrorContains(err, tc.expErrMsg)
+		})
 	}
 }

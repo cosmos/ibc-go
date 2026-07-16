@@ -13,8 +13,13 @@ env:
   IMAGE_NAME: ibc-go-wasm-simd
   GIT_TAG: "${{ inputs.tag }}"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag }}
+  cancel-in-progress: false
+
 jobs:
   build-image-at-tag:
+    timeout-minutes: 30
     permissions:
       packages: write
       contents: read
@@ -28,7 +33,7 @@ jobs:
             platform: linux/arm64
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
          ref: "${{ env.GIT_TAG }}"
          fetch-depth: 0
@@ -76,7 +81,8 @@ jobs:
           retention-days: 1
 
   merge:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       packages: write
       contents: read

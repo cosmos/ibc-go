@@ -38,27 +38,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-* [\#8285](https://github.com/cosmos/ibc-go/pull/8285) Packet forward middleware.
+* (apps/rate-limiting) [\#8268](https://github.com/cosmos/ibc-go/pull/8268) feat: rate limit module
 * [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
 * [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
 
 ### Improvements
 
-* (apps/27-gmp) [\#8945](https://github.com/cosmos/ibc-go/pull/8945) imp(apps/27-gmp): add extra validation during unmarshals
-* (apps/transfer) [\#8939](https://github.com/cosmos/ibc-go/pull/8939) Add extra validation to the v2 transfer module based on v1 validation.
-* (apps/pfm) [\#8933](https://github.com/cosmos/ibc-go/pull/8933) Use `channeltypes.NewErrorAcknowledgement` instead of internal function
-* (apps/pfm) [\#8932](https://github.com/cosmos/ibc-go/pull/8932) imp(apps/pfm): use addressCodec in GetReceiver
-
 ### Dependencies
-
-* (light-clients/08-wasm) [\#8922](https://github.com/cosmos/ibc-go/pull/8922) Bump **wasmvm** to **3.0.3**
 
 ### API Breaking
 
 ### State Machine Breaking
 
-* (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
-* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) Increase pending send packet channel length key size from 16 to 64
+* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
 
 ### Improvements
 
@@ -67,6 +59,28 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
 
 ### Testing API
+
+## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
+
+### Features
+
+* (apps/pfm) [\#8285](https://github.com/cosmos/ibc-go/pull/8285) feat: packet forward middleware.
+
+### Improvements
+
+* (apps/27-gmp) [\#8953](https://github.com/cosmos/ibc-go/pull/8953) imp(apps/27-gmp): add extra validation during unmarshals (backport of [\#8945](https://github.com/cosmos/ibc-go/pull/8945))
+* (apps/pfm) [\#8913](https://github.com/cosmos/ibc-go/pull/8913) imp(apps/pfm): remove non-refundable in flight packets.
+* (apps/transfer) [\#8949](https://github.com/cosmos/ibc-go/pull/8949) Add extra validation to the v2 transfer module based on v1 validation. (backport of [\#8939](https://github.com/cosmos/ibc-go/pull/8939))
+* (apps/pfm) [\#8941](https://github.com/cosmos/ibc-go/pull/8941) Use `channeltypes.NewErrorAcknowledgement` instead of internal function (backport of [\#8933](https://github.com/cosmos/ibc-go/pull/8933))
+* (apps/pfm) [\#8940](https://github.com/cosmos/ibc-go/pull/8940) imp(apps/pfm): use addressCodec in GetReceiver (backport of [\#8932](https://github.com/cosmos/ibc-go/pull/8932))
+
+### Dependencies
+
+* (light-clients/08-wasm) [\#8950](https://github.com/cosmos/ibc-go/pull/8950) chore(light-clients/08-wasm): bump to wasmvm@v3 (backport of [\#8922](https://github.com/cosmos/ibc-go/pull/8922))
+
+### Bug Fixes
+
+* (light-clients/attestation) [\#8947](https://github.com/cosmos/ibc-go/pull/8947) fix(light-clients/attestation): allow initial height to be zero (backport of [\#8910](https://github.com/cosmos/ibc-go/pull/8910))
 
 ## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
 
@@ -116,6 +130,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
 * (e2e) [\#8486](https://github.com/cosmos/ibc-go/pull/8486) chore: switch to cosmos/interchaintest
+
+## [v10.7.0](https://github.com/cosmos/ibc-go/releases/tag/v10.7.0) - 2026-05-20
+
+### Improvements
+
+* (apps/transfer) [\#8948](https://github.com/cosmos/ibc-go/pull/8948) Add extra validation to the v2 transfer module based on v1 validation. (backport of [\#8939](https://github.com/cosmos/ibc-go/pull/8939))
+
+### Bug Fixes
+
+* (channel/v2) [\#8954](https://github.com/cosmos/ibc-go/pull/8954) fix(channel/v2): parse binary store keys in PacketCommitments and PacketAcknowledgements queries (backport of [\#8778](https://github.com/cosmos/ibc-go/pull/8778))
 
 ## [v10.6.0](https://github.com/cosmos/ibc-go/releases/tag/v10.6.0) - 2026-04-24
 

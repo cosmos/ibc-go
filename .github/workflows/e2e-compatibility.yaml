@@ -18,6 +18,7 @@ on:
           - release/v8.8.x
           - release/v10.7.x
           - release/v11.1.x
+          - release/v11.2.x
           - main
       ibc-go-version:
         description: 'The version of ibc-go that is going to be released'
@@ -58,9 +59,10 @@ jobs:
           - release/v8.8.x
           - release/v10.7.x
           - release/v11.1.x
+          - release/v11.2.x
           - main
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"

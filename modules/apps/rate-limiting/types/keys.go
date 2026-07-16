@@ -3,12 +3,12 @@ package types
 import (
 	"encoding/binary"
 
-	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/collections"
 )
 
 const (
 	// ModuleName defines the IBC rate-limiting name
-	ModuleName = "ratelimiting"
+	ModuleName = "ratelimit"
 
 	// StoreKey is the store key string for IBC rate-limiting
 	StoreKey = ModuleName
@@ -25,12 +25,20 @@ func bytes(p string) []byte {
 }
 
 var (
-	RateLimitKeyPrefix      = bytes("rate-limit")
+	RateLimitKeyPrefix = bytes("rate-limit")
+	// PendingSendPacketPrefix is the legacy pending send packet prefix. It is
+	// only used by migrations that clear old pending packet state.
 	PendingSendPacketPrefix = bytes("pending-send-packet")
-	DenomBlacklistKeyPrefix = bytes("denom-blacklist")
+	// PendingReceivePacketPrefix is the legacy pending receive packet prefix. It
+	// is only used by migrations that clear old pending packet state.
+	PendingReceivePacketPrefix = bytes("pending-receive-packet")
+	DenomBlacklistKeyPrefix    = bytes("denom-blacklist")
 	// TODO: Fix IBCGO-2368
 	AddressWhitelistKeyPrefix = bytes("address-blacklist")
 	HourEpochKey              = bytes("hour-epoch")
+
+	PendingSendPacketsKey    = collections.NewPrefix(0)
+	PendingReceivePacketsKey = collections.NewPrefix(1)
 
 	PendingSendPacketChannelLength = 64
 )
@@ -40,12 +48,12 @@ func RateLimitItemKey(denom string, channelID string) []byte {
 	return append(bytes(denom), bytes(channelID)...)
 }
 
-// Get the pending send packet key from the channel ID and sequence number
+// Get the pending packet key from the channel ID and sequence number
 // The channel ID must be fixed length to allow for extracting the underlying
 // values from a key
-func PendingSendPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
-	if len(channelID) > PendingSendPacketChannelLength {
-		return nil, errorsmod.Wrapf(ErrInvalidChannelID, "channel %s with length %d is greater than the allowed length %d", channelID, len(channelID), PendingSendPacketChannelLength)
+func PendingPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
+	if err := validatePendingPacketChannelID(channelID); err != nil {
+		return nil, err
 	}
 
 	channelIDBz := make([]byte, PendingSendPacketChannelLength)

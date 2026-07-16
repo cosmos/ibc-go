@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
@@ -68,8 +69,20 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// If the packet was not rate-limited, pass it down to the underlying app's OnRecvPacket callback
-	return im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	// If the acknowledgement is not async (nil), remove the pending receive packet from the store.
+	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
+	if ack != nil {
+		packetInfo, err := keeper.ParsePacketInfo(packet, types.PACKET_RECV)
+		if err != nil {
+			im.keeper.Logger(ctx).Error("Rate limit OnRecvPacket failed to parse packet data for pending receive cleanup", "error", err)
+			return ack
+		}
+		if err := im.keeper.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.GetSequence(), packetInfo.Denom); err != nil {
+			im.keeper.Logger(ctx).Error("Rate limit OnRecvPacket failed to remove pending receive packet", "error", err)
+		}
+	}
+
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface.
@@ -107,8 +120,31 @@ func (im *IBCMiddleware) SendPacket(ctx sdk.Context, sourcePort string, sourceCh
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface.
-// It calls the underlying ICS4Wrapper.
+// If a middleware (e.g. PFM) is writing an error ack for a packet that was
+// previously received with a nil (async) ack, the inflow from OnRecvPacket
+// was already committed. Reverse it now.
 func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexported.PacketI, ack ibcexported.Acknowledgement) error {
+	if chanPacket, ok := packet.(channeltypes.Packet); ok {
+		if ack == nil {
+			return types.ErrAsyncAckNil.Wrapf("cannot write nil ack for packet %s/%d", packet.GetDestChannel(), packet.GetSequence())
+		}
+
+		if ack.Success() {
+			packetInfo, err := keeper.ParsePacketInfo(chanPacket, types.PACKET_RECV)
+			if err != nil {
+				im.keeper.Logger(ctx).Error("Rate limit WriteAcknowledgement failed to parse packet data for pending receive cleanup", "error", err)
+				return im.keeper.WriteAcknowledgement(ctx, packet, ack)
+			}
+			if err := im.keeper.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, chanPacket.GetSequence(), packetInfo.Denom); err != nil {
+				return err
+			}
+		} else {
+			if err := im.keeper.UndoReceivePacket(ctx, chanPacket); err != nil {
+				return err
+			}
+		}
+	}
+
 	return im.keeper.WriteAcknowledgement(ctx, packet, ack)
 }
 

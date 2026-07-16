@@ -14,15 +14,16 @@ concurrency:
 
 jobs:
   build:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       matrix:
         go-arch: ['amd64', 'arm64']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25.9'
+          go-version-file: 'go.mod'
       - name: Install compiler for arm64.
         if: matrix.go-arch == 'arm64'
         run: |
@@ -49,7 +50,8 @@ jobs:
           done
 
   unit-tests:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       matrix:
         module: [
@@ -68,17 +70,17 @@ jobs:
           }
         ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25.9'
+          go-version-file: '${{ matrix.module.path }}/go.mod'
           cache-dependency-path: '${{ matrix.module.path }}/go.sum'
 
       - name: test & coverage report creation
         run: |
           cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         with:
           fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out

@@ -155,7 +155,7 @@ func (k *Keeper) UpdateRateLimit(ctx sdk.Context, msg *types.MsgUpdateRateLimit)
 
 // Reset the rate limit after expiration
 // The inflow and outflow should get reset to 0, the channelValue should be updated,
-// and all pending send packet sequence numbers should be removed
+// and all pending packet sequence numbers should be removed
 func (k *Keeper) ResetRateLimit(ctx sdk.Context, denom string, channelID string) error {
 	rateLimit, found := k.GetRateLimit(ctx, denom, channelID)
 	if !found {
@@ -170,5 +170,9 @@ func (k *Keeper) ResetRateLimit(ctx sdk.Context, denom string, channelID string)
 	rateLimit.Flow = &flow
 
 	k.SetRateLimit(ctx, rateLimit)
-	return k.RemoveAllChannelPendingSendPackets(ctx, channelID)
+	if err := k.RemoveAllChannelPendingSendPackets(ctx, channelID, denom); err != nil {
+		return err
+	}
+
+	return k.RemoveAllChannelPendingReceivePackets(ctx, channelID, denom)
 }

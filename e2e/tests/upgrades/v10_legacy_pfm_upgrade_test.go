@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/ibc-go/e2e/testsuite"
@@ -29,27 +31,35 @@ import (
 )
 
 const (
-	legacyV10PFMImageTag        = "compat-v10-with-legacy-pfm"
-	legacyV10PFMUpgradePlanName = "v11.1-legacy-pfm"
+	legacyV10IBCAppsImageTag        = "compat-v10-with-legacy-ibc-apps"
+	legacyV10IBCAppsUpgradePlanName = "v11.2-legacy-ibc-apps"
 )
 
-// TestV10LegacyPFMUpgradeTestSuite upgrades a legacy v10 PFM fixture chain to the current target image.
-// It is intended for main/v11.1+ targets that include the v11.1-legacy-pfm upgrade handler.
+// TestV10LegacyPFMUpgradeTestSuite upgrades a legacy v10 ibc-apps fixture chain to the current target image.
+// It is intended for main/v11.2+ targets that include the v11.2-legacy-ibc-apps upgrade handler.
 func TestV10LegacyPFMUpgradeTestSuite(t *testing.T) {
 	testifysuite.Run(t, new(V10LegacyPFMUpgradeTestSuite))
 }
 
-type V10LegacyPFMUpgradeTestSuite struct {
+type LegacyV10IBCAppsUpgradeTestSuite struct {
 	testsuite.E2ETestSuite
 }
 
+func (s *LegacyV10IBCAppsUpgradeTestSuite) SetupLegacyV10IBCAppsChains(chainCount int) {
+	s.SetupChains(context.Background(), chainCount, nil, withLegacyV10IBCAppsOnChainB())
+}
+
+type V10LegacyPFMUpgradeTestSuite struct {
+	LegacyV10IBCAppsUpgradeTestSuite
+}
+
 func (s *V10LegacyPFMUpgradeTestSuite) SetupSuite() {
-	s.SetupChains(context.Background(), 3, nil, withLegacyV10PFMOnChainB())
+	s.SetupLegacyV10IBCAppsChains(3)
 }
 
 // UpgradeChain upgrades a chain to a specific version using the planName provided.
 // The software upgrade proposal is broadcast by the provided wallet.
-func (s *V10LegacyPFMUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
+func (s *LegacyV10IBCAppsUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *cosmos.CosmosChain, wallet ibc.Wallet, planName, currentVersion, upgradeVersion string) {
 	height, err := chain.GetNode().Height(ctx)
 	s.Require().NoError(err, "error fetching height before upgrade")
 
@@ -66,7 +76,16 @@ func (s *V10LegacyPFMUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *
 			Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		}
 
-		s.ExecuteAndPassGovV1Proposal(ctx, msgSoftwareUpgrade, chain, wallet)
+		msgBz, err := chain.Config().EncodingConfig.Codec.MarshalInterfaceJSON(msgSoftwareUpgrade)
+		s.Require().NoError(err)
+
+		proposal := cosmos.TxProposalv1{
+			Messages: []json.RawMessage{msgBz},
+			Deposit:  fmt.Sprintf("%d%s", testvalues.DefaultGovV1ProposalTokenAmount, chain.Config().Denom),
+			Title:    fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion),
+			Summary:  "upgrade chain E2E test",
+		}
+		s.submitAndPassGovV1Proposal(ctx, chain, wallet, proposal)
 	} else {
 		upgradeProposal := upgradetypes.NewSoftwareUpgradeProposal(fmt.Sprintf("upgrade from %s to %s", currentVersion, upgradeVersion), "upgrade chain E2E test", plan)
 		s.ExecuteAndPassGovV1Beta1Proposal(ctx, chain, wallet, upgradeProposal)
@@ -114,9 +133,96 @@ func (s *V10LegacyPFMUpgradeTestSuite) UpgradeChain(ctx context.Context, chain *
 	s.Require().NoError(err, "error populating query paths after upgrade")
 }
 
-func withLegacyV10PFMOnChainB() testsuite.ChainOptionConfiguration {
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) {
+	proposalID := s.submitGovV1Proposal(ctx, chain, proposer, proposal)
+
+	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes))
+	s.waitForGovV1ProposalToPass(ctx, chain, proposalID)
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) uint64 {
+	tx, err := chain.SubmitProposal(ctx, proposer.KeyName(), proposal)
+	s.Require().NoError(err)
+	proposalID, err := strconv.ParseUint(tx.ProposalID, 10, 64)
+	s.Require().NoError(err)
+
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.waitForGovV1ProposalVotingPeriod(ctx, chain, proposalID)
+
+	return proposalID
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) submitAndPassLegacyGovV1Proposal(ctx context.Context, chain *cosmos.CosmosChain, proposer ibc.Wallet, proposal cosmos.TxProposalv1) {
+	proposalID := s.nextGovV1ProposalID(ctx, chain)
+
+	// CosmosChain.SubmitProposal queries and decodes the transaction after broadcast.
+	// Legacy ibc-apps proposals can contain message types that are intentionally not registered in the current codec.
+	_, err := chain.GetNode().SubmitProposal(ctx, proposer.KeyName(), proposal)
+	s.Require().NoError(err)
+	s.Require().NoError(test.WaitForBlocks(ctx, 2, chain))
+	s.waitForGovV1ProposalVotingPeriod(ctx, chain, proposalID)
+
+	s.Require().NoError(chain.VoteOnProposalAllValidators(ctx, proposalID, cosmos.ProposalVoteYes))
+	s.waitForGovV1ProposalToPass(ctx, chain, proposalID)
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) waitForGovV1ProposalVotingPeriod(ctx context.Context, chain ibc.Chain, proposalID uint64) {
+	err := test.WaitForCondition(time.Minute, time.Second, func() (bool, error) {
+		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
+		if err != nil {
+			return false, nil
+		}
+
+		return proposalResp.Proposal.Status == govtypesv1.StatusVotingPeriod, nil
+	})
+	s.Require().NoError(err)
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) nextGovV1ProposalID(ctx context.Context, chain ibc.Chain) uint64 {
+	proposalsResp, err := query.GRPCQuery[govtypesv1.QueryProposalsResponse](ctx, chain, &govtypesv1.QueryProposalsRequest{})
+	s.Require().NoError(err)
+
+	var maxProposalID uint64
+	for _, proposal := range proposalsResp.Proposals {
+		if proposal.Id > maxProposalID {
+			maxProposalID = proposal.Id
+		}
+	}
+
+	return maxProposalID + 1
+}
+
+func (s *LegacyV10IBCAppsUpgradeTestSuite) waitForGovV1ProposalToPass(ctx context.Context, chain ibc.Chain, proposalID uint64) {
+	var govProposal *govtypesv1.Proposal
+	err := test.WaitForCondition(testvalues.VotingPeriod+time.Minute, 2*time.Second, func() (bool, error) {
+		proposalResp, err := query.GRPCQuery[govtypesv1.QueryProposalResponse](ctx, chain, &govtypesv1.QueryProposalRequest{
+			ProposalId: proposalID,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		govProposal = proposalResp.Proposal
+		return govProposal.Status == govtypesv1.StatusPassed, nil
+	})
+
+	failedReason := ""
+	if govProposal != nil {
+		failedReason = govProposal.FailedReason
+	}
+	s.Require().NoError(err, failedReason)
+}
+
+func withLegacyV10IBCAppsOnChainB() testsuite.ChainOptionConfiguration {
 	return func(options *testsuite.ChainOptions) {
-		options.ChainSpecs[1].ChainConfig.Images[0].Version = legacyV10PFMImageTag
+		validators := 1
+		fullNodes := 0
+
+		options.ChainSpecs[1].ChainConfig.Images[0].Version = legacyV10IBCAppsImageTag
+		options.ChainSpecs[1].NumValidators = &validators
+		options.ChainSpecs[1].NumFullNodes = &fullNodes
 	}
 }
 
@@ -307,7 +413,7 @@ func (s *V10LegacyPFMUpgradeTestSuite) TestV10LegacyPFMUpgradePreservesInFlightP
 		ctx,
 		chainB.(*cosmos.CosmosChain),
 		upgradeProposer,
-		legacyV10PFMUpgradePlanName,
+		legacyV10IBCAppsUpgradePlanName,
 		chainB.Config().Images[0].Version,
 		chainA.Config().Images[0].Version,
 	)

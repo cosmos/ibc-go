@@ -268,7 +268,7 @@ func (s *KeeperTestSuite) TestCheckAcknowledgementSucceeded() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledementSucceeded(s.chainA.GetContext(), tc.ack)
+			success, err := s.chainA.GetSimApp().RateLimitKeeper.CheckAcknowledgementSucceeded(s.chainA.GetContext(), tc.ack)
 
 			if tc.wantErr != nil {
 				s.Require().ErrorIs(err, tc.wantErr, tc.name)
@@ -342,7 +342,7 @@ func (s *KeeperTestSuite) TestSendRateLimitedPacket() {
 	s.Require().NoError(err, "no error expected when sending packet after reset")
 
 	// Check that the pending packet was stored
-	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence)
+	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", sourceChannel, sequence)
 	s.Require().True(found, "pending send packet")
 }
@@ -365,6 +365,7 @@ func (s *KeeperTestSuite) TestReceiveRateLimitedPacket() {
 	packetData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: packetDenom, Amount: amountToExceed})
 	s.Require().NoError(err)
 	packet := channeltypes.Packet{
+		Sequence:           10,
 		SourcePort:         transferPort,
 		SourceChannel:      sourceChannel,
 		DestinationPort:    transferPort,
@@ -377,6 +378,18 @@ func (s *KeeperTestSuite) TestReceiveRateLimitedPacket() {
 	err = s.chainA.GetSimApp().RateLimitKeeper.ReceiveRateLimitedPacket(s.chainA.GetContext(), packet)
 	s.Require().ErrorIs(err, types.ErrQuotaExceeded, "error type")
 	s.Require().ErrorContains(err, "Inflow exceeds quota", "error text")
+
+	packetData, err = json.Marshal(transfertypes.FungibleTokenPacketData{Denom: packetDenom, Amount: "1"})
+	s.Require().NoError(err)
+	packet.Sequence = 11
+	packet.Data = packetData
+
+	err = s.chainA.GetSimApp().RateLimitKeeper.ReceiveRateLimitedPacket(s.chainA.GetContext(), packet)
+	s.Require().NoError(err, "no error expected when receiving packet within quota")
+
+	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), destinationChannel, packet.Sequence, rateLimitDenom)
+	s.Require().NoError(err, "unexpected error checking packet received during current quota - channel %s, sequence %d", destinationChannel, packet.Sequence)
+	s.Require().True(found, "pending receive packet")
 }
 
 func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckSuccess() {
@@ -392,7 +405,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckSuccess() {
 	})
 
 	// Store the pending packet for this sequence number
-	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence)
+	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %d", sourceChannel, sequence)
 
 	// Build the ack packet
@@ -415,7 +428,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckSuccess() {
 	s.Require().NoError(err, "no error expected during AckPacket")
 
 	// Confirm the pending packet was removed
-	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence)
+	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", sourceChannel, sequence)
 	s.Require().False(found, "send packet should have been removed")
 }
@@ -436,7 +449,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckFailure() {
 	})
 
 	// Store the pending packet for this sequence number
-	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence)
+	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %d", sourceChannel, sequence)
 
 	// Build the ack packet
@@ -459,7 +472,7 @@ func (s *KeeperTestSuite) TestAcknowledgeRateLimitedPacket_AckFailure() {
 	s.Require().NoError(err, "no error expected during AckPacket")
 
 	// Confirm the pending packet was removed
-	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence)
+	found, err := s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", sourceChannel, sequence)
 	s.Require().False(found, "send packet should have been removed")
 
@@ -485,7 +498,7 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	})
 
 	// Store the pending packet for this sequence number
-	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence)
+	err := s.chainA.GetSimApp().RateLimitKeeper.SetPendingSendPacket(s.chainA.GetContext(), sourceChannel, sequence, denom)
 	s.Require().NoError(err, "unexpected error setting pending send packet sequence - channel %s, sequence %d", sourceChannel, sequence)
 
 	// Build the timeout packet
@@ -510,7 +523,7 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow decremented")
 
 	// Check that the pending packet has been removed
-	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence)
+	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(s.chainA.GetContext(), channelID, sequence, denom)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", channelID, sequence)
 	s.Require().False(found, "pending packet should have been removed")
 
@@ -524,6 +537,144 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	rateLimit, found = s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), denom, channelID)
 	s.Require().True(found)
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should not have changed")
+}
+
+func (s *KeeperTestSuite) TestUndoReceivePacket() {
+	zeroAmount := sdkmath.ZeroInt()
+
+	packetAmount := sdkmath.NewInt(10)
+	sequence := uint64(10)
+	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, channelOnStride, uosmo))
+	var (
+		initialInflow        sdkmath.Int
+		packetData           []byte
+		expectedInflowAmount *sdkmath.Int
+	)
+
+	testCases := []struct {
+		name              string
+		malleate          func()
+		setPendingReceive bool
+	}{
+		{
+			name:              "success: decrement inflow",
+			setPendingReceive: true,
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(100)
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+
+				expAmount := sdkmath.NewInt(90)
+				expectedInflowAmount = &expAmount
+			},
+		},
+		{
+			name:              "success: clamp negative inflow to zero",
+			setPendingReceive: true,
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(5)
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+
+				expectedInflowAmount = &zeroAmount
+			},
+		},
+		{
+			name: "success: packet was not received during current quota",
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(100)
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+
+				expectedInflowAmount = &initialInflow
+			},
+		},
+		{
+			name:              "success: no existing rate limit",
+			setPendingReceive: true,
+			malleate: func() {
+				expectedInflowAmount = nil
+			},
+		},
+		{
+			name: "success: packet data cannot be parsed",
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(100)
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+
+				packetData = []byte("invalid packet data")
+				expectedInflowAmount = &initialInflow
+			},
+		},
+		{
+			name: "success: packet amount cannot be parsed",
+			malleate: func() {
+				initialInflow = sdkmath.NewInt(100)
+				s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+					Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+					Flow: &types.Flow{Inflow: initialInflow},
+				})
+
+				var err error
+				packetData, err = json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: "invalid"})
+				s.Require().NoError(err)
+				expectedInflowAmount = &initialInflow
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			expectedInflowAmount = nil
+			s.chainA.GetSimApp().RateLimitKeeper.RemoveRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
+			err := s.chainA.GetSimApp().RateLimitKeeper.RemovePendingReceivePacket(s.chainA.GetContext(), channelOnStride, sequence, rateLimitDenom)
+			s.Require().NoError(err, "unexpected error removing pending receive packet sequence - channel %s, sequence %d", channelOnStride, sequence)
+
+			packetData, err = json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: packetAmount.String()})
+			s.Require().NoError(err)
+
+			if tc.malleate != nil {
+				tc.malleate()
+			}
+
+			packet := channeltypes.Packet{
+				Sequence:           sequence,
+				SourcePort:         transferPort,
+				SourceChannel:      channelOnHost,
+				DestinationPort:    transferPort,
+				DestinationChannel: channelOnStride,
+				Data:               packetData,
+			}
+			if tc.setPendingReceive {
+				err = s.chainA.GetSimApp().RateLimitKeeper.SetPendingReceivePacket(s.chainA.GetContext(), channelOnStride, sequence, rateLimitDenom)
+				s.Require().NoError(err, "unexpected error setting pending receive packet sequence - channel %s, sequence %d", channelOnStride, sequence)
+			}
+
+			err = s.chainA.GetSimApp().RateLimitKeeper.UndoReceivePacket(s.chainA.GetContext(), packet)
+			s.Require().NoError(err)
+
+			rateLimit, found := s.chainA.GetSimApp().RateLimitKeeper.GetRateLimit(s.chainA.GetContext(), rateLimitDenom, channelOnStride)
+			if expectedInflowAmount == nil {
+				s.Require().False(found)
+			} else {
+				s.Require().True(found)
+				s.Require().Equal(*expectedInflowAmount, rateLimit.Flow.Inflow)
+			}
+
+			found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(s.chainA.GetContext(), channelOnStride, sequence, rateLimitDenom)
+			s.Require().NoError(err, "unexpected error checking packet received during current quota - channel %s, sequence %d", channelOnStride, sequence)
+			s.Require().False(found, "pending receive packet should not remain")
+		})
+	}
 }
 
 // --- Middleware Tests ---
@@ -736,7 +887,7 @@ func (s *KeeperTestSuite) TestSendPacket_Allowed() {
 	s.Require().Equal(amount.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should be updated")
 
 	// Check pending packet was stored using the latest context
-	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(ctx, path.EndpointA.ChannelID, seq)
+	found, err = s.chainA.GetSimApp().RateLimitKeeper.CheckPacketSentDuringCurrentQuota(ctx, path.EndpointA.ChannelID, seq, rateLimitDenom)
 	s.Require().NoError(err, "unexpected error checking packet sent during current quota - channel %s, sequence %d", path.EndpointA.ChannelID, seq)
 	s.Require().True(found, "pending packet should be stored")
 }

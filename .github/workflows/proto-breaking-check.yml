@@ -7,10 +7,15 @@ on:
     paths:
       - "proto/**/*.proto"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   proto-breaking-check:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run proto-breaking check
         run: make proto-check-breaking
