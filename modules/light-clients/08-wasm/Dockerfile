@@ -25,7 +25,7 @@ RUN go mod download
 # and copy the correct file in the final stage. The multistage setup also helps speed up the build process
 FROM alpine:3.21 AS amd64-stage
 ARG LIBWASM_VERSION
-ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.x86_64.a
+ADD https://github.com/CosmWasm/wasmvm/releases/download/${LIBWASM_VERSION}/proof.txt /tmp/proof.txt
 
 
 FROM alpine:3.21 AS arm64-stage
