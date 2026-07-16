@@ -33,7 +33,7 @@
   <a href="https://deepwiki.com/cosmos/ibc-go"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </div>
 
-The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes — including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For information on what IBC is and how it works, please read [the docs](https://docs.cosmos.network/ibc/latest/intro).
+The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For information on what IBC is and how it works, please read [the docs](https://docs.cosmos.network/ibc/latest/intro).
 
 
 The IBC implementation in Golang `ibc-go` has been used in production by the majority of the 200+ chains that have utilized IBC. It is built as a Cosmos SDK module. To understand more about how to use the `ibc-go` module as well as learn more about the IBC Protocol, please check out [our docs](https://docs.cosmos.network/ibc/latest/intro).
