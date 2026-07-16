@@ -17,14 +17,19 @@ env:
    IMAGE_NAME: ibc-go-simd
    GIT_TAG: "${{ inputs.tag }}"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag }}
+  cancel-in-progress: false
+
 jobs:
     build-image-at-tag:
-      runs-on: depot-ubuntu-24.04-4
+      runs-on: ubuntu-24.04
+      timeout-minutes: 30
       permissions:
         packages: write
         contents: read
       steps:
-         - uses: actions/checkout@v6
+         - uses: actions/checkout@v7
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0

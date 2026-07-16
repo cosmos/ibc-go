@@ -59,7 +59,7 @@ jobs:
           },
         ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
@@ -88,14 +88,27 @@ jobs:
           path: e2e/diagnostics
           retention-days: 5
 
-  # This test upgrades a hardcoded legacy v10 PFM fixture to the current image, so it cannot use
+  # These tests upgrade a hardcoded legacy v10 ibc-apps fixture to the current image, so they cannot use
   # the published-tag-only matrix above.
-  legacy-v10-pfm-upgrade-test:
+  legacy-v10-ibc-apps-upgrade-tests:
     runs-on: depot-ubuntu-24.04-4
+    strategy:
+      fail-fast: false
+      matrix:
+        test-config: [
+          {
+            test: TestV10LegacyPFMUpgradePreservesInFlightPackets,
+            artifact: TestV10LegacyPFMUpgradeTestSuite-TestV10LegacyPFMUpgradePreservesInFlightPackets,
+          },
+          {
+            test: TestV10LegacyRateLimitUpgradeClearsPendingSendPackets,
+            artifact: TestV10LegacyRateLimitUpgradeTestSuite-TestV10LegacyRateLimitUpgradeClearsPendingSendPackets,
+          },
+        ]
     env:
       SIMD_TAG: local
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
@@ -105,24 +118,24 @@ jobs:
       - name: Build current simd image
         run: |
           docker build . -t "${{ env.DOCKER_IMAGE_NAME }}:${SIMD_TAG}" --build-arg "IBC_GO_VERSION=${{ github.ref_name }}"
-      - name: Run legacy v10 PFM upgrade test
+      - name: Run legacy v10 ibc-apps upgrade test
         id: e2e_test
         env:
           CHAIN_IMAGE: '${{ env.DOCKER_IMAGE_NAME }}'
           CHAIN_A_TAG: '${{ env.SIMD_TAG }}'
-          # Chain B starts from a fixture image with legacy v10 PFM state; chain A/C use the target image built above.
-          CHAIN_B_TAG: 'compat-v10-with-legacy-pfm'
+          # Chain B starts from a fixture image with legacy v10 ibc-apps state; chain A/C use the target image built above.
+          CHAIN_B_TAG: 'compat-v10-with-legacy-ibc-apps'
           CHAIN_C_TAG: '${{ env.SIMD_TAG }}'
           CHAIN_D_TAG: '${{ env.SIMD_TAG }}'
           E2E_CONFIG_PATH: 'ci-e2e-config.yaml'
         run: |
           cd e2e
-          make e2e-test test=TestV10LegacyPFMUpgradePreservesInFlightPackets
+          make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
         uses: actions/upload-artifact@v7
         if: ${{ failure() }}
         continue-on-error: true
         with:
-          name: 'TestV10LegacyPFMUpgradeTestSuite-TestV10LegacyPFMUpgradePreservesInFlightPackets'
+          name: '${{ matrix.test-config.artifact }}'
           path: e2e/diagnostics
           retention-days: 5

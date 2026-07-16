@@ -13,4 +13,5 @@ message GenesisState {
   repeated string                 blacklisted_denoms                   = 3;
   repeated string                 pending_send_packet_sequence_numbers = 4;
   HourEpoch                       hour_epoch                           = 5 [(gogoproto.nullable) = false];
+  repeated string                 pending_recv_packet_sequence_numbers = 6;
 }

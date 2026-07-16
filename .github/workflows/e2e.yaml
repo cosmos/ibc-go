@@ -19,7 +19,7 @@ jobs:
     outputs:
       simd-tag: ${{ steps.get-tag.outputs.simd-tag }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -60,7 +60,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
@@ -72,7 +72,7 @@ jobs:
           output=$(go run cmd/build_test_matrix/main.go)
           echo "matrix=$output" >> $GITHUB_OUTPUT
         env:
-          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestV10LegacyPFMUpgradeTestSuite'
+          TEST_EXCLUSIONS: 'TestUpgradeTestSuite,TestV10LegacyPFMUpgradeTestSuite,TestV10LegacyRateLimitUpgradeTestSuite'
 
   e2e-tests:
     runs-on: depot-ubuntu-24.04-4
@@ -83,7 +83,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build-test-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           repository: cosmos/ibc-go
       - uses: actions/setup-go@v6
