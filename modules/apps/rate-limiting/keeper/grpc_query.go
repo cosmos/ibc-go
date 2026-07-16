@@ -37,8 +37,10 @@ func (k Querier) AllRateLimits(c context.Context, req *types.QueryAllRateLimitsR
 
 	rateLimits := []types.RateLimit{}
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		rateLimit := types.RateLimit{}
-		k.k.cdc.MustUnmarshal(value, &rateLimit)
+		var rateLimit types.RateLimit
+		if err := k.k.cdc.Unmarshal(value, &rateLimit); err != nil {
+			return err
+		}
 		rateLimits = append(rateLimits, rateLimit)
 		return nil
 	})
@@ -79,7 +81,9 @@ func (k Querier) RateLimitsByChainID(c context.Context, req *types.QueryRateLimi
 	rateLimits := []types.RateLimit{}
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, accumulate bool) (bool, error) {
 		var rateLimit types.RateLimit
-		k.k.cdc.MustUnmarshal(value, &rateLimit)
+		if err := k.k.cdc.Unmarshal(value, &rateLimit); err != nil {
+			return false, err
+		}
 
 		// Determine the client state from the channel Id
 		_, clientState, err := k.k.channelKeeper.GetChannelClientState(ctx, transfertypes.PortID, rateLimit.Path.ChannelOrClientId)
@@ -87,7 +91,7 @@ func (k Querier) RateLimitsByChainID(c context.Context, req *types.QueryRateLimi
 			var ok bool
 			clientState, ok = k.k.clientKeeper.GetClientState(ctx, rateLimit.Path.ChannelOrClientId)
 			if !ok {
-				return false, errorsmod.Wrapf(types.ErrInvalidClientState, "unable to fetch client state from channel or client id")
+				return false, errorsmod.Wrapf(types.ErrInvalidClientState, "unable to fetch client state from channel or client id %s", rateLimit.Path.ChannelOrClientId)
 			}
 		}
 		client, ok := clientState.(*tmclient.ClientState)
@@ -125,7 +129,9 @@ func (k Querier) RateLimitsByChannelOrClientID(c context.Context, req *types.Que
 	rateLimits := []types.RateLimit{}
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, accumulate bool) (bool, error) {
 		var rateLimit types.RateLimit
-		k.k.cdc.MustUnmarshal(value, &rateLimit)
+		if err := k.k.cdc.Unmarshal(value, &rateLimit); err != nil {
+			return false, err
+		}
 
 		if rateLimit.Path.ChannelOrClientId != req.ChannelOrClientId {
 			return false, nil
@@ -174,8 +180,10 @@ func (k Querier) AllWhitelistedAddresses(c context.Context, req *types.QueryAllW
 
 	whitelistedAddresses := []types.WhitelistedAddressPair{}
 	pageRes, err := query.Paginate(store, req.Pagination, func(_, value []byte) error {
-		whitelist := types.WhitelistedAddressPair{}
-		k.k.cdc.MustUnmarshal(value, &whitelist)
+		var whitelist types.WhitelistedAddressPair
+		if err := k.k.cdc.Unmarshal(value, &whitelist); err != nil {
+			return err
+		}
 		whitelistedAddresses = append(whitelistedAddresses, whitelist)
 		return nil
 	})
