@@ -12,11 +12,24 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
+// LegacyParamsKey is the store key used by the deprecated PFM params state.
+var LegacyParamsKey = []byte{0x00}
+
 // Migrate migrates the x/packetforward module state from consensus version 3 to version 4.
 // It removes the deprecated nonrefundable field from stored in-flight packets and aborts if
 // any packet has nonrefundable=true.
 func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec) error {
 	store := storeService.OpenKVStore(ctx)
+
+	hasLegacyParams, err := store.Has(LegacyParamsKey)
+	if err != nil {
+		return fmt.Errorf("failed to check legacy PFM params key: %w", err)
+	}
+	if hasLegacyParams {
+		if err := store.Delete(LegacyParamsKey); err != nil {
+			return fmt.Errorf("failed to delete legacy PFM params key: %w", err)
+		}
+	}
 
 	itr, err := store.Iterator(nil, nil)
 	if err != nil {
