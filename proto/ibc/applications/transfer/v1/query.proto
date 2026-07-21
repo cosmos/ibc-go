@@ -42,6 +42,16 @@ service Query {
   rpc TotalEscrowForDenom(QueryTotalEscrowForDenomRequest) returns (QueryTotalEscrowForDenomResponse) {
     option (google.api.http).get = "/ibc/apps/transfer/v1/total_escrow/{denom=**}";
   }
+
+  // ChannelEscrowForDenom returns the amount of tokens in escrow for a channel or client and denomination.
+  rpc ChannelEscrowForDenom(QueryChannelEscrowForDenomRequest) returns (QueryChannelEscrowForDenomResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/channel_escrow/{channel_or_client_id}/{denom=**}";
+  }
+
+  // AllChannelEscrows returns all channel and client escrow amounts.
+  rpc AllChannelEscrows(QueryAllChannelEscrowsRequest) returns (QueryAllChannelEscrowsResponse) {
+    option (google.api.http).get = "/ibc/apps/transfer/v1/channel_escrows";
+  }
 }
 
 // QueryParamsRequest is the request type for the Query/Params RPC method.
@@ -119,4 +129,35 @@ message QueryTotalEscrowForDenomRequest {
 // QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
 message QueryTotalEscrowForDenomResponse {
   cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryChannelEscrowForDenomRequest is the request type for ChannelEscrowForDenom RPC method.
+message QueryChannelEscrowForDenomRequest {
+  string channel_or_client_id = 1;
+  string denom                = 2;
+}
+
+// QueryChannelEscrowForDenomResponse is the response type for ChannelEscrowForDenom RPC method.
+message QueryChannelEscrowForDenomResponse {
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryAllChannelEscrowsRequest is the request type for AllChannelEscrows RPC method.
+message QueryAllChannelEscrowsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryAllChannelEscrowsResponse is the response type for AllChannelEscrows RPC method.
+message QueryAllChannelEscrowsResponse {
+  // channel_escrows returns one escrow amount per channel or client and denomination.
+  repeated ChannelEscrowAmount channel_escrows = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// ChannelEscrowAmount contains the escrowed amount for a channel or client and denomination.
+message ChannelEscrowAmount {
+  string                   channel_or_client_id = 1;
+  cosmos.base.v1beta1.Coin amount               = 2 [(gogoproto.nullable) = false];
 }

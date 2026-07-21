@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 
+	"cosmossdk.io/collections"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -49,6 +51,8 @@ var (
 	DenomTraceKey = []byte{0x02}
 	// DenomKey defines the key to store the token denomination in store
 	DenomKey = []byte{0x03}
+	// ChannelEscrowsKey defines the collections prefix for per-channel or per-client escrow accounting.
+	ChannelEscrowsKey = collections.NewPrefix(4)
 
 	// SupportedVersions defines all versions that are supported by the module
 	SupportedVersions = []string{V1}

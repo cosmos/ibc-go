@@ -18,4 +18,13 @@ message GenesisState {
   // by the transfer module
   repeated cosmos.base.v1beta1.Coin total_escrowed = 4
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  // channel_escrows contains the amount of tokens escrowed by each IBC v1 channel or IBC v2 client.
+  repeated ChannelEscrow channel_escrows = 5 [(gogoproto.nullable) = false];
+}
+
+// ChannelEscrow contains the escrowed tokens for an IBC v1 channel or IBC v2 client.
+message ChannelEscrow {
+  string   channel_or_client_id            = 1;
+  repeated cosmos.base.v1beta1.Coin tokens = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
 }

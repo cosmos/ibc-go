@@ -94,9 +94,7 @@ func (k *Keeper) SendTransfer(
 			panic(fmt.Errorf("cannot burn coins after a successful send to a module account: %w", err))
 		}
 	} else {
-		// obtain the escrow address for the source channel end
-		escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-		if err := k.EscrowCoin(ctx, sender, escrowAddress, coin); err != nil {
+		if err := k.EscrowCoin(ctx, sourcePort, sourceChannel, sender, coin); err != nil {
 			return err
 		}
 	}
@@ -159,8 +157,7 @@ func (k *Keeper) OnRecvPacket(
 
 		coin := sdk.NewCoin(token.Denom.IBCDenom(), transferAmount)
 
-		escrowAddress := types.GetEscrowAddress(destPort, destChannel)
-		if err := k.UnescrowCoin(ctx, escrowAddress, receiver, coin); err != nil {
+		if err := k.UnescrowCoin(ctx, destPort, destChannel, receiver, coin); err != nil {
 			return err
 		}
 	} else {
@@ -260,9 +257,6 @@ func (k *Keeper) refundPacketTokens(
 		return errorsmod.Wrapf(ibcerrors.ErrUnauthorized, "%s is not allowed to receive funds", data.Sender)
 	}
 
-	// escrow address for unescrowing tokens back to sender
-	escrowAddress := types.GetEscrowAddress(sourcePort, sourceChannel)
-
 	moduleAccountAddr := k.AuthKeeper.GetModuleAddress(types.ModuleName)
 	token := data.Token
 	coin, err := token.ToCoin()
@@ -284,7 +278,7 @@ func (k *Keeper) refundPacketTokens(
 			panic(fmt.Errorf("unable to send coins from module to account despite previously minting coins to module account: %w", err))
 		}
 	} else {
-		if err := k.UnescrowCoin(ctx, escrowAddress, sender, coin); err != nil {
+		if err := k.UnescrowCoin(ctx, sourcePort, sourceChannel, sender, coin); err != nil {
 			return err
 		}
 	}
@@ -292,25 +286,31 @@ func (k *Keeper) refundPacketTokens(
 	return nil
 }
 
-// EscrowCoin will send the given coin from the provided sender to the escrow address. It will also
-// update the total escrowed amount by adding the escrowed coin's amount to the current total escrow.
-func (k *Keeper) EscrowCoin(ctx sdk.Context, sender, escrowAddress sdk.AccAddress, coin sdk.Coin) error {
+// EscrowCoin sends the coin to the channel or client escrow account and updates its accounting.
+func (k *Keeper) EscrowCoin(ctx sdk.Context, portID, channelOrClientID string, sender sdk.AccAddress, coin sdk.Coin) error {
+	escrowAddress := types.GetEscrowAddress(portID, channelOrClientID)
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
 	}
 
-	// track the total amount in escrow keyed by denomination to allow for efficient iteration
-	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, coin.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Add(coin)
-	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+	k.AddToChannelEscrow(ctx, channelOrClientID, coin)
 
 	return nil
 }
 
-// UnescrowCoin will send the given coin from the escrow address to the provided receiver. It will also
-// update the total escrow by deducting the unescrowed coin's amount from the current total escrow.
-func (k *Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAddress, coin sdk.Coin) error {
+// UnescrowCoin sends the coin from the channel or client escrow account after checking its accounting.
+func (k *Keeper) UnescrowCoin(ctx sdk.Context, portID, channelOrClientID string, receiver sdk.AccAddress, coin sdk.Coin) error {
+	channelEscrow := k.GetChannelEscrowForDenom(ctx, channelOrClientID, coin.Denom)
+	if channelEscrow.Amount.LT(coin.Amount) {
+		return errorsmod.Wrapf(types.ErrInsufficientEscrow, "unable to unescrow tokens: %s/%s has %s, requested %s", portID, channelOrClientID, channelEscrow, coin)
+	}
+	totalEscrow := k.GetTotalEscrowForDenom(ctx, coin.Denom)
+	if totalEscrow.Amount.LT(coin.Amount) {
+		return fmt.Errorf("total escrow invariant broken for denom %s: total escrow %s is less than amount to subtract %s", coin.Denom, totalEscrow, coin)
+	}
+
+	escrowAddress := types.GetEscrowAddress(portID, channelOrClientID)
 	if err := k.BankKeeper.SendCoins(ctx, escrowAddress, receiver, sdk.NewCoins(coin)); err != nil {
 		// NOTE: this error is only expected to occur given an unexpected bug or a malicious
 		// counterparty module. The bug may occur in bank or any part of the code that allows
@@ -319,10 +319,46 @@ func (k *Keeper) UnescrowCoin(ctx sdk.Context, escrowAddress, receiver sdk.AccAd
 		return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 	}
 
-	// track the total amount in escrow keyed by denomination to allow for efficient iteration
-	currentTotalEscrow := k.GetTotalEscrowForDenom(ctx, coin.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Sub(coin)
-	k.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+	return k.SubFromChannelEscrow(ctx, channelOrClientID, coin)
+}
+
+// AddToChannelEscrow adds a coin to both the channel or client escrow and total escrow accounting.
+func (k *Keeper) AddToChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin) {
+	channelEscrow := k.GetChannelEscrowForDenom(ctx, channelOrClientID, coin.Denom)
+	k.SetChannelEscrowForDenom(ctx, channelOrClientID, channelEscrow.Add(coin))
+
+	totalEscrow := k.GetTotalEscrowForDenom(ctx, coin.Denom)
+	k.SetTotalEscrowForDenom(ctx, totalEscrow.Add(coin))
+}
+
+// SubFromChannelEscrow subtracts a coin from both the channel or client escrow and total escrow accounting.
+func (k *Keeper) SubFromChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin) error {
+	channelEscrow := k.GetChannelEscrowForDenom(ctx, channelOrClientID, coin.Denom)
+	if channelEscrow.Amount.LT(coin.Amount) {
+		return errorsmod.Wrapf(types.ErrInsufficientEscrow, "%s has %s, requested %s", channelOrClientID, channelEscrow, coin)
+	}
+
+	totalEscrow := k.GetTotalEscrowForDenom(ctx, coin.Denom)
+	if totalEscrow.Amount.LT(coin.Amount) {
+		return fmt.Errorf("total escrow invariant broken for denom %s: total escrow %s is less than amount to subtract %s", coin.Denom, totalEscrow, coin)
+	}
+
+	k.SetChannelEscrowForDenom(ctx, channelOrClientID, channelEscrow.Sub(coin))
+	k.SetTotalEscrowForDenom(ctx, totalEscrow.Sub(coin))
+	return nil
+}
+
+// MoveChannelEscrow moves accounting between escrow accounts without changing total escrow.
+// This is for middleware modules that want to move escrow between channels or clients without changing the total amount of escrowed tokens.
+func (k *Keeper) MoveChannelEscrow(ctx sdk.Context, sourceChannelOrClientID, destChannelOrClientID string, coin sdk.Coin) error {
+	sourceEscrow := k.GetChannelEscrowForDenom(ctx, sourceChannelOrClientID, coin.Denom)
+	if sourceEscrow.Amount.LT(coin.Amount) {
+		return errorsmod.Wrapf(types.ErrInsufficientEscrow, "%s has %s, requested %s", sourceChannelOrClientID, sourceEscrow, coin)
+	}
+
+	destEscrow := k.GetChannelEscrowForDenom(ctx, destChannelOrClientID, coin.Denom)
+	k.SetChannelEscrowForDenom(ctx, sourceChannelOrClientID, sourceEscrow.Sub(coin))
+	k.SetChannelEscrowForDenom(ctx, destChannelOrClientID, destEscrow.Add(coin))
 
 	return nil
 }

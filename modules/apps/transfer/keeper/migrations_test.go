@@ -12,6 +12,7 @@ import (
 	internaltransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/internal/types"
 	transferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
@@ -264,6 +265,69 @@ func (s *KeeperTestSuite) TestMigrateTotalEscrowForDenom() {
 			s.Require().Equal(tc.expectedEscrowAmt, amount.Amount)
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestMigrateChannelEscrow() {
+	v1Path1 := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	v1Path1.Setup()
+	v1Path2 := ibctesting.NewTransferPath(s.chainA, s.chainC)
+	v1Path2.Setup()
+	v2Path := ibctesting.NewPath(s.chainA, s.chainB)
+	v2Path.SetupV2()
+	aliasPath := ibctesting.NewPath(s.chainA, s.chainC)
+	aliasPath.Setup()
+
+	ctx := s.chainA.GetContext()
+	bankKeeper := s.chainA.GetSimApp().BankKeeper
+	transferKeeper := s.chainA.GetSimApp().TransferKeeper
+
+	escrows := []struct {
+		channelOrClientID string
+		coin              sdk.Coin
+	}{
+		{v1Path1.EndpointA.ChannelID, sdk.NewInt64Coin(sdk.DefaultBondDenom, 10)},
+		{v1Path2.EndpointA.ChannelID, sdk.NewInt64Coin(sdk.DefaultBondDenom, 20)},
+		{v2Path.EndpointA.ClientID, sdk.NewInt64Coin(sdk.DefaultBondDenom, 30)},
+		{aliasPath.EndpointA.ChannelID, sdk.NewInt64Coin(sdk.DefaultBondDenom, 40)},
+		{exported.LocalhostClientID, sdk.NewInt64Coin(sdk.DefaultBondDenom, 50)},
+	}
+	for _, escrow := range escrows {
+		address := transfertypes.GetEscrowAddress(transfertypes.PortID, escrow.channelOrClientID)
+		s.Require().NoError(banktestutil.FundAccount(ctx, bankKeeper, address, sdk.NewCoins(escrow.coin)))
+	}
+
+	expectedTotal := sdk.NewInt64Coin(sdk.DefaultBondDenom, 150)
+	transferKeeper.SetTotalEscrowForDenom(ctx, expectedTotal)
+	transferKeeper.SetChannelEscrowForDenom(ctx, "channel-999", sdk.NewInt64Coin("stale", 1))
+
+	migrator := transferkeeper.NewMigrator(*transferKeeper)
+	s.Require().NoError(migrator.MigrateChannelEscrow(ctx))
+
+	for _, escrow := range escrows {
+		s.Require().Equal(escrow.coin, transferKeeper.GetChannelEscrowForDenom(ctx, escrow.channelOrClientID, escrow.coin.Denom))
+	}
+	s.Require().Equal(expectedTotal, transferKeeper.GetTotalEscrowForDenom(ctx, sdk.DefaultBondDenom))
+	s.Require().True(transferKeeper.GetChannelEscrowForDenom(ctx, "channel-999", "stale").IsZero())
+}
+
+func (s *KeeperTestSuite) TestMigrateChannelEscrowTotalMismatch() {
+	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
+	path.Setup()
+
+	ctx := s.chainA.GetContext()
+	transferKeeper := s.chainA.GetSimApp().TransferKeeper
+	coin := sdk.NewInt64Coin(sdk.DefaultBondDenom, 10)
+	escrowAddress := transfertypes.GetEscrowAddress(transfertypes.PortID, path.EndpointA.ChannelID)
+	s.Require().NoError(banktestutil.FundAccount(ctx, s.chainA.GetSimApp().BankKeeper, escrowAddress, sdk.NewCoins(coin)))
+
+	existingTotal := sdk.NewInt64Coin(sdk.DefaultBondDenom, 11)
+	transferKeeper.SetTotalEscrowForDenom(ctx, existingTotal)
+
+	migrator := transferkeeper.NewMigrator(*transferKeeper)
+	err := migrator.MigrateChannelEscrow(ctx)
+	s.Require().ErrorContains(err, "does not match existing total escrow")
+	s.Require().Equal(existingTotal, transferKeeper.GetTotalEscrowForDenom(ctx, sdk.DefaultBondDenom))
+	s.Require().Empty(transferKeeper.GetAllChannelEscrows(ctx))
 }
 
 func (s *KeeperTestSuite) TestMigratorMigrateMetadata() {

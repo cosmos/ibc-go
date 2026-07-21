@@ -46,6 +46,8 @@ func (s *TransferTestSuite) TestTransferV2Flow() {
 	// check that module account escrow address has locked the tokens
 	chainAEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 	s.Require().Equal(originalCoin, chainAEscrowBalance)
+	s.Require().Equal(originalCoin, s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(s.chainA.GetContext(), s.pathAToB.EndpointA.ClientID, originalCoin.Denom))
+	s.Require().Equal(originalCoin, s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainA.GetContext(), originalCoin.Denom))
 
 	traceAToB := types.NewHop(types.PortID, s.pathAToB.EndpointB.ClientID)
 

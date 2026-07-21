@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -12,6 +13,7 @@ import (
 
 	internaltypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/internal/types"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -59,6 +61,57 @@ func (m Migrator) MigrateTotalEscrowForDenom(ctx sdk.Context) error {
 	}
 
 	m.keeper.Logger(ctx).Info("successfully set total escrow", "number of denominations", totalEscrowed.Len())
+	return nil
+}
+
+// MigrateChannelEscrow initializes per-channel and per-client escrow accounting from bank balances.
+func (m Migrator) MigrateChannelEscrow(ctx sdk.Context) error {
+	portID := m.keeper.GetPort(ctx)
+	// Use a map to deduplicate identifiers that may be discovered through more than one source
+	// before sorting them for deterministic iteration.
+	identifiers := map[string]struct{}{exported.LocalhostClientID: {}}
+	// IBC v2 aliases are keyed only by v1 channel ID and may originate from any port.
+	// An empty prefix returns all v1 channels so every possible aliased escrow identifier is included.
+	for _, channel := range m.keeper.channelKeeper.GetAllChannelsWithPortPrefix(ctx, "") {
+		identifiers[channel.ChannelId] = struct{}{}
+	}
+	for _, client := range m.keeper.clientKeeper.GetAllGenesisClients(ctx) {
+		identifiers[client.ClientId] = struct{}{}
+	}
+
+	// Sort the identifiers to ensure deterministic iteration order.
+	sortedIdentifiers := make([]string, 0, len(identifiers))
+	for identifier := range identifiers {
+		sortedIdentifiers = append(sortedIdentifiers, identifier)
+	}
+	slices.Sort(sortedIdentifiers)
+
+	channelEscrows := make([]types.ChannelEscrow, 0, len(sortedIdentifiers))
+	var calculatedTotal sdk.Coins
+	for _, identifier := range sortedIdentifiers {
+		escrowAddress := types.GetEscrowAddress(portID, identifier)
+		balances := m.keeper.BankKeeper.GetAllBalances(ctx, escrowAddress)
+		if !balances.Empty() {
+			channelEscrows = append(channelEscrows, types.ChannelEscrow{ChannelOrClientId: identifier, Tokens: balances})
+		}
+		calculatedTotal = calculatedTotal.Add(balances...)
+	}
+
+	existingTotal := m.keeper.GetAllTotalEscrowed(ctx)
+	if !calculatedTotal.Equal(existingTotal) {
+		return fmt.Errorf("calculated channel escrow %s does not match existing total escrow %s", calculatedTotal, existingTotal)
+	}
+
+	if err := m.keeper.ChannelEscrows.Clear(ctx, nil); err != nil {
+		return err
+	}
+	for _, escrow := range channelEscrows {
+		for _, coin := range escrow.Tokens {
+			m.keeper.SetChannelEscrowForDenom(ctx, escrow.ChannelOrClientId, coin)
+		}
+	}
+
+	m.keeper.Logger(ctx).Info("successfully set per-channel escrow", "number of channels or clients", len(channelEscrows), "number of denominations", calculatedTotal.Len())
 	return nil
 }
 

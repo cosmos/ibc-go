@@ -396,3 +396,104 @@ func (s *KeeperTestSuite) TestTotalEscrowForDenom() {
 		})
 	}
 }
+
+func (s *KeeperTestSuite) TestChannelEscrowForDenom() {
+	const channelID = "channel-0"
+
+	ctx := s.chainA.GetContext()
+	coin := sdk.NewInt64Coin(sdk.DefaultBondDenom, 100)
+	s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(ctx, channelID, coin)
+
+	testCases := []struct {
+		name      string
+		req       *types.QueryChannelEscrowForDenomRequest
+		expected  sdk.Coin
+		errString string
+	}{
+		{
+			name: "channel identifier",
+			req: &types.QueryChannelEscrowForDenomRequest{
+				ChannelOrClientId: channelID,
+				Denom:             coin.Denom,
+			},
+			expected: coin,
+		},
+		{
+			name: "client identifier without escrow",
+			req: &types.QueryChannelEscrowForDenomRequest{
+				ChannelOrClientId: "07-tendermint-0",
+				Denom:             coin.Denom,
+			},
+			expected: sdk.NewInt64Coin(coin.Denom, 0),
+		},
+		{
+			name:      "nil request",
+			req:       nil,
+			errString: "empty request",
+		},
+		{
+			name: "invalid identifier",
+			req: &types.QueryChannelEscrowForDenomRequest{
+				ChannelOrClientId: "invalid",
+				Denom:             coin.Denom,
+			},
+			errString: "invalid channel or client identifier",
+		},
+		{
+			name: "invalid denomination",
+			req: &types.QueryChannelEscrowForDenomRequest{
+				ChannelOrClientId: channelID,
+				Denom:             "invalid denom",
+			},
+			errString: "invalid denom",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			res, err := s.chainA.GetSimApp().TransferKeeper.ChannelEscrowForDenom(ctx, tc.req)
+			if tc.errString != "" {
+				s.Require().ErrorContains(err, tc.errString)
+				return
+			}
+
+			s.Require().NoError(err)
+			s.Require().Equal(tc.expected, res.Amount)
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestAllChannelEscrows() {
+	ctx := s.chainA.GetContext()
+	transferKeeper := s.chainA.GetSimApp().TransferKeeper
+	channel0Coins := sdk.NewCoins(sdk.NewInt64Coin("atom", 10), sdk.NewInt64Coin("stake", 20))
+	channel1Coin := sdk.NewInt64Coin("stake", 30)
+	for _, coin := range channel0Coins {
+		transferKeeper.SetChannelEscrowForDenom(ctx, "channel-0", coin)
+	}
+	transferKeeper.SetChannelEscrowForDenom(ctx, "channel-1", channel1Coin)
+
+	firstPage, err := transferKeeper.AllChannelEscrows(ctx, &types.QueryAllChannelEscrowsRequest{
+		Pagination: &query.PageRequest{Limit: 1, CountTotal: true},
+	})
+	s.Require().NoError(err)
+	s.Require().Equal([]types.ChannelEscrowAmount{{ChannelOrClientId: "channel-0", Amount: channel0Coins[0]}}, firstPage.ChannelEscrows)
+	s.Require().Equal(uint64(3), firstPage.Pagination.Total)
+	s.Require().NotEmpty(firstPage.Pagination.NextKey)
+
+	secondPage, err := transferKeeper.AllChannelEscrows(ctx, &types.QueryAllChannelEscrowsRequest{
+		Pagination: &query.PageRequest{Key: firstPage.Pagination.NextKey, Limit: 1},
+	})
+	s.Require().NoError(err)
+	s.Require().Equal([]types.ChannelEscrowAmount{{ChannelOrClientId: "channel-0", Amount: channel0Coins[1]}}, secondPage.ChannelEscrows)
+	s.Require().NotEmpty(secondPage.Pagination.NextKey)
+
+	reversePage, err := transferKeeper.AllChannelEscrows(ctx, &types.QueryAllChannelEscrowsRequest{
+		Pagination: &query.PageRequest{Limit: 1, Reverse: true},
+	})
+	s.Require().NoError(err)
+	s.Require().Equal([]types.ChannelEscrowAmount{{ChannelOrClientId: "channel-1", Amount: channel1Coin}}, reversePage.ChannelEscrows)
+
+	_, err = transferKeeper.AllChannelEscrows(ctx, nil)
+	s.Require().ErrorContains(err, "empty request")
+}

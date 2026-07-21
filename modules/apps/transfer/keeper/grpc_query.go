@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"cosmossdk.io/collections"
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -17,7 +18,9 @@ import (
 
 	"github.com/cosmos/ibc-go/v11/internal/validate"
 	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 )
 
 var _ types.QueryServer = (*Keeper)(nil)
@@ -156,5 +159,50 @@ func (k *Keeper) TotalEscrowForDenom(goCtx context.Context, req *types.QueryTota
 
 	return &types.QueryTotalEscrowForDenomResponse{
 		Amount: amount,
+	}, nil
+}
+
+// ChannelEscrowForDenom implements the ChannelEscrowForDenom gRPC method.
+func (k *Keeper) ChannelEscrowForDenom(goCtx context.Context, req *types.QueryChannelEscrowForDenomRequest) (*types.QueryChannelEscrowForDenomResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if err := host.ChannelIdentifierValidator(req.ChannelOrClientId); err != nil && !clienttypes.IsValidClientID(req.ChannelOrClientId) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid channel or client identifier %q", req.ChannelOrClientId)
+	}
+	if err := sdk.ValidateDenom(req.Denom); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	return &types.QueryChannelEscrowForDenomResponse{
+		Amount: k.GetChannelEscrowForDenom(ctx, req.ChannelOrClientId, req.Denom),
+	}, nil
+}
+
+// AllChannelEscrows implements the AllChannelEscrows gRPC method.
+func (k *Keeper) AllChannelEscrows(ctx context.Context, req *types.QueryAllChannelEscrowsRequest) (*types.QueryAllChannelEscrowsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	channelEscrows, pageRes, err := query.CollectionPaginate(
+		ctx,
+		k.ChannelEscrows,
+		req.Pagination,
+		func(key collections.Pair[string, string], amount sdk.IntProto) (types.ChannelEscrowAmount, error) {
+			return types.ChannelEscrowAmount{
+				ChannelOrClientId: key.K1(),
+				Amount:            sdk.NewCoin(key.K2(), amount.Int),
+			}, nil
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryAllChannelEscrowsResponse{
+		ChannelEscrows: channelEscrows,
+		Pagination:     pageRes,
 	}, nil
 }

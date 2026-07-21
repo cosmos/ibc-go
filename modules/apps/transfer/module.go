@@ -121,6 +121,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	if err := cfg.RegisterMigration(types.ModuleName, 5, m.MigrateDenomTraceToDenom); err != nil {
 		panic(fmt.Errorf("failed to migrate transfer app from version 5 to 6 (migrate DenomTrace to Denom): %w", err))
 	}
+
+	if err := cfg.RegisterMigration(types.ModuleName, 6, m.MigrateChannelEscrow); err != nil {
+		panic(fmt.Errorf("failed to migrate transfer app from version 6 to 7 (set per-channel escrow): %w", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the ibc-transfer module. It returns
@@ -139,7 +143,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion defining the current version of transfer.
-func (AppModule) ConsensusVersion() uint64 { return 6 }
+func (AppModule) ConsensusVersion() uint64 { return 7 }
 
 // AppModuleSimulation functions
 

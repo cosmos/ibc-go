@@ -137,9 +137,22 @@ func (s *KeeperTestSuite) TestWriteAcknowledgementForForwardedPacket() {
 			// Escrow on chainC
 			escrow := transfertypes.GetEscrowAddress(srcPacket.SourcePort, srcPacket.SourceChannel)
 			fundAcc(ctxC, s.chainC.GetSimApp().BankKeeper, escrow)
+			initialEscrow := sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000000)
+			s.chainC.GetSimApp().TransferKeeper.AddToChannelEscrow(ctxC, srcPacket.SourceChannel, initialEscrow)
 
 			err = pfmKeeperC.WriteAcknowledgementForForwardedPacket(ctxC, srcPacket, data, inflightPacket, tc.ack)
 			s.Require().NoError(err)
+
+			sourceEscrow := s.chainC.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(ctxC, srcPacket.SourceChannel, sdk.DefaultBondDenom)
+			refundEscrow := s.chainC.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(ctxC, inflightPacket.RefundChannelId, sdk.DefaultBondDenom)
+			if tc.ack.Success() {
+				s.Require().Equal(initialEscrow, sourceEscrow)
+				s.Require().True(refundEscrow.IsZero())
+			} else {
+				s.Require().Equal(initialEscrow.Sub(ibctesting.TestCoin), sourceEscrow)
+				s.Require().Equal(ibctesting.TestCoin, refundEscrow)
+			}
+			s.Require().Equal(initialEscrow, s.chainC.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctxC, sdk.DefaultBondDenom))
 
 			ackBZFromStore := s.chainC.GetAcknowledgement(srcPacket)
 			s.Require().True(bytes.Equal(expectedAckBz, ackBZFromStore))
@@ -337,6 +350,21 @@ func (*transferMock) GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.C
 }
 
 func (*transferMock) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
+}
+
+func (*transferMock) GetChannelEscrowForDenom(_ sdk.Context, _, denom string) sdk.Coin {
+	return sdk.NewInt64Coin(denom, 1_000_000_000)
+}
+
+func (*transferMock) AddToChannelEscrow(_ sdk.Context, _ string, _ sdk.Coin) {
+}
+
+func (*transferMock) SubFromChannelEscrow(_ sdk.Context, _ string, _ sdk.Coin) error {
+	return nil
+}
+
+func (*transferMock) MoveChannelEscrow(_ sdk.Context, _, _ string, _ sdk.Coin) error {
+	return nil
 }
 
 func (*transferMock) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
