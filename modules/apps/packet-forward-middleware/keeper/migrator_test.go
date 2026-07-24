@@ -10,9 +10,11 @@ import (
 
 	pfmkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
+	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4"
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
 	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 )
 
@@ -150,13 +152,17 @@ func (s *KeeperTestSuite) TestMigrate2to3() {
 }
 
 func (s *KeeperTestSuite) TestMigrate3to4() {
-	var addLegacyPacket func(seq uint64, nonrefundable bool) string
+	var addLegacyPacket func(seq uint64, nonrefundable bool) legacy.InFlightPacket
+	var addLegacyParams func()
 	var setRawPacket func(channelID string, seq uint64, rawBz []byte) string
+	var verifyLegacyParamsAndPacket func(legacy.InFlightPacket)
+	var legacyPacket legacy.InFlightPacket
 
 	tests := []struct {
 		name        string
 		malleate    func()
 		expectedErr string
+		verify      func()
 	}{
 		{
 			name: "success: empty store",
@@ -233,6 +239,17 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			},
 			expectedErr: "invalid in-flight packet found during migration",
 		},
+		{
+			name: "success: legacy params and one refundable in-flight packet",
+			malleate: func() {
+				addLegacyParams()
+				legacyPacket = addLegacyPacket(1, false)
+			},
+			expectedErr: "",
+			verify: func() {
+				verifyLegacyParamsAndPacket(legacyPacket)
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -244,7 +261,7 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(pfmtypes.StoreKey))
 			store := storeService.OpenKVStore(ctx)
 
-			addLegacyPacket = func(seq uint64, nonrefundable bool) string {
+			addLegacyPacket = func(seq uint64, nonrefundable bool) legacy.InFlightPacket {
 				channelID := fmt.Sprintf("channel-%d", seq)
 				portID := "transfer"
 
@@ -270,7 +287,14 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				err = store.Set(key, rawBz)
 				s.Require().NoError(err)
 
-				return string(key)
+				return legacyPacket
+			}
+
+			addLegacyParams = func() {
+				// Protobuf encoding of the historical Params{FeePercentage: "0"} value.
+				legacyParamsBz := []byte{0x0a, 0x01, 0x30}
+				err := store.Set(v4.LegacyParamsKey, legacyParamsBz)
+				s.Require().NoError(err)
 			}
 
 			setRawPacket = func(channelID string, seq uint64, rawBz []byte) string {
@@ -279,6 +303,32 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 				s.Require().NoError(err)
 
 				return string(key)
+			}
+
+			verifyLegacyParamsAndPacket = func(legacyPacket legacy.InFlightPacket) {
+				hasLegacyParams, err := store.Has(v4.LegacyParamsKey)
+				s.Require().NoError(err)
+				s.Require().False(hasLegacyParams)
+
+				migratedPacket, err := keeper.GetInflightPacket(ctx, channeltypes.Packet{
+					SourceChannel: legacyPacket.PacketSrcChannelId,
+					SourcePort:    legacyPacket.PacketSrcPortId,
+					Sequence:      legacyPacket.RefundSequence,
+				})
+				s.Require().NoError(err)
+				s.Require().Equal(&pfmtypes.InFlightPacket{
+					PacketData:             legacyPacket.PacketData,
+					OriginalSenderAddress:  legacyPacket.OriginalSenderAddress,
+					RefundChannelId:        legacyPacket.RefundChannelId,
+					RefundPortId:           legacyPacket.RefundPortId,
+					PacketSrcChannelId:     legacyPacket.PacketSrcChannelId,
+					PacketSrcPortId:        legacyPacket.PacketSrcPortId,
+					PacketTimeoutTimestamp: legacyPacket.PacketTimeoutTimestamp,
+					PacketTimeoutHeight:    legacyPacket.PacketTimeoutHeight,
+					RefundSequence:         legacyPacket.RefundSequence,
+					RetriesRemaining:       legacyPacket.RetriesRemaining,
+					Timeout:                legacyPacket.Timeout,
+				}, migratedPacket)
 			}
 
 			tc.malleate()
@@ -292,6 +342,9 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			}
 
 			s.Require().NoError(err)
+			if tc.verify != nil {
+				tc.verify()
+			}
 		})
 	}
 }
