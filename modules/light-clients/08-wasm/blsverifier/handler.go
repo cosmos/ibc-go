@@ -14,6 +14,15 @@ import (
 
 const (
 	MessageSize = 32
+
+	// MaxBLSPublicKeys defines the maximum number of BLS public keys allowed per custom query request.
+	MaxBLSPublicKeys = 10000
+
+	// GasCostPerBLSAggregateKey defines the SDK gas charged per BLS public key during aggregation.
+	GasCostPerBLSAggregateKey uint64 = 500
+
+	// GasCostBLSVerifySignature defines the SDK gas charged for BLS signature verification.
+	GasCostBLSVerifySignature uint64 = 2000
 )
 
 type CustomQuery struct {
@@ -39,6 +48,15 @@ func CustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 
 		switch {
 		case customQuery.Aggregate != nil:
+			numKeys := len(customQuery.Aggregate.PublicKeys)
+			if numKeys > MaxBLSPublicKeys {
+				return nil, fmt.Errorf("number of public keys (%d) exceeds maximum allowed (%d)", numKeys, MaxBLSPublicKeys)
+			}
+
+			// Consume proportional gas for BLS key aggregation
+			gasCost := uint64(numKeys) * GasCostPerBLSAggregateKey
+			ctx.GasMeter().ConsumeGas(gasCost, "blsverifier: AggregatePublicKeys")
+
 			aggregatedPublicKeys, err := AggregatePublicKeys(customQuery.Aggregate.PublicKeys)
 			if err != nil {
 				return nil, fmt.Errorf("failed to aggregate public keys %w", err)
@@ -46,9 +64,18 @@ func CustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {
 
 			return json.Marshal(aggregatedPublicKeys.Marshal())
 		case customQuery.AggregateVerify != nil:
+			numKeys := len(customQuery.AggregateVerify.PublicKeys)
+			if numKeys > MaxBLSPublicKeys {
+				return nil, fmt.Errorf("number of public keys (%d) exceeds maximum allowed (%d)", numKeys, MaxBLSPublicKeys)
+			}
+
 			if len(customQuery.AggregateVerify.Message) != MessageSize {
 				return nil, fmt.Errorf("invalid message length (%d), must be a %d bytes hash: %x", len(customQuery.AggregateVerify.Message), MessageSize, customQuery.AggregateVerify.Message)
 			}
+
+			// Consume proportional gas for BLS key aggregation + signature verification
+			gasCost := (uint64(numKeys) * GasCostPerBLSAggregateKey) + GasCostBLSVerifySignature
+			ctx.GasMeter().ConsumeGas(gasCost, "blsverifier: VerifySignature")
 
 			msg := [MessageSize]byte{}
 			for i := range MessageSize {
