@@ -1,6 +1,7 @@
 syntax = "proto3";
 package ibc.applications.rate_limiting.v1;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "ibc/applications/rate_limiting/v1/rate_limiting.proto";
@@ -45,11 +46,14 @@ service Query {
 }
 
 // Queries all rate limits
-message QueryAllRateLimitsRequest {}
+message QueryAllRateLimitsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryAllRateLimitsResponse returns all the rate limits stored on the chain.
 message QueryAllRateLimitsResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // Queries a specific rate limit by channel ID and denom
@@ -66,35 +70,45 @@ message QueryRateLimitResponse {
 // Queries all the rate limits for a given chain
 message QueryRateLimitsByChainIDRequest {
   string chain_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryRateLimitsByChainIDResponse returns all rate-limits by a chain.
 message QueryRateLimitsByChainIDResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // Queries all the rate limits for a given channel or client ID
 message QueryRateLimitsByChannelOrClientIDRequest {
   string channel_or_client_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryRateLimitsByChannelOrClientIDResponse returns all rate-limits by a channel or client id.
 message QueryRateLimitsByChannelOrClientIDResponse {
   repeated RateLimit rate_limits = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // Queries all blacklisted denoms
-message QueryAllBlacklistedDenomsRequest {}
+message QueryAllBlacklistedDenomsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryAllBlacklistedDenomsResponse returns all the blacklisted denosm.
 message QueryAllBlacklistedDenomsResponse {
   repeated string denoms = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // Queries all whitelisted address pairs
-message QueryAllWhitelistedAddressesRequest {}
+message QueryAllWhitelistedAddressesRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
 
 // QueryAllWhitelistedAddressesResponse returns all whitelisted pairs.
 message QueryAllWhitelistedAddressesResponse {
   repeated WhitelistedAddressPair address_pairs = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
