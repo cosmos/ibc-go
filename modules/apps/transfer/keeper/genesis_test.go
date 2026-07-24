@@ -40,6 +40,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 		escrow := sdk.NewCoin(denom.IBCDenom(), amount)
 		escrows = append(escrows, escrow)
 		s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), escrow)
+		s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), "channel-0", escrow)
 	}
 
 	genesis := s.chainA.GetSimApp().TransferKeeper.ExportGenesis(s.chainA.GetContext())
@@ -47,6 +48,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 	s.Require().Equal(types.PortID, genesis.PortId)
 	s.Require().Equal(denoms.Sort(), genesis.Denoms)
 	s.Require().Equal(escrows.Sort(), genesis.TotalEscrowed)
+	s.Require().Equal([]types.ChannelEscrow{{ChannelOrClientId: "channel-0", Tokens: escrows.Sort()}}, genesis.ChannelEscrows)
 
 	s.Require().NotPanics(func() {
 		s.chainA.GetSimApp().TransferKeeper.InitGenesis(s.chainA.GetContext(), *genesis)

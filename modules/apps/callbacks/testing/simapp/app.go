@@ -380,6 +380,7 @@ func NewSimApp(
 		app.AccountKeeper.AddressCodec(),
 		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ClientKeeper,
 		app.MsgServiceRouter(),
 		app.AccountKeeper, app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),

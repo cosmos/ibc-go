@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	clienttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
 	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
@@ -42,6 +43,11 @@ type ChannelKeeper interface {
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	GetAllChannelsWithPortPrefix(ctx sdk.Context, portPrefix string) []channeltypes.IdentifiedChannel
 	HasChannel(ctx sdk.Context, portID, channelID string) bool
+}
+
+// ClientKeeper defines the expected IBC client keeper used to discover IBC v2 escrow accounts.
+type ClientKeeper interface {
+	GetAllGenesisClients(ctx sdk.Context) clienttypes.IdentifiedClientStates
 }
 
 // MessageRouter ADR 031 request type routing

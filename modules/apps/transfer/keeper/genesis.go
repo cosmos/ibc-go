@@ -22,14 +22,21 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 	for _, denomEscrow := range state.TotalEscrowed {
 		k.SetTotalEscrowForDenom(ctx, denomEscrow)
 	}
+
+	for _, escrow := range state.ChannelEscrows {
+		for _, coin := range escrow.Tokens {
+			k.SetChannelEscrowForDenom(ctx, escrow.ChannelOrClientId, coin)
+		}
+	}
 }
 
 // ExportGenesis exports ibc-transfer module's portID and denom trace info into its genesis state.
 func (k *Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		PortId:        k.GetPort(ctx),
-		Denoms:        k.GetAllDenoms(ctx),
-		Params:        k.GetParams(ctx),
-		TotalEscrowed: k.GetAllTotalEscrowed(ctx),
+		PortId:         k.GetPort(ctx),
+		Denoms:         k.GetAllDenoms(ctx),
+		Params:         k.GetParams(ctx),
+		TotalEscrowed:  k.GetAllTotalEscrowed(ctx),
+		ChannelEscrows: k.GetAllChannelEscrows(ctx),
 	}
 }

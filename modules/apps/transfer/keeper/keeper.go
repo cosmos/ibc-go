@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/core/address"
 	corestore "cosmossdk.io/core/store"
 	"cosmossdk.io/log/v2"
@@ -29,9 +30,14 @@ type Keeper struct {
 	storeService corestore.KVStoreService
 	cdc          codec.BinaryCodec
 	addressCodec address.Codec
+	Schema       collections.Schema
+
+	// ChannelEscrows stores escrow accounting by channel-or-client identifier and denomination.
+	ChannelEscrows collections.Map[collections.Pair[string, string], sdk.IntProto]
 
 	ics4Wrapper   porttypes.ICS4Wrapper
 	channelKeeper types.ChannelKeeper
+	clientKeeper  types.ClientKeeper
 	msgRouter     types.MessageRouter
 	AuthKeeper    types.AccountKeeper
 	BankKeeper    types.BankKeeper
@@ -42,7 +48,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new IBC transfer Keeper instance
-func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, msgRouter types.MessageRouter, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService corestore.KVStoreService, channelKeeper types.ChannelKeeper, clientKeeper types.ClientKeeper, msgRouter types.MessageRouter, authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, authority string) *Keeper {
 	// ensure ibc transfer module account is set
 	if addr := authKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(errors.New("the IBC transfer module account has not been set"))
@@ -52,17 +58,34 @@ func NewKeeper(cdc codec.BinaryCodec, addressCodec address.Codec, storeService c
 		panic(errors.New("authority must be non-empty"))
 	}
 
-	return &Keeper{
-		cdc:           cdc,
-		addressCodec:  addressCodec,
-		storeService:  storeService,
+	sb := collections.NewSchemaBuilder(storeService)
+	k := Keeper{
+		cdc:          cdc,
+		addressCodec: addressCodec,
+		storeService: storeService,
+		ChannelEscrows: collections.NewMap(
+			sb,
+			types.ChannelEscrowsKey,
+			"channel_escrows",
+			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
+			codec.CollValue[sdk.IntProto](cdc),
+		),
 		ics4Wrapper:   channelKeeper, // default ICS4Wrapper is the channel keeper
 		channelKeeper: channelKeeper,
+		clientKeeper:  clientKeeper,
 		msgRouter:     msgRouter,
 		AuthKeeper:    authKeeper,
 		BankKeeper:    bankKeeper,
 		authority:     authority,
 	}
+
+	schema, err := sb.Build()
+	if err != nil {
+		panic(err)
+	}
+	k.Schema = schema
+
+	return &k
 }
 
 // WithICS4Wrapper sets the ICS4Wrapper. This function may be used after
@@ -255,6 +278,58 @@ func (k *Keeper) SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin) {
 	if err := store.Set(key, bz); err != nil {
 		panic(err)
 	}
+}
+
+// GetChannelEscrowForDenom gets the amount of a denomination escrowed for a channel or IBC v2 client.
+func (k *Keeper) GetChannelEscrowForDenom(ctx sdk.Context, channelOrClientID, denom string) sdk.Coin {
+	amount, err := k.ChannelEscrows.Get(ctx, collections.Join(channelOrClientID, denom))
+	if errors.Is(err, collections.ErrNotFound) {
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	return sdk.NewCoin(denom, amount.Int)
+}
+
+// SetChannelEscrowForDenom stores the amount of a denomination escrowed for a channel or IBC v2 client.
+// Zero amounts are removed and negative amounts panic.
+func (k *Keeper) SetChannelEscrowForDenom(ctx sdk.Context, channelOrClientID string, coin sdk.Coin) {
+	if coin.Amount.IsNegative() {
+		panic(fmt.Errorf("amount cannot be negative: %s", coin.Amount))
+	}
+
+	key := collections.Join(channelOrClientID, coin.Denom)
+	if coin.Amount.IsZero() {
+		if err := k.ChannelEscrows.Remove(ctx, key); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	if err := k.ChannelEscrows.Set(ctx, key, sdk.IntProto{Int: coin.Amount}); err != nil {
+		panic(err)
+	}
+}
+
+// GetAllChannelEscrows returns all per-channel and per-client escrow amounts.
+func (k *Keeper) GetAllChannelEscrows(ctx sdk.Context) []types.ChannelEscrow {
+	escrows := make([]types.ChannelEscrow, 0)
+	err := k.ChannelEscrows.Walk(ctx, nil, func(key collections.Pair[string, string], amount sdk.IntProto) (bool, error) {
+		last := len(escrows) - 1
+		if last < 0 || escrows[last].ChannelOrClientId != key.K1() {
+			escrows = append(escrows, types.ChannelEscrow{ChannelOrClientId: key.K1()})
+			last++
+		}
+		escrows[last].Tokens = escrows[last].Tokens.Add(sdk.NewCoin(key.K2(), amount.Int))
+		return false, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return escrows
 }
 
 // GetAllTotalEscrowed returns the escrow information for all the denominations.

@@ -105,6 +105,9 @@ func (s *TransferTestSuite) TestAliasedTransferChannel() {
 	// once with IBC v1 and once with IBC v2
 	newAmount := ibctesting.DefaultCoinAmount.MulRaw(2)
 	s.assertEscrowEqual(s.chainA, ibctesting.TestCoin, newAmount)
+	s.Require().Equal(newAmount, s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(
+		s.chainA.GetContext(), path.EndpointA.ChannelID, ibctesting.TestCoin.Denom,
+	).Amount)
 	s.assertReceiverEqual(s.chainB, ibcDenom.IBCDenom(), receiver, newAmount)
 
 	// send all the tokens back using IBC v2
@@ -155,6 +158,9 @@ func (s *TransferTestSuite) TestAliasedTransferChannel() {
 	// check that the balances are back to their original state
 	// after the reverse packet is sent with the full amount
 	s.assertEscrowEqual(s.chainA, ibctesting.TestCoin, sdkmath.ZeroInt())
+	s.Require().True(s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(
+		s.chainA.GetContext(), path.EndpointA.ChannelID, ibctesting.TestCoin.Denom,
+	).IsZero())
 	s.assertReceiverEqual(s.chainA, ibctesting.TestCoin.Denom, sender, originalAmount)
 	s.assertReceiverEqual(s.chainB, ibcDenom.IBCDenom(), receiver, sdkmath.ZeroInt())
 }
