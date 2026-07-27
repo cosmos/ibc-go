@@ -21,7 +21,7 @@ jobs:
         go-arch: ['amd64', 'arm64']
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: 'go.mod'
       - name: Install compiler for arm64.
@@ -71,7 +71,7 @@ jobs:
         ]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: '${{ matrix.module.path }}/go.mod'
           cache-dependency-path: '${{ matrix.module.path }}/go.sum'
