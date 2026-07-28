@@ -56,17 +56,26 @@ jobs:
       matrix:
         module: [
           {
-            name: ibc-go, 
-            path: .
+            name: ibc-go,
+            path: .,
+            cgo: '1'
           },
-          { 
-            name: 08-wasm, 
-            path: ./modules/light-clients/08-wasm
-          }, 
           {
-            name: e2e, 
+            # 08-wasm and e2e require cgo to build, so this variant only covers the root module.
+            name: ibc-go-nocgo,
+            path: .,
+            cgo: '0'
+          },
+          {
+            name: 08-wasm,
+            path: ./modules/light-clients/08-wasm,
+            cgo: '1'
+          },
+          {
+            name: e2e,
             path: ./e2e,
-            additional-args: '-tags="test_e2e"'
+            additional-args: '-tags="test_e2e"',
+            cgo: '1'
           }
         ]
     steps:
@@ -77,10 +86,13 @@ jobs:
           cache-dependency-path: '${{ matrix.module.path }}/go.sum'
 
       - name: test & coverage report creation
+        env:
+          CGO_ENABLED: ${{ matrix.module.cgo }}
         run: |
           cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
       - uses: codecov/codecov-action@v7
+        if: matrix.module.name != 'ibc-go-nocgo'
         with:
           fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out
