@@ -43,9 +43,27 @@ var (
 	PendingSendPacketChannelLength = 64
 )
 
-// Get the rate limit byte key built from the denom and channelId
-func RateLimitItemKey(denom string, channelID string) []byte {
-	return append(bytes(denom), bytes(channelID)...)
+// RateLimitItemKey returns the rate limit key for a (denom, channelOrClientID)
+// pair. The layout is:
+//
+//	uvarint(len(channelOrClientID)) || channelOrClientID || denom
+//
+// Channel/client first so that all rate limits for a channel or client are a
+// contiguous range (the same channel-then-denom field order as the pending
+// packet collections, though not the same byte order: the uvarint prefix
+// groups identifiers by length before comparing bytes, while
+// collections.StringKey sorts lexicographically), and length prefixed so that
+// distinct pairs can never concatenate to the same key.
+//
+// The uvarint is self-delimiting, so the encoding stays unambiguous for any
+// identifier length, with no ceiling to enforce. Nothing in this module bounds
+// identifier length (msgs only shape-check channel and client IDs, and genesis
+// does not validate them), but every length below 128 encodes to the same
+// single byte a fixed-width uint8 prefix would produce.
+func RateLimitItemKey(denom string, channelOrClientID string) []byte {
+	key := binary.AppendUvarint(make([]byte, 0, 1+len(channelOrClientID)+len(denom)), uint64(len(channelOrClientID)))
+	key = append(key, channelOrClientID...)
+	return append(key, denom...)
 }
 
 // Get the pending packet key from the channel ID and sequence number
@@ -65,7 +83,16 @@ func PendingPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
 	return append(channelIDBz, sequenceNumberBz...), nil
 }
 
-// Get the whitelist path key from a sender and receiver address
+// AddressWhitelistKey returns the whitelist key for a (sender, receiver)
+// address pair. The layout is:
+//
+//	uvarint(len(sender)) || sender || receiver
+//
+// Length prefixed so that distinct pairs can never concatenate to the same
+// key; the uvarint is self-delimiting, so the encoding stays unambiguous for
+// any address length.
 func AddressWhitelistKey(sender, receiver string) []byte {
-	return append(bytes(sender), bytes(receiver)...)
+	key := binary.AppendUvarint(make([]byte, 0, 1+len(sender)+len(receiver)), uint64(len(sender)))
+	key = append(key, sender...)
+	return append(key, receiver...)
 }
