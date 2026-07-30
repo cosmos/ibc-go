@@ -14,23 +14,22 @@ service Query {
     option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimits";
   }
 
-  // Queries a specific rate limit by channel ID and denom
+  // Queries a specific rate limit by channel or client ID and denom
   // Ex:
-  //  - /ratelimit/{channel_or_client_id}/by_denom?denom={denom}
+  //  - /ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom}
   rpc RateLimit(QueryRateLimitRequest) returns (QueryRateLimitResponse) {
-    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/"
-                                   "ratelimit/{channel_or_client_id}/by_denom";
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom=**}";
   }
 
   // Queries all the rate limits for a given chain
   rpc RateLimitsByChainID(QueryRateLimitsByChainIDRequest) returns (QueryRateLimitsByChainIDResponse) {
-    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{chain_id}";
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/chains/{chain_id}/ratelimits";
   }
 
-  // Queries all the rate limits for a given channel ID
+  // Queries all the rate limits for a given channel or client ID
   rpc RateLimitsByChannelOrClientID(QueryRateLimitsByChannelOrClientIDRequest)
       returns (QueryRateLimitsByChannelOrClientIDResponse) {
-    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/ratelimit/ratelimits/{channel_or_client_id}";
+    option (google.api.http).get = "/ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits";
   }
 
   // Queries all blacklisted denoms
