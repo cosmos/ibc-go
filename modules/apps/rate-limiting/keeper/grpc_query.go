@@ -78,6 +78,11 @@ func (k Querier) RateLimitsByChainID(c context.Context, req *types.QueryRateLimi
 	ctx := sdk.UnwrapSDKContext(c)
 	store := k.k.prefixedStore(ctx, types.RateLimitKeyPrefix)
 
+	// Memoize channel/client -> chain Id resolution so the walk (channel -> connection ->
+	// client, plus a client state decode) runs once per distinct channel/client rather than
+	// once per scanned entry.
+	chainIDs := make(map[string]string)
+
 	rateLimits := []types.RateLimit{}
 	pageRes, err := query.FilteredPaginate(store, req.Pagination, func(_, value []byte, accumulate bool) (bool, error) {
 		var rateLimit types.RateLimit
@@ -85,21 +90,26 @@ func (k Querier) RateLimitsByChainID(c context.Context, req *types.QueryRateLimi
 			return false, err
 		}
 
-		// Determine the client state from the channel Id
-		_, clientState, err := k.k.channelKeeper.GetChannelClientState(ctx, transfertypes.PortID, rateLimit.Path.ChannelOrClientId)
-		if err != nil {
-			var ok bool
-			clientState, ok = k.k.clientKeeper.GetClientState(ctx, rateLimit.Path.ChannelOrClientId)
-			if !ok {
-				return false, errorsmod.Wrapf(types.ErrInvalidClientState, "unable to fetch client state from channel or client id %s", rateLimit.Path.ChannelOrClientId)
-			}
-		}
-		client, ok := clientState.(*tmclient.ClientState)
+		channelOrClientID := rateLimit.Path.ChannelOrClientId
+		chainID, ok := chainIDs[channelOrClientID]
 		if !ok {
-			// If the client state is not a tendermint client state, skip this rate limit
-			return false, nil
+			// Determine the client state from the channel Id
+			_, clientState, err := k.k.channelKeeper.GetChannelClientState(ctx, transfertypes.PortID, channelOrClientID)
+			if err != nil {
+				var ok bool
+				clientState, ok = k.k.clientKeeper.GetClientState(ctx, channelOrClientID)
+				if !ok {
+					return false, errorsmod.Wrapf(types.ErrInvalidClientState, "unable to fetch client state from channel or client id %s", channelOrClientID)
+				}
+			}
+			// Non-tendermint clients memoize as "", which never matches the non-empty req.ChainId.
+			if client, ok := clientState.(*tmclient.ClientState); ok {
+				chainID = client.ChainId
+			}
+			chainIDs[channelOrClientID] = chainID
 		}
-		if client.ChainId != req.ChainId {
+
+		if chainID != req.ChainId {
 			return false, nil
 		}
 		if accumulate {

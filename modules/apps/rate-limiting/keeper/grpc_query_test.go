@@ -4,6 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	querytypes "github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
@@ -12,6 +17,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
@@ -94,6 +100,69 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 		s.Require().Len(queryResponse.RateLimits, 1)
 		s.Require().Equal(expectedRateLimit, queryResponse.RateLimits[0])
 	}
+}
+
+func (s *KeeperTestSuite) TestQueryRateLimitsEmptyFilter() {
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+	s.setupQueryRateLimitTests()
+
+	_, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+		Pagination: &querytypes.PageRequest{Limit: 100},
+	})
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	s.Require().ErrorContains(err, "chain_id cannot be empty")
+
+	_, err = querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+		Pagination: &querytypes.PageRequest{Limit: 100},
+	})
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	s.Require().ErrorContains(err, "channel_or_client_id cannot be empty")
+}
+
+// countingChannelKeeper records how many times each channel's client state is resolved.
+type countingChannelKeeper struct {
+	types.ChannelKeeper
+	calls map[string]int
+}
+
+func (c *countingChannelKeeper) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+	c.calls[channelID]++
+	return c.ChannelKeeper.GetChannelClientState(ctx, portID, channelID)
+}
+
+// RateLimitsByChainID resolves each distinct channel's chain Id once per request,
+// not once per scanned rate limit.
+func (s *KeeperTestSuite) TestQueryRateLimitsByChainIDMemoizesClientLookups() {
+	counting := &countingChannelKeeper{
+		ChannelKeeper: s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+		calls:         map[string]int{},
+	}
+	querier := keeper.NewQuerier(keeper.NewKeeper(
+		s.chainA.GetSimApp().AppCodec(),
+		s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+		counting,
+		s.chainA.GetSimApp().IBCKeeper.ClientKeeper,
+		s.chainA.GetSimApp().BankKeeper,
+		s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+	))
+
+	const target = "chain-target"
+	s.addChainRateLimit(target, "channel-1", "denom-a")
+	// Two more denoms on the same channel: distinct entries in the scan, same chain Id.
+	for _, denom := range []string{"denom-b", "denom-c"} {
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+			Path: &types.Path{Denom: denom, ChannelOrClientId: "channel-1"},
+		})
+	}
+	s.addChainRateLimit("chain-other", "channel-2", "denom-d")
+
+	res, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+		ChainId: target,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(res.RateLimits, 3)
+	s.Require().Equal(map[string]int{"channel-1": 1, "channel-2": 1}, counting.calls)
 }
 
 func (s *KeeperTestSuite) TestQueryAllBlacklistedDenoms() {
