@@ -63,10 +63,13 @@ func (s *KeeperTestSuite) TestGenesis() {
 			firstEpoch: false,
 		},
 		{
+			// the epoch is kept valid so the case exercises only the defect it names,
+			// independent of the order of checks inside Validate
 			name: "invalid packet sequence - wrong delimiter",
 			genesisState: types.GenesisState{
 				RateLimits:                       createRateLimits(),
 				PendingSendPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
+				HourEpoch:                        types.HourEpoch{Duration: time.Hour},
 			},
 			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
@@ -75,6 +78,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 			genesisState: types.GenesisState{
 				RateLimits:                       createRateLimits(),
 				PendingRecvPacketSequenceNumbers: []string{pendingGenesisPacketID, "channel-2|3"},
+				HourEpoch:                        types.HourEpoch{Duration: time.Hour},
 			},
 			panicError: "invalid pending packet (channel-2|3), must be of form: {channelId}/{sequenceNumber}/{denom}",
 		},
@@ -87,7 +91,7 @@ func (s *KeeperTestSuite) TestGenesis() {
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
 			if tc.panicError != "" {
-				s.Require().PanicsWithValue(tc.panicError, func() {
+				s.Require().PanicsWithError(tc.panicError, func() {
 					s.chainA.GetSimApp().RateLimitKeeper.InitGenesis(s.chainA.GetContext(), tc.genesisState)
 				})
 				return
@@ -116,6 +120,41 @@ func (s *KeeperTestSuite) TestGenesis() {
 			// Check that the exported state matches the imported state
 			exportedState := s.chainA.GetSimApp().RateLimitKeeper.ExportGenesis(s.chainA.GetContext())
 			s.Require().Equal(expectedGenesis, *exportedState, "exported genesis state")
+		})
+	}
+}
+
+// InitGenesis runs at InitChain, where the block height is 0, so a seeded epoch
+// carries EpochStartHeight == 0 until the first rollover repairs it. The export
+// of that state must validate and re-import unchanged, for any genesis hour —
+// including 00:00 UTC, where the seeded EpochNumber is the "uninitialized" 0.
+func (s *KeeperTestSuite) TestGenesisRoundTripAtInitChain() {
+	testCases := []struct {
+		name        string
+		genesisTime time.Time
+	}{
+		{"non-midnight genesis hour", time.Date(2024, 1, 1, 13, 55, 8, 0, time.UTC)},
+		{"midnight genesis hour", time.Date(2024, 1, 1, 0, 30, 0, 0, time.UTC)},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			k := s.chainA.GetSimApp().RateLimitKeeper
+			initCtx := s.chainA.GetContext().WithBlockHeight(0).WithBlockTime(tc.genesisTime)
+			k.InitGenesis(initCtx, *types.DefaultGenesis())
+
+			exported := k.ExportGenesis(initCtx)
+			s.Require().Equal(uint64(tc.genesisTime.Hour()), exported.HourEpoch.EpochNumber)
+			s.Require().Zero(exported.HourEpoch.EpochStartHeight)
+			s.Require().NoError(exported.Validate())
+
+			// Re-import on a later chain state: the seeded epoch must survive
+			// instead of being re-initialized from the new block time
+			importCtx := s.chainA.GetContext().WithBlockHeight(100).WithBlockTime(tc.genesisTime.Add(5 * time.Hour))
+			s.Require().NotPanics(func() {
+				k.InitGenesis(importCtx, *exported)
+			})
+			s.Require().Equal(exported, k.ExportGenesis(importCtx))
 		})
 	}
 }

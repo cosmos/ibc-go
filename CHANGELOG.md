@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (apps/rate-limiting) [\#XXXX](https://github.com/cosmos/ibc-go/pull/XXXX) Validate rate limits in `GenesisState.Validate`, rejecting malformed paths and rate limits whose paths collide onto the same store key
 
 ### Testing API
 

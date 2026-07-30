@@ -8,6 +8,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 )
 
 // Splits a pending packet of the form {channelId}/{sequenceNumber}/{denom} into
@@ -97,6 +98,76 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	// Rate limits are keyed by the concatenation of the denom and channel or client
+	// ID, so distinct paths can map onto the same store key and silently overwrite
+	// each other on import. Reject those alongside malformed rate limits.
+	rateLimitKeys := make(map[string]struct{}, len(gs.RateLimits))
+	for _, rateLimit := range gs.RateLimits {
+		if rateLimit.Path == nil {
+			return errors.New("rate limit path must be specified")
+		}
+		if rateLimit.Path.Denom == "" {
+			return errors.New("rate limit denom must be specified")
+		}
+		if err := validateChannelOrClientID(rateLimit.Path.ChannelOrClientId); err != nil {
+			return err
+		}
+		if rateLimit.Quota == nil {
+			return fmt.Errorf("rate limit quota must be specified for denom %s on %s", rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+		}
+		if err := rateLimit.Quota.Validate(); err != nil {
+			return errorsmod.Wrapf(err, "invalid rate limit quota for denom %s on %s", rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+		}
+		if rateLimit.Flow == nil {
+			return fmt.Errorf("rate limit flow must be specified for denom %s on %s", rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+		}
+		for _, amount := range []struct {
+			name  string
+			value sdkmath.Int
+		}{
+			{"inflow", rateLimit.Flow.Inflow},
+			{"outflow", rateLimit.Flow.Outflow},
+			{"channel value", rateLimit.Flow.ChannelValue},
+		} {
+			if amount.value.IsNil() {
+				return fmt.Errorf("%s must be specified for denom %s on %s", amount.name, rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+			}
+			if amount.value.IsNegative() {
+				return fmt.Errorf("%s cannot be negative, provided: %s, for denom %s on %s", amount.name, amount.value, rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+			}
+		}
+
+		rateLimitKey := string(RateLimitItemKey(rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId))
+		if _, ok := rateLimitKeys[rateLimitKey]; ok {
+			return fmt.Errorf("duplicate rate limit store key for denom %s on %s", rateLimit.Path.Denom, rateLimit.Path.ChannelOrClientId)
+		}
+		rateLimitKeys[rateLimitKey] = struct{}{}
+	}
+
+	for _, denom := range gs.BlacklistedDenoms {
+		if denom == "" {
+			return errors.New("blacklisted denom must be specified")
+		}
+	}
+
+	// Whitelist entries share the separator-less store key layout, so key by the
+	// store key to also catch distinct pairs that would collide on import.
+	whitelistKeys := make(map[string]struct{}, len(gs.WhitelistedAddressPairs))
+	for _, addressPair := range gs.WhitelistedAddressPairs {
+		if addressPair.Sender == "" {
+			return errors.New("whitelisted address pair sender must be specified")
+		}
+		if addressPair.Receiver == "" {
+			return errors.New("whitelisted address pair receiver must be specified")
+		}
+
+		whitelistKey := string(AddressWhitelistKey(addressPair.Sender, addressPair.Receiver))
+		if _, ok := whitelistKeys[whitelistKey]; ok {
+			return fmt.Errorf("duplicate whitelisted address pair store key for sender %s and receiver %s", addressPair.Sender, addressPair.Receiver)
+		}
+		whitelistKeys[whitelistKey] = struct{}{}
+	}
+
 	for _, pendingPacketID := range gs.PendingSendPacketSequenceNumbers {
 		if err := validatePendingPacketID(pendingPacketID); err != nil {
 			return err
@@ -108,19 +179,20 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	// Verify the epoch hour duration is specified
-	if gs.HourEpoch.Duration == 0 {
-		return errors.New("hour epoch duration must be specified")
+	// Verify the epoch hour duration is positive; a negative duration would put
+	// every epoch end in the past, rolling a fresh epoch each block and wiping
+	// the quota flows before they can accumulate
+	if gs.HourEpoch.Duration <= 0 {
+		return errors.New("hour epoch duration must be positive")
 	}
 
-	// If the hour epoch has been initialized already (epoch number != 0), validate and then use it
-	if gs.HourEpoch.EpochNumber > 0 {
-		if gs.HourEpoch.EpochStartTime.Equal(time.Time{}) {
-			return errors.New("if hour epoch number is non-empty, epoch time must be initialized")
-		}
-		if gs.HourEpoch.EpochStartHeight == 0 {
-			return errors.New("if hour epoch number is non-empty, epoch height must be initialized")
-		}
+	// An advanced epoch counter requires a start time, otherwise InitGenesis
+	// would treat the epoch as uninitialized and reset the counter.
+	// EpochStartHeight == 0 is accepted: InitGenesis seeds the epoch at
+	// InitChain, where the block height is 0, and the height is near-dead
+	// state only read when it is repaired at the first epoch rollover.
+	if gs.HourEpoch.EpochNumber > 0 && gs.HourEpoch.EpochStartTime.Equal(time.Time{}) {
+		return errors.New("if hour epoch number is non-empty, epoch time must be initialized")
 	}
 
 	return nil

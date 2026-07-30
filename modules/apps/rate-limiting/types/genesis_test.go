@@ -7,10 +7,40 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
-const pendingGenesisPacketID = "channel-0/1/denomA"
+const (
+	pendingGenesisPacketID = "channel-0/1/denomA"
+	uatomDenom             = "uatom"
+	senderA                = "senderA"
+	receiverA              = "receiverA"
+)
+
+func genesisRateLimit(denom, channelOrClientID string) types.RateLimit {
+	return types.RateLimit{
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelOrClientID},
+		Quota: &types.Quota{
+			MaxPercentSend: sdkmath.NewInt(10),
+			MaxPercentRecv: sdkmath.NewInt(20),
+			DurationHours:  24,
+		},
+		Flow: &types.Flow{
+			Inflow:       sdkmath.ZeroInt(),
+			Outflow:      sdkmath.NewInt(5),
+			ChannelValue: sdkmath.NewInt(100),
+		},
+	}
+}
+
+func malleatedGenesisRateLimit(malleate func(*types.RateLimit)) types.RateLimit {
+	rateLimit := genesisRateLimit(uatomDenom, "channel-1")
+	malleate(&rateLimit)
+
+	return rateLimit
+}
 
 func TestValidateGenesis(t *testing.T) {
 	currentHour := 13
@@ -39,7 +69,7 @@ func TestValidateGenesis(t *testing.T) {
 			name: "valid custom state",
 			genesisState: types.GenesisState{
 				WhitelistedAddressPairs: []types.WhitelistedAddressPair{
-					{Sender: "senderA", Receiver: "receiverA"},
+					{Sender: senderA, Receiver: receiverA},
 					{Sender: "senderB", Receiver: "receiverB"},
 				},
 				BlacklistedDenoms:                []string{"denomA", "denomB"},
@@ -52,6 +82,154 @@ func TestValidateGenesis(t *testing.T) {
 					EpochStartHeight: 1,
 				},
 			},
+		},
+		{
+			name: "valid rate limits",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{
+					genesisRateLimit(uatomDenom, "channel-1"),
+					genesisRateLimit(uatomDenom, "07-tendermint-0"),
+					genesisRateLimit("uosmo", "channel-1"),
+				},
+				HourEpoch: types.HourEpoch{Duration: time.Hour},
+			},
+		},
+		{
+			name: "invalid rate limit - nil path",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{{}},
+			},
+			expectedError: "rate limit path must be specified",
+		},
+		{
+			name: "invalid rate limit - empty denom",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{genesisRateLimit("", "channel-1")},
+			},
+			expectedError: "rate limit denom must be specified",
+		},
+		{
+			name: "invalid rate limit - malformed channel or client ID",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{genesisRateLimit(uatomDenom, "channel-abc")},
+			},
+			expectedError: "invalid channel or client-id (channel-abc)",
+		},
+		{
+			name: "invalid rate limit - nil quota",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{{Path: &types.Path{Denom: uatomDenom, ChannelOrClientId: "channel-1"}}},
+			},
+			expectedError: "rate limit quota must be specified for denom uatom on channel-1",
+		},
+		{
+			name: "invalid rate limit - zero quota duration",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Quota.DurationHours = 0
+				})},
+			},
+			expectedError: "duration can not be zero",
+		},
+		{
+			name: "invalid rate limit - nil max percent recv",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Quota.MaxPercentRecv = sdkmath.Int{}
+				})},
+			},
+			expectedError: "max-percent-send and max-percent-recv must be specified",
+		},
+		{
+			name: "invalid rate limit - nil flow",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Flow = nil
+				})},
+			},
+			expectedError: "rate limit flow must be specified for denom uatom on channel-1",
+		},
+		{
+			name: "invalid rate limit - nil flow inflow",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Flow.Inflow = sdkmath.Int{}
+				})},
+			},
+			expectedError: "inflow must be specified",
+		},
+		{
+			name: "invalid rate limit - nil flow channel value",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Flow.ChannelValue = sdkmath.Int{}
+				})},
+			},
+			expectedError: "channel value must be specified",
+		},
+		{
+			name: "invalid rate limit - negative flow outflow",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{malleatedGenesisRateLimit(func(rateLimit *types.RateLimit) {
+					rateLimit.Flow.Outflow = sdkmath.NewInt(-1)
+				})},
+			},
+			expectedError: "outflow cannot be negative, provided: -1",
+		},
+		{
+			// the store key is the separator-less concatenation of denom and channel,
+			// so these two distinct paths collide onto "uatomchannel-1"
+			name: "invalid rate limit - colliding store keys",
+			genesisState: types.GenesisState{
+				RateLimits: []types.RateLimit{
+					genesisRateLimit(uatomDenom, "channel-1"),
+					genesisRateLimit("uatomc", "hannel-1"),
+				},
+			},
+			expectedError: "duplicate rate limit store key for denom uatomc on hannel-1",
+		},
+		{
+			name: "invalid blacklist - empty denom",
+			genesisState: types.GenesisState{
+				BlacklistedDenoms: []string{"denomA", ""},
+			},
+			expectedError: "blacklisted denom must be specified",
+		},
+		{
+			name: "invalid whitelist - empty sender",
+			genesisState: types.GenesisState{
+				WhitelistedAddressPairs: []types.WhitelistedAddressPair{{Sender: "", Receiver: receiverA}},
+			},
+			expectedError: "whitelisted address pair sender must be specified",
+		},
+		{
+			name: "invalid whitelist - empty receiver",
+			genesisState: types.GenesisState{
+				WhitelistedAddressPairs: []types.WhitelistedAddressPair{{Sender: senderA, Receiver: ""}},
+			},
+			expectedError: "whitelisted address pair receiver must be specified",
+		},
+		{
+			name: "invalid whitelist - duplicate pair",
+			genesisState: types.GenesisState{
+				WhitelistedAddressPairs: []types.WhitelistedAddressPair{
+					{Sender: senderA, Receiver: receiverA},
+					{Sender: senderA, Receiver: receiverA},
+				},
+			},
+			expectedError: "duplicate whitelisted address pair store key for sender senderA and receiver receiverA",
+		},
+		{
+			// the whitelist store key is also a separator-less concatenation, so
+			// these two distinct pairs collide onto "senderAreceiverA"
+			name: "invalid whitelist - colliding store keys",
+			genesisState: types.GenesisState{
+				WhitelistedAddressPairs: []types.WhitelistedAddressPair{
+					{Sender: senderA, Receiver: receiverA},
+					{Sender: "senderAreceiver", Receiver: "A"},
+				},
+			},
+			expectedError: "duplicate whitelisted address pair store key for sender senderAreceiver and receiver A",
 		},
 		{
 			name: "invalid packet sequence - wrong delimiter",
@@ -114,7 +292,14 @@ func TestValidateGenesis(t *testing.T) {
 			genesisState: types.GenesisState{
 				HourEpoch: types.HourEpoch{},
 			},
-			expectedError: "hour epoch duration must be specified",
+			expectedError: "hour epoch duration must be positive",
+		},
+		{
+			name: "invalid hour epoch - negative duration",
+			genesisState: types.GenesisState{
+				HourEpoch: types.HourEpoch{Duration: -time.Hour},
+			},
+			expectedError: "hour epoch duration must be positive",
 		},
 		{
 			name: "invalid hour epoch - no epoch time",
@@ -128,7 +313,9 @@ func TestValidateGenesis(t *testing.T) {
 			expectedError: "if hour epoch number is non-empty, epoch time must be initialized",
 		},
 		{
-			name: "invalid hour epoch - no epoch height",
+			// InitGenesis seeds the epoch at InitChain, where the block height is 0,
+			// so keeper-produced pre-first-rollover state has a zero start height
+			name: "valid hour epoch - no epoch height",
 			genesisState: types.GenesisState{
 				HourEpoch: types.HourEpoch{
 					EpochNumber:    1,
@@ -136,7 +323,6 @@ func TestValidateGenesis(t *testing.T) {
 					Duration:       time.Minute,
 				},
 			},
-			expectedError: "if hour epoch number is non-empty, epoch height must be initialized",
 		},
 	}
 
