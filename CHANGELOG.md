@@ -53,6 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
+* (apps/rate-limiting) [\#XXXX](https://github.com/cosmos/ibc-go/pull/XXXX) Re-key rate limits to a channel-first, length-prefixed layout (`uvarint(len(channelOrClientID)) || channelOrClientID || denom`) so distinct (denom, channel) pairs cannot collide (the channel-first layout also enables future range scans per channel or client, not yet used by queries), and re-key address whitelist entries to `uvarint(len(sender)) || sender || receiver` so distinct (sender, receiver) pairs cannot collide. Applies to all existing stores — v11.2.0 chains and legacy cosmos/ibc-apps chains alike — via a v3 store migration and a module consensus version bump to 3.
 
 ### Improvements
 

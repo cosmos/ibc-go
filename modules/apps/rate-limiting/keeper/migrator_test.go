@@ -3,10 +3,13 @@ package keeper_test
 import (
 	"encoding/binary"
 
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
@@ -74,4 +77,44 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 	found, err = rlKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, "channel-3", 1, "denom-a")
 	s.Require().NoError(err)
 	s.Require().True(found, "collections pending receive packet should be preserved")
+}
+
+// TestMigrate2to3 pins the Migrator wiring: Migrate2to3 must reach the v3
+// migration through the keeper's own store service and codec, and the module's
+// consensus version must match the highest registered migration target.
+func (s *KeeperTestSuite) TestMigrate2to3() {
+	s.SetupTest()
+
+	ctx := s.chainA.GetContext()
+	rlKeeper := s.chainA.GetSimApp().RateLimitKeeper
+	migrator := keeper.NewMigrator(rlKeeper)
+
+	rateLimit := ratelimittypes.RateLimit{
+		Path: &ratelimittypes.Path{Denom: "uatom", ChannelOrClientId: "channel-1"},
+		Quota: &ratelimittypes.Quota{
+			MaxPercentSend: sdkmath.NewInt(10),
+			MaxPercentRecv: sdkmath.NewInt(20),
+			DurationHours:  24,
+		},
+		Flow: &ratelimittypes.Flow{
+			Inflow:       sdkmath.NewInt(1),
+			Outflow:      sdkmath.NewInt(2),
+			ChannelValue: sdkmath.NewInt(100),
+		},
+	}
+
+	storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey))
+	adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
+	store := prefix.NewStore(adapter, ratelimittypes.RateLimitKeyPrefix)
+
+	legacyKey := append([]byte(rateLimit.Path.Denom), rateLimit.Path.ChannelOrClientId...)
+	store.Set(legacyKey, s.chainA.GetSimApp().AppCodec().MustMarshal(&rateLimit))
+
+	s.Require().NoError(migrator.Migrate2to3(ctx))
+
+	migrated, found := rlKeeper.GetRateLimit(ctx, "uatom", "channel-1")
+	s.Require().True(found, "rate limit not readable through the keeper after Migrate2to3")
+	s.Require().Equal(rateLimit, migrated)
+
+	s.Require().Equal(uint64(3), ratelimiting.AppModule{}.ConsensusVersion())
 }
