@@ -46,6 +46,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+### Client Breaking
+
+* (apps/rate-limiting) [\#9023](https://github.com/cosmos/ibc-go/pull/9023) Move the rate-limiting query REST routes to non-overlapping, resource-nested paths: `/ibc/apps/rate-limiting/v1/chains/{chain_id}/ratelimits`, `.../clients/{channel_or_client_id}/ratelimits`, and `.../clients/{channel_or_client_id}/ratelimits/denoms/{denom}` (denom moves from the `?denom=` query parameter into the path and may contain slashes); `AllRateLimits` and the blacklist/whitelist routes are unchanged. This breaks the v11.2.0 `ratelimit/ratelimits/{chain_id}` and `ratelimit/ratelimit/{channel_or_client_id}/by_denom?denom={denom}` URLs. `RateLimitsByChannelOrClientID` compiled to the same grpc-gateway pattern as `RateLimitsByChainID` and has been shadowed (unreachable over REST) in every release, so its route change breaks no consumer.
+
 ### API Breaking
 
 ### State Machine Breaking
