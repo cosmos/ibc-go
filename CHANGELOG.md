@@ -57,6 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (core, apps) [\#XXXX](https://github.com/cosmos/ibc-go/pull/XXXX) Decode the base64 `--page-key` value in CLI queries so that paginating with a `next_key` from previous output returns the correct page. Note that `--page-key` now expects the base64 `next_key` printed by queries: raw byte keys are no longer interpreted verbatim, and a raw key that happens to be valid base64 will decode to different bytes and return a different page without erroring.
 
 ### Testing API
 
