@@ -25,7 +25,9 @@ func GetCmdQueryRateLimit() *cobra.Command {
 		Short: "Query rate limits from a given channel-id/client-id and denom",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query rate limits from a given channel-id/client-id and denom.
-If the denom flag is omitted, all rate limits for the given channel-id/client-id are returned.
+If the denom flag is omitted, all rate limits for the given channel-id/client-id are returned
+with pagination. The denom flag selects a single rate limit and cannot be combined with
+pagination flags.
 
 Example:
   $ %s query %s rate-limit [channel-or-client-id]
@@ -82,6 +84,15 @@ Example:
 	cmd.Flags().String(FlagDenom, "", "The denom identifying a specific rate limit")
 	flags.AddQueryFlagsToCmd(cmd)
 	flags.AddPaginationFlagsToCmd(cmd, "rate limits associated with a channel or client")
+
+	// --denom selects a single rate limit, so reject pagination flags rather than silently
+	// dropping them. Pairwise, so the pagination flags still combine with one another.
+	for _, paginationFlag := range []string{
+		flags.FlagPage, flags.FlagPageKey, flags.FlagOffset,
+		flags.FlagLimit, flags.FlagCountTotal, flags.FlagReverse,
+	} {
+		cmd.MarkFlagsMutuallyExclusive(FlagDenom, paginationFlag)
+	}
 
 	return cmd
 }
