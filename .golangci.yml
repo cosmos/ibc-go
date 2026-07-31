@@ -102,6 +102,9 @@ linters:
       - legacy
       - std-error-handling
     rules:
+      - path: '(.+)_test\.go'
+        linters:
+          - goconst
       - linters:
           - staticcheck
         text: 'SA1019:' # TODO: This should really be removed!
@@ -111,6 +114,9 @@ linters:
       - linters:
           - revive
         text: '^package-naming:'
+      - linters:
+          - govet
+        text: 'Constant reflect.Ptr should be inlined'
     paths:
       - third_party$
       - builtin$

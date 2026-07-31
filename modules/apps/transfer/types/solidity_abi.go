@@ -8,6 +8,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
+const solidityTypeString = "string"
+
 // getICS20ABI returns an abi.Arguments slice describing the Solidity types of the struct.
 func getICS20ABI() abi.Arguments {
 	// Create the ABI types for each field.
@@ -17,15 +19,15 @@ func getICS20ABI() abi.Arguments {
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "denom",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
 			Name: "sender",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
 			Name: "receiver",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
 			Name: "amount",
@@ -33,7 +35,7 @@ func getICS20ABI() abi.Arguments {
 		},
 		{
 			Name: "memo",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 	})
 	if err != nil {

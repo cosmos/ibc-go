@@ -6,6 +6,11 @@ import (
 	errorsmod "cosmossdk.io/errors"
 )
 
+const (
+	solidityTypeBytes  = "bytes"
+	solidityTypeString = "string"
+)
+
 // getICS27PacketABI returns an abi.Arguments slice describing the Solidity types of the struct.
 func getICS27PacketABI() abi.Arguments {
 	// Create the ABI types for each field.
@@ -14,24 +19,24 @@ func getICS27PacketABI() abi.Arguments {
 	// - bytes for Salt and Payload.
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
-			Name: "sender",
-			Type: "string",
+			Name: AttributeKeySender,
+			Type: solidityTypeString,
 		},
 		{
 			Name: "receiver",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
-			Name: "salt",
-			Type: "bytes",
+			Name: AttributeKeySalt,
+			Type: solidityTypeBytes,
 		},
 		{
 			Name: "payload",
-			Type: "bytes",
+			Type: solidityTypeBytes,
 		},
 		{
 			Name: "memo",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 	})
 	if err != nil {
@@ -56,7 +61,7 @@ func getICS27AckABI() abi.Arguments {
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "result",
-			Type: "bytes",
+			Type: solidityTypeBytes,
 		},
 	})
 	if err != nil {

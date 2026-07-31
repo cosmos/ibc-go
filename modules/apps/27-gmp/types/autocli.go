@@ -16,8 +16,8 @@ func AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:     "Get or pre-compute the address of an ICS27 GMP account",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{
 						{ProtoField: "client_id"},
-						{ProtoField: "sender"},
-						{ProtoField: "salt"},
+						{ProtoField: AttributeKeySender},
+						{ProtoField: AttributeKeySalt},
 					},
 				},
 				{
