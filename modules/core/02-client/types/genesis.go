@@ -114,7 +114,12 @@ func (gs GenesisState) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating client identifiers.
-	var maxSequence uint64
+	// hasSequence records whether any identifier contributed a sequence at all,
+	// so that a genesis whose only identifier has sequence 0 is still checked.
+	var (
+		maxSequence uint64
+		hasSequence bool
+	)
 
 	if err := gs.Params.Validate(); err != nil {
 		return err
@@ -151,8 +156,13 @@ func (gs GenesisState) Validate() error {
 			return err
 		}
 
-		if sequence > maxSequence {
-			maxSequence = sequence
+		// the localhost client identifier carries no generated sequence: ParseClientIdentifier
+		// special-cases it and reports 0, so it must not constrain the next client sequence.
+		if client.ClientId != exported.LocalhostClientID {
+			if !hasSequence || sequence > maxSequence {
+				maxSequence = sequence
+			}
+			hasSequence = true
 		}
 
 		// add client id to validClients map
@@ -201,7 +211,7 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	if maxSequence != 0 && maxSequence >= gs.NextClientSequence {
+	if hasSequence && maxSequence >= gs.NextClientSequence {
 		return fmt.Errorf("next client identifier sequence %d must be greater than the maximum sequence used in the provided client identifiers %d", gs.NextClientSequence, maxSequence)
 	}
 

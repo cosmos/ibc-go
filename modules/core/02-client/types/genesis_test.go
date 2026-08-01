@@ -107,6 +107,22 @@ func (s *TypesTestSuite) TestValidateGenesis() {
 			expError: nil,
 		},
 		{
+			name: "next client sequence is equal to the only client identifier sequence",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedClientState{
+					types.NewIdentifiedClientState(
+						tmClientID0, ibctm.NewClientState(s.chainA.ChainID, ibctesting.DefaultTrustLevel, ibctesting.TrustingPeriod, ibctesting.UnbondingPeriod, ibctesting.MaxClockDrift, clientHeight, commitmenttypes.GetSDKSpecs(), ibctesting.UpgradePath),
+					),
+				},
+				nil,
+				nil,
+				types.NewParams(exported.Tendermint),
+				false,
+				0,
+			),
+			expError: errors.New("next client identifier sequence 0 must be greater than the maximum sequence used in the provided client identifiers 0"),
+		},
+		{
 			name: "invalid client type",
 			genState: types.NewGenesisState(
 				[]types.IdentifiedClientState{
