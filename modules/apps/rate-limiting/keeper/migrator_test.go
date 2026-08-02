@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"encoding/binary"
 
-	sdkmath "cosmossdk.io/math"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -91,16 +89,6 @@ func (s *KeeperTestSuite) TestMigrate2to3() {
 
 	rateLimit := ratelimittypes.RateLimit{
 		Path: &ratelimittypes.Path{Denom: "uatom", ChannelOrClientId: "channel-1"},
-		Quota: &ratelimittypes.Quota{
-			MaxPercentSend: sdkmath.NewInt(10),
-			MaxPercentRecv: sdkmath.NewInt(20),
-			DurationHours:  24,
-		},
-		Flow: &ratelimittypes.Flow{
-			Inflow:       sdkmath.NewInt(1),
-			Outflow:      sdkmath.NewInt(2),
-			ChannelValue: sdkmath.NewInt(100),
-		},
 	}
 
 	storeService := runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(ratelimittypes.StoreKey))

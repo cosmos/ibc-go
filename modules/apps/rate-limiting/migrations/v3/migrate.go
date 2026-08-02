@@ -14,15 +14,8 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
-// Migrate re-keys every rate limit from the legacy denom||channelOrClientID
-// layout to the channel-first, length-prefixed layout of
-// types.RateLimitItemKey, and every whitelisted address pair from the legacy
-// sender||receiver layout to the length-prefixed layout of
-// types.AddressWhitelistKey.
-//
-// The legacy keys have no separator and are therefore ambiguous, so the new
-// keys are derived from the stored values rather than parsed out of the old
-// keys.
+// Migrate re-keys rate limits and whitelist entries. Legacy keys are ambiguous,
+// so new keys are derived from stored values.
 func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec) error {
 	adapter := runtime.KVStoreAdapter(storeService.OpenKVStore(ctx))
 
@@ -65,13 +58,7 @@ func rekey(store prefix.Store, newKey func(value []byte) ([]byte, error)) error 
 	iterator := store.Iterator(nil, nil)
 	entries := make([]entry, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		// The buffers behind Key()/Value() may be reused by Next() or released
-		// by Close(), so copy up front: the copies are what is retained in
-		// entries and what the error path below formats after closing the
-		// iterator. The copies must stay non-nil even when zero-length
-		// (append to []byte{}, not to a nil slice): store.Set panics on a nil
-		// value, and a zero-value WhitelistedAddressPair marshals to zero
-		// bytes.
+		// Copy iterator-owned buffers; keep empty values non-nil because Store.Set rejects nil.
 		oldKey := append([]byte{}, iterator.Key()...)
 		value := append([]byte{}, iterator.Value()...)
 
