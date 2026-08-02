@@ -13,6 +13,18 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 )
 
+// channelIDRegex is looser than channeltypes.IsValidChannelID, which also caps the sequence at 20 digits and a uint64.
+var channelIDRegex = regexp.MustCompile(`^channel-\d+$`)
+
+func validateChannelOrClientID(channelOrClientID string) error {
+	if !channelIDRegex.MatchString(channelOrClientID) && !clienttypes.IsValidClientID(channelOrClientID) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
+			"invalid channel or client-id (%s), must be of the format 'channel-{N}' or a valid client-id", channelOrClientID)
+	}
+
+	return nil
+}
+
 var (
 	_ sdk.Msg = &MsgAddRateLimit{}
 	_ sdk.Msg = &MsgUpdateRateLimit{}
@@ -43,35 +55,15 @@ func (msg *MsgAddRateLimit) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid denom (%s)", msg.Denom)
 	}
 
-	matched, err := regexp.MatchString(`^channel-\d+$`, msg.ChannelOrClientId)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unable to verify channel-id (%s)", msg.ChannelOrClientId)
-	}
-	if !matched && !clienttypes.IsValidClientID(msg.ChannelOrClientId) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"invalid channel or client-id (%s), must be of the format 'channel-{N}' or a valid client-id", msg.ChannelOrClientId)
+	if err := validateChannelOrClientID(msg.ChannelOrClientId); err != nil {
+		return err
 	}
 
-	if msg.MaxPercentSend.GT(sdkmath.NewInt(100)) || msg.MaxPercentSend.LT(sdkmath.ZeroInt()) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"max-percent-send percent must be between 0 and 100 (inclusively), Provided: %v", msg.MaxPercentSend)
-	}
-
-	if msg.MaxPercentRecv.GT(sdkmath.NewInt(100)) || msg.MaxPercentRecv.LT(sdkmath.ZeroInt()) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"max-percent-recv percent must be between 0 and 100 (inclusively), Provided: %v", msg.MaxPercentRecv)
-	}
-
-	if msg.MaxPercentRecv.IsZero() && msg.MaxPercentSend.IsZero() {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"either the max send or max receive threshold must be greater than 0")
-	}
-
-	if msg.DurationHours == 0 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "duration can not be zero")
-	}
-
-	return nil
+	return Quota{
+		MaxPercentSend: msg.MaxPercentSend,
+		MaxPercentRecv: msg.MaxPercentRecv,
+		DurationHours:  msg.DurationHours,
+	}.validate()
 }
 
 // ----------------------------------------------
@@ -97,35 +89,15 @@ func (msg *MsgUpdateRateLimit) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid denom (%s)", msg.Denom)
 	}
 
-	matched, err := regexp.MatchString(`^channel-\d+$`, msg.ChannelOrClientId)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unable to verify channel-id (%s)", msg.ChannelOrClientId)
-	}
-	if !matched && !clienttypes.IsValidClientID(msg.ChannelOrClientId) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"invalid channel or client-id (%s), must be of the format 'channel-{N}' or a valid client-id", msg.ChannelOrClientId)
+	if err := validateChannelOrClientID(msg.ChannelOrClientId); err != nil {
+		return err
 	}
 
-	if msg.MaxPercentSend.GT(sdkmath.NewInt(100)) || msg.MaxPercentSend.LT(sdkmath.ZeroInt()) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"max-percent-send percent must be between 0 and 100 (inclusively), Provided: %v", msg.MaxPercentSend)
-	}
-
-	if msg.MaxPercentRecv.GT(sdkmath.NewInt(100)) || msg.MaxPercentRecv.LT(sdkmath.ZeroInt()) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"max-percent-recv percent must be between 0 and 100 (inclusively), Provided: %v", msg.MaxPercentRecv)
-	}
-
-	if msg.MaxPercentRecv.IsZero() && msg.MaxPercentSend.IsZero() {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"either the max send or max receive threshold must be greater than 0")
-	}
-
-	if msg.DurationHours == 0 {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "duration can not be zero")
-	}
-
-	return nil
+	return Quota{
+		MaxPercentSend: msg.MaxPercentSend,
+		MaxPercentRecv: msg.MaxPercentRecv,
+		DurationHours:  msg.DurationHours,
+	}.validate()
 }
 
 // ----------------------------------------------
@@ -148,16 +120,7 @@ func (msg *MsgRemoveRateLimit) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid denom (%s)", msg.Denom)
 	}
 
-	matched, err := regexp.MatchString(`^channel-\d+$`, msg.ChannelOrClientId)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unable to verify channel-id (%s)", msg.ChannelOrClientId)
-	}
-	if !matched && !clienttypes.IsValidClientID(msg.ChannelOrClientId) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"invalid channel or client-id (%s), must be of the format 'channel-{N}' or a valid client-id", msg.ChannelOrClientId)
-	}
-
-	return nil
+	return validateChannelOrClientID(msg.ChannelOrClientId)
 }
 
 // ----------------------------------------------
@@ -180,14 +143,5 @@ func (msg *MsgResetRateLimit) ValidateBasic() error {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid denom (%s)", msg.Denom)
 	}
 
-	matched, err := regexp.MatchString(`^channel-\d+$`, msg.ChannelOrClientId)
-	if err != nil {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "unable to verify channel-id (%s)", msg.ChannelOrClientId)
-	}
-	if !matched && !clienttypes.IsValidClientID(msg.ChannelOrClientId) {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest,
-			"invalid channel or client-id (%s), must be of the format 'channel-{N}' or a valid client-id", msg.ChannelOrClientId)
-	}
-
-	return nil
+	return validateChannelOrClientID(msg.ChannelOrClientId)
 }

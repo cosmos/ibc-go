@@ -60,6 +60,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (apps/rate-limiting) [\#9021](https://github.com/cosmos/ibc-go/pull/9021) Validate rate-limiting genesis state, rejecting malformed or duplicate rate limits and whitelist entries, empty blacklist entries, and invalid epoch state
 
 ### Testing API
 

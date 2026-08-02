@@ -10,6 +10,10 @@ import (
 
 // InitGenesis initializes the rate-limiting module's state from a provided genesis state.
 func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
+	if err := state.Validate(); err != nil {
+		panic(err)
+	}
+
 	// Set rate limits, blacklists, and whitelists
 	for _, rateLimit := range state.RateLimits {
 		k.SetRateLimit(ctx, rateLimit)
@@ -47,8 +51,10 @@ func (k *Keeper) InitGenesis(ctx sdk.Context, state types.GenesisState) {
 		}
 	}
 
-	// If the hour epoch has been initialized already (epoch number != 0), validate and then use it
-	if state.HourEpoch.EpochNumber > 0 {
+	// The epoch is initialized iff its start time is set. EpochNumber cannot be
+	// the discriminator: 0 is also the legitimate number seeded for a chain
+	// whose genesis time falls in the 00:00 UTC hour.
+	if !state.HourEpoch.EpochStartTime.IsZero() {
 		if err := k.SetHourEpoch(ctx, state.HourEpoch); err != nil {
 			panic(err)
 		}
