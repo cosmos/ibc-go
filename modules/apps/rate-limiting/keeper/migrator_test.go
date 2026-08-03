@@ -77,9 +77,10 @@ func (s *KeeperTestSuite) TestMigrate1to2() {
 	s.Require().True(found, "collections pending receive packet should be preserved")
 }
 
-// TestMigrate2to3 pins the Migrator wiring: Migrate2to3 must reach the v3
-// migration through the keeper's own store service and codec, and the module's
-// consensus version must match the highest registered migration target.
+// TestMigrate2to3 pins the Migrator wiring: a rate limit stored under the
+// legacy key layout must be readable through the keeper after Migrate2to3, and
+// the module's consensus version must match the highest registered migration
+// target.
 func (s *KeeperTestSuite) TestMigrate2to3() {
 	s.SetupTest()
 
