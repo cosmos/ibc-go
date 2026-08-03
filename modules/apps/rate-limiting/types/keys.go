@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	"math"
 
 	"cosmossdk.io/collections"
 )
@@ -49,9 +50,7 @@ var (
 //
 // Channel-first ordering groups a channel or client's rate limits by prefix.
 func RateLimitItemKey(denom string, channelOrClientID string) []byte {
-	key := binary.AppendUvarint(make([]byte, 0, 1+len(channelOrClientID)+len(denom)), uint64(len(channelOrClientID)))
-	key = append(key, channelOrClientID...)
-	return append(key, denom...)
+	return lengthPrefixedKey(channelOrClientID, denom)
 }
 
 // Get the pending packet key from the channel ID and sequence number
@@ -75,7 +74,24 @@ func PendingPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
 //
 //	uvarint(len(sender)) || sender || receiver
 func AddressWhitelistKey(sender, receiver string) []byte {
-	key := binary.AppendUvarint(make([]byte, 0, 1+len(sender)+len(receiver)), uint64(len(sender)))
-	key = append(key, sender...)
-	return append(key, receiver...)
+	return lengthPrefixedKey(sender, receiver)
+}
+
+func lengthPrefixedKey(first, second string) []byte {
+	var prefix [binary.MaxVarintLen64]byte
+	prefixLen := binary.PutUvarint(prefix[:], uint64(len(first)))
+
+	if len(first) > math.MaxInt-prefixLen {
+		panic("key length overflow")
+	}
+	keyLen := prefixLen + len(first)
+	if len(second) > math.MaxInt-keyLen {
+		panic("key length overflow")
+	}
+	keyLen += len(second)
+
+	key := make([]byte, 0, keyLen)
+	key = append(key, prefix[:prefixLen]...)
+	key = append(key, first...)
+	return append(key, second...)
 }
