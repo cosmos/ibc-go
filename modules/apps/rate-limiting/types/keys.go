@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/binary"
-	"math"
 
 	"cosmossdk.io/collections"
 )
@@ -77,21 +76,15 @@ func AddressWhitelistKey(sender, receiver string) []byte {
 	return lengthPrefixedKey(sender, receiver)
 }
 
+// lengthPrefixedKey returns uvarint(len(first)) || first || second.
+//
+// Grown by append rather than sized up front on purpose: a make() capacity
+// computed from the argument lengths trips CodeQL go/allocation-size-overflow,
+// and bounding that computation with a panic trips beginendblock-panic, since
+// BeginBlocker builds these keys and must never halt the chain. The extra
+// allocations are noise next to the store read that follows.
 func lengthPrefixedKey(first, second string) []byte {
-	var prefix [binary.MaxVarintLen64]byte
-	prefixLen := binary.PutUvarint(prefix[:], uint64(len(first)))
-
-	if len(first) > math.MaxInt-prefixLen {
-		panic("key length overflow")
-	}
-	keyLen := prefixLen + len(first)
-	if len(second) > math.MaxInt-keyLen {
-		panic("key length overflow")
-	}
-	keyLen += len(second)
-
-	key := make([]byte, 0, keyLen)
-	key = append(key, prefix[:prefixLen]...)
+	key := binary.AppendUvarint(nil, uint64(len(first)))
 	key = append(key, first...)
 	return append(key, second...)
 }
