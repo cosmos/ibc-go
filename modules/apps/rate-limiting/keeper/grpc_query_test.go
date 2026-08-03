@@ -4,12 +4,20 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	querytypes "github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v11/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
@@ -94,6 +102,69 @@ func (s *KeeperTestSuite) TestQueryRateLimitsByChannelOrClientId() {
 	}
 }
 
+func (s *KeeperTestSuite) TestQueryRateLimitsEmptyFilter() {
+	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+	s.setupQueryRateLimitTests()
+
+	_, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+		Pagination: &querytypes.PageRequest{Limit: 100},
+	})
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	s.Require().ErrorContains(err, "chain_id cannot be empty")
+
+	_, err = querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+		Pagination: &querytypes.PageRequest{Limit: 100},
+	})
+	s.Require().Equal(codes.InvalidArgument, status.Code(err))
+	s.Require().ErrorContains(err, "channel_or_client_id cannot be empty")
+}
+
+// countingChannelKeeper records how many times each channel's client state is resolved.
+type countingChannelKeeper struct {
+	types.ChannelKeeper
+	calls map[string]int
+}
+
+func (c *countingChannelKeeper) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+	c.calls[channelID]++
+	return c.ChannelKeeper.GetChannelClientState(ctx, portID, channelID)
+}
+
+// RateLimitsByChainID resolves each distinct channel's chain Id once per request,
+// not once per scanned rate limit.
+func (s *KeeperTestSuite) TestQueryRateLimitsByChainIDMemoizesClientLookups() {
+	counting := &countingChannelKeeper{
+		ChannelKeeper: s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+		calls:         map[string]int{},
+	}
+	querier := keeper.NewQuerier(keeper.NewKeeper(
+		s.chainA.GetSimApp().AppCodec(),
+		s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
+		counting,
+		s.chainA.GetSimApp().IBCKeeper.ClientKeeper,
+		s.chainA.GetSimApp().BankKeeper,
+		s.chainA.GetSimApp().ICAHostKeeper.GetAuthority(),
+	))
+
+	const target = "chain-target"
+	s.addChainRateLimit(target, "channel-1", "denom-a")
+	// Two more denoms on the same channel: distinct entries in the scan, same chain Id.
+	for _, denom := range []string{"denom-b", "denom-c"} {
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+			Path: &types.Path{Denom: denom, ChannelOrClientId: "channel-1"},
+		})
+	}
+	s.addChainRateLimit("chain-other", "channel-2", "denom-d")
+
+	res, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+		ChainId: target,
+	})
+	s.Require().NoError(err)
+	s.Require().Len(res.RateLimits, 3)
+	s.Require().Equal(map[string]int{"channel-1": 1, "channel-2": 1}, counting.calls)
+}
+
 func (s *KeeperTestSuite) TestQueryAllBlacklistedDenoms() {
 	querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
 	s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), "denom-A")
@@ -122,4 +193,177 @@ func (s *KeeperTestSuite) TestQueryAllWhitelistedAddresses() {
 		{Sender: "address-C", Receiver: "address-D"},
 	}
 	s.Require().Equal(expectedWhitelist, queryResponse.AddressPairs)
+}
+
+// addChainRateLimit registers a tendermint client/connection/channel resolving to
+// chainID and stores a rate limit on the given channel and denom.
+func (s *KeeperTestSuite) addChainRateLimit(chainID, channelID, denom string) {
+	s.T().Helper()
+
+	clientID := "07-tendermint-" + channelID
+	connectionID := "connection-" + channelID
+	s.chainA.GetSimApp().IBCKeeper.ClientKeeper.SetClientState(s.chainA.GetContext(), clientID, ibctmtypes.NewClientState(
+		chainID, ibctmtypes.Fraction{}, 0, 0, 0, clienttypes.Height{}, nil, nil,
+	))
+	s.chainA.GetSimApp().IBCKeeper.ConnectionKeeper.SetConnection(s.chainA.GetContext(), connectionID, connectiontypes.ConnectionEnd{ClientId: clientID})
+	s.chainA.GetSimApp().IBCKeeper.ChannelKeeper.SetChannel(s.chainA.GetContext(), transfertypes.PortID, channelID, channeltypes.Channel{ConnectionHops: []string{connectionID}})
+	s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+		Path: &types.Path{Denom: denom, ChannelOrClientId: channelID},
+	})
+}
+
+// TestPaginatedQueries exercises the pagination contract of the list queries:
+// resumable NextKey, and Total that is populated only on a full prefix scan.
+func (s *KeeperTestSuite) TestPaginatedQueries() {
+	s.Run("all_rate_limits", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		expected := s.setupQueryRateLimitTests()
+
+		first, err := querier.AllRateLimits(s.chainA.GetContext(), &types.QueryAllRateLimitsRequest{
+			Pagination: &querytypes.PageRequest{Limit: 1},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(first.RateLimits, 1)
+		s.Require().NotEmpty(first.Pagination.NextKey)
+
+		rest, err := querier.AllRateLimits(s.chainA.GetContext(), &types.QueryAllRateLimitsRequest{
+			Pagination: &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 100},
+		})
+		s.Require().NoError(err)
+		s.Require().ElementsMatch(expected, append(first.RateLimits, rest.RateLimits...))
+	})
+
+	s.Run("all_blacklisted_denoms", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		expected := []string{"denom-A", "denom-B"}
+		for _, d := range expected {
+			s.chainA.GetSimApp().RateLimitKeeper.AddDenomToBlacklist(s.chainA.GetContext(), d)
+		}
+
+		first, err := querier.AllBlacklistedDenoms(s.chainA.GetContext(), &types.QueryAllBlacklistedDenomsRequest{
+			Pagination: &querytypes.PageRequest{Limit: 1},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(first.Denoms, 1)
+		s.Require().NotEmpty(first.Pagination.NextKey)
+
+		rest, err := querier.AllBlacklistedDenoms(s.chainA.GetContext(), &types.QueryAllBlacklistedDenomsRequest{
+			Pagination: &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 100},
+		})
+		s.Require().NoError(err)
+		s.Require().ElementsMatch(expected, append(first.Denoms, rest.Denoms...))
+	})
+
+	s.Run("all_whitelisted_addresses", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		expected := []types.WhitelistedAddressPair{
+			{Sender: "address-A", Receiver: "address-B"},
+			{Sender: "address-C", Receiver: "address-D"},
+		}
+		for _, pair := range expected {
+			s.chainA.GetSimApp().RateLimitKeeper.SetWhitelistedAddressPair(s.chainA.GetContext(), pair)
+		}
+
+		first, err := querier.AllWhitelistedAddresses(s.chainA.GetContext(), &types.QueryAllWhitelistedAddressesRequest{
+			Pagination: &querytypes.PageRequest{Limit: 1},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(first.AddressPairs, 1)
+		s.Require().NotEmpty(first.Pagination.NextKey)
+
+		rest, err := querier.AllWhitelistedAddresses(s.chainA.GetContext(), &types.QueryAllWhitelistedAddressesRequest{
+			Pagination: &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 100},
+		})
+		s.Require().NoError(err)
+		s.Require().ElementsMatch(expected, append(first.AddressPairs, rest.AddressPairs...))
+	})
+
+	s.Run("rate_limits_by_chain_id", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		const target = "chain-target"
+		s.addChainRateLimit(target, "channel-1", "denom-a")
+		s.addChainRateLimit(target, "channel-2", "denom-b")
+		s.addChainRateLimit("chain-other", "channel-3", "denom-c")
+
+		first, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+			ChainId:    target,
+			Pagination: &querytypes.PageRequest{Limit: 1},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(first.RateLimits, 1)
+		s.Require().NotEmpty(first.Pagination.NextKey)
+
+		rest, err := querier.RateLimitsByChainID(s.chainA.GetContext(), &types.QueryRateLimitsByChainIDRequest{
+			ChainId:    target,
+			Pagination: &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 100},
+		})
+		s.Require().NoError(err)
+
+		got := make([]types.RateLimit, 0, len(first.RateLimits)+len(rest.RateLimits))
+		got = append(got, first.RateLimits...)
+		got = append(got, rest.RateLimits...)
+		s.Require().Len(got, 2)
+		denoms := []string{got[0].Path.Denom, got[1].Path.Denom}
+		s.Require().ElementsMatch([]string{"denom-a", "denom-b"}, denoms)
+	})
+
+	s.Run("rate_limits_by_channel_or_client_id", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		const target = "channel-target"
+		s.addChainRateLimit("chain-1", target, "denom-a")
+		// Same channel, different denom -> distinct rate-limit entry.
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{
+			Path: &types.Path{Denom: "denom-b", ChannelOrClientId: target},
+		})
+		s.addChainRateLimit("chain-2", "channel-other", "denom-c")
+
+		first, err := querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+			ChannelOrClientId: target,
+			Pagination:        &querytypes.PageRequest{Limit: 1},
+		})
+		s.Require().NoError(err)
+		s.Require().Len(first.RateLimits, 1)
+		s.Require().NotEmpty(first.Pagination.NextKey)
+
+		rest, err := querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+			ChannelOrClientId: target,
+			Pagination:        &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 100},
+		})
+		s.Require().NoError(err)
+
+		got := make([]types.RateLimit, 0, len(first.RateLimits)+len(rest.RateLimits))
+		got = append(got, first.RateLimits...)
+		got = append(got, rest.RateLimits...)
+		s.Require().Len(got, 2)
+		denoms := []string{got[0].Path.Denom, got[1].Path.Denom}
+		s.Require().ElementsMatch([]string{"denom-a", "denom-b"}, denoms)
+	})
+
+	s.Run("count_total_omitted_for_key_resumed_pages", func() {
+		s.SetupTest()
+		querier := keeper.NewQuerier(s.chainA.GetSimApp().RateLimitKeeper)
+		const target = "channel-total-target"
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{Path: &types.Path{Denom: "denom-a", ChannelOrClientId: target}})
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{Path: &types.Path{Denom: "denom-b", ChannelOrClientId: target}})
+		s.chainA.GetSimApp().RateLimitKeeper.SetRateLimit(s.chainA.GetContext(), types.RateLimit{Path: &types.Path{Denom: "denom-c", ChannelOrClientId: "channel-other"}})
+
+		first, err := querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+			ChannelOrClientId: target,
+			Pagination:        &querytypes.PageRequest{Limit: 1, CountTotal: true},
+		})
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(2), first.Pagination.Total, "full-scan page should report Total")
+
+		second, err := querier.RateLimitsByChannelOrClientID(s.chainA.GetContext(), &types.QueryRateLimitsByChannelOrClientIDRequest{
+			ChannelOrClientId: target,
+			Pagination:        &querytypes.PageRequest{Key: first.Pagination.NextKey, Limit: 1, CountTotal: true},
+		})
+		s.Require().NoError(err)
+		s.Require().Equal(uint64(0), second.Pagination.Total, "key-resumed page should omit Total")
+	})
 }
