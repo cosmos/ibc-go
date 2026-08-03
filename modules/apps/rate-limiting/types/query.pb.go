@@ -6,6 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	proto "github.com/cosmos/gogoproto/proto"
@@ -31,6 +32,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Queries all rate limits
 type QueryAllRateLimitsRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllRateLimitsRequest) Reset()         { *m = QueryAllRateLimitsRequest{} }
@@ -66,9 +68,17 @@ func (m *QueryAllRateLimitsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllRateLimitsRequest proto.InternalMessageInfo
 
+func (m *QueryAllRateLimitsRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // QueryAllRateLimitsResponse returns all the rate limits stored on the chain.
 type QueryAllRateLimitsResponse struct {
-	RateLimits []RateLimit `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	RateLimits []RateLimit         `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllRateLimitsResponse) Reset()         { *m = QueryAllRateLimitsResponse{} }
@@ -107,6 +117,13 @@ var xxx_messageInfo_QueryAllRateLimitsResponse proto.InternalMessageInfo
 func (m *QueryAllRateLimitsResponse) GetRateLimits() []RateLimit {
 	if m != nil {
 		return m.RateLimits
+	}
+	return nil
+}
+
+func (m *QueryAllRateLimitsResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
 	}
 	return nil
 }
@@ -211,7 +228,8 @@ func (m *QueryRateLimitResponse) GetRateLimit() *RateLimit {
 
 // Queries all the rate limits for a given chain
 type QueryRateLimitsByChainIDRequest struct {
-	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	ChainId    string             `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryRateLimitsByChainIDRequest) Reset()         { *m = QueryRateLimitsByChainIDRequest{} }
@@ -254,9 +272,17 @@ func (m *QueryRateLimitsByChainIDRequest) GetChainId() string {
 	return ""
 }
 
+func (m *QueryRateLimitsByChainIDRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // QueryRateLimitsByChainIDResponse returns all rate-limits by a chain.
 type QueryRateLimitsByChainIDResponse struct {
-	RateLimits []RateLimit `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	RateLimits []RateLimit         `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryRateLimitsByChainIDResponse) Reset()         { *m = QueryRateLimitsByChainIDResponse{} }
@@ -299,9 +325,17 @@ func (m *QueryRateLimitsByChainIDResponse) GetRateLimits() []RateLimit {
 	return nil
 }
 
+func (m *QueryRateLimitsByChainIDResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // Queries all the rate limits for a given channel or client ID
 type QueryRateLimitsByChannelOrClientIDRequest struct {
-	ChannelOrClientId string `protobuf:"bytes,1,opt,name=channel_or_client_id,json=channelOrClientId,proto3" json:"channel_or_client_id,omitempty"`
+	ChannelOrClientId string             `protobuf:"bytes,1,opt,name=channel_or_client_id,json=channelOrClientId,proto3" json:"channel_or_client_id,omitempty"`
+	Pagination        *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryRateLimitsByChannelOrClientIDRequest) Reset() {
@@ -348,9 +382,17 @@ func (m *QueryRateLimitsByChannelOrClientIDRequest) GetChannelOrClientId() strin
 	return ""
 }
 
+func (m *QueryRateLimitsByChannelOrClientIDRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // QueryRateLimitsByChannelOrClientIDResponse returns all rate-limits by a channel or client id.
 type QueryRateLimitsByChannelOrClientIDResponse struct {
-	RateLimits []RateLimit `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	RateLimits []RateLimit         `protobuf:"bytes,1,rep,name=rate_limits,json=rateLimits,proto3" json:"rate_limits"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryRateLimitsByChannelOrClientIDResponse) Reset() {
@@ -397,8 +439,16 @@ func (m *QueryRateLimitsByChannelOrClientIDResponse) GetRateLimits() []RateLimit
 	return nil
 }
 
+func (m *QueryRateLimitsByChannelOrClientIDResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // Queries all blacklisted denoms
 type QueryAllBlacklistedDenomsRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllBlacklistedDenomsRequest) Reset()         { *m = QueryAllBlacklistedDenomsRequest{} }
@@ -434,9 +484,17 @@ func (m *QueryAllBlacklistedDenomsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllBlacklistedDenomsRequest proto.InternalMessageInfo
 
+func (m *QueryAllBlacklistedDenomsRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // QueryAllBlacklistedDenomsResponse returns all the blacklisted denosm.
 type QueryAllBlacklistedDenomsResponse struct {
-	Denoms []string `protobuf:"bytes,1,rep,name=denoms,proto3" json:"denoms,omitempty"`
+	Denoms     []string            `protobuf:"bytes,1,rep,name=denoms,proto3" json:"denoms,omitempty"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllBlacklistedDenomsResponse) Reset()         { *m = QueryAllBlacklistedDenomsResponse{} }
@@ -479,8 +537,16 @@ func (m *QueryAllBlacklistedDenomsResponse) GetDenoms() []string {
 	return nil
 }
 
+func (m *QueryAllBlacklistedDenomsResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // Queries all whitelisted address pairs
 type QueryAllWhitelistedAddressesRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllWhitelistedAddressesRequest) Reset()         { *m = QueryAllWhitelistedAddressesRequest{} }
@@ -516,9 +582,17 @@ func (m *QueryAllWhitelistedAddressesRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllWhitelistedAddressesRequest proto.InternalMessageInfo
 
+func (m *QueryAllWhitelistedAddressesRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 // QueryAllWhitelistedAddressesResponse returns all whitelisted pairs.
 type QueryAllWhitelistedAddressesResponse struct {
 	AddressPairs []WhitelistedAddressPair `protobuf:"bytes,1,rep,name=address_pairs,json=addressPairs,proto3" json:"address_pairs"`
+	Pagination   *query.PageResponse      `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllWhitelistedAddressesResponse) Reset()         { *m = QueryAllWhitelistedAddressesResponse{} }
@@ -561,6 +635,13 @@ func (m *QueryAllWhitelistedAddressesResponse) GetAddressPairs() []WhitelistedAd
 	return nil
 }
 
+func (m *QueryAllWhitelistedAddressesResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryAllRateLimitsRequest)(nil), "ibc.applications.rate_limiting.v1.QueryAllRateLimitsRequest")
 	proto.RegisterType((*QueryAllRateLimitsResponse)(nil), "ibc.applications.rate_limiting.v1.QueryAllRateLimitsResponse")
@@ -581,55 +662,60 @@ func init() {
 }
 
 var fileDescriptor_f55a91bf266ae0f7 = []byte{
-	// 755 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xdf, 0x4f, 0x13, 0x4b,
-	0x14, 0xee, 0x72, 0x2f, 0xdc, 0xdb, 0xc3, 0xe5, 0xe1, 0x8e, 0x15, 0x61, 0xd5, 0x02, 0xab, 0x44,
-	0x24, 0xb6, 0x93, 0x62, 0x8c, 0xa2, 0x10, 0x43, 0xdb, 0x60, 0x88, 0x18, 0xb5, 0x26, 0x62, 0x8c,
-	0xa1, 0xd9, 0xee, 0x4e, 0xda, 0x89, 0xdb, 0x9d, 0xb2, 0xb3, 0x85, 0x10, 0xc2, 0x83, 0x3e, 0x1a,
-	0x1f, 0x4c, 0xfc, 0x73, 0xfc, 0x07, 0x78, 0x24, 0xf1, 0xc5, 0x27, 0x25, 0xc5, 0x57, 0xfd, 0x1b,
-	0xcc, 0xce, 0x4c, 0xb7, 0x14, 0xda, 0xd2, 0xf2, 0xe3, 0xa9, 0xdd, 0x9d, 0x73, 0xbe, 0xf3, 0x7d,
-	0x5f, 0xcf, 0x7c, 0x29, 0x24, 0x68, 0xc1, 0xc2, 0x66, 0xa5, 0xe2, 0x50, 0xcb, 0xf4, 0x29, 0x73,
-	0x39, 0xf6, 0x4c, 0x9f, 0xe4, 0x1d, 0x5a, 0xa6, 0x3e, 0x75, 0x8b, 0x78, 0x3d, 0x85, 0xd7, 0xaa,
-	0xc4, 0xdb, 0x4c, 0x56, 0x3c, 0xe6, 0x33, 0x34, 0x41, 0x0b, 0x56, 0xf2, 0x60, 0x79, 0xb2, 0xa9,
-	0x3c, 0xb9, 0x9e, 0xd2, 0x63, 0x45, 0x56, 0x64, 0xa2, 0x1a, 0x07, 0xdf, 0x64, 0xa3, 0x7e, 0xa5,
-	0xc8, 0x58, 0xd1, 0x21, 0xd8, 0xac, 0x50, 0x6c, 0xba, 0x2e, 0xf3, 0x55, 0xbb, 0x3c, 0xbd, 0x73,
-	0x3c, 0x8b, 0xe6, 0x39, 0xa2, 0xcd, 0xb8, 0x0c, 0xa3, 0xcf, 0x03, 0x72, 0x0b, 0x8e, 0x93, 0x33,
-	0x7d, 0xb2, 0x1c, 0x9c, 0xf2, 0x1c, 0x59, 0xab, 0x12, 0xee, 0x1b, 0x6b, 0xa0, 0xb7, 0x3a, 0xe4,
-	0x15, 0xe6, 0x72, 0x82, 0x5e, 0xc0, 0x60, 0x03, 0x91, 0x8f, 0x68, 0xe3, 0x7f, 0x4d, 0x0d, 0xce,
-	0xdc, 0x4a, 0x1e, 0x2b, 0x2f, 0x19, 0x62, 0xa5, 0xff, 0xde, 0xf9, 0x3e, 0x16, 0xc9, 0x81, 0x17,
-	0x82, 0x1b, 0xab, 0x70, 0x51, 0x8c, 0x0c, 0x6b, 0x14, 0x17, 0x14, 0x83, 0x7e, 0x9b, 0xb8, 0xac,
-	0x3c, 0xa2, 0x8d, 0x6b, 0x53, 0xd1, 0x9c, 0x7c, 0x40, 0x18, 0x62, 0x56, 0xc9, 0x74, 0x5d, 0xe2,
-	0xe4, 0x99, 0x97, 0xb7, 0x1c, 0x4a, 0x5c, 0x3f, 0x4f, 0xed, 0x91, 0x3e, 0x51, 0xf4, 0xbf, 0x3a,
-	0x7b, 0xea, 0x65, 0xc4, 0xc9, 0x92, 0x6d, 0x10, 0x18, 0x3e, 0x8c, 0xaf, 0xe4, 0x3c, 0x06, 0x68,
-	0x30, 0x15, 0x53, 0x7a, 0x54, 0x93, 0x8b, 0x86, 0x3a, 0x8c, 0x39, 0x18, 0x6b, 0x1e, 0xc3, 0xd3,
-	0x9b, 0x99, 0x92, 0x49, 0xdd, 0xa5, 0x6c, 0x5d, 0xd0, 0x28, 0xfc, 0x6b, 0x05, 0x6f, 0x02, 0xba,
-	0x52, 0xd3, 0x3f, 0xe2, 0x79, 0xc9, 0x36, 0x36, 0x60, 0xbc, 0x7d, 0xf7, 0x79, 0xba, 0xff, 0x06,
-	0x6e, 0xb6, 0x1a, 0xdc, 0xe4, 0x61, 0x28, 0xa0, 0x9d, 0xf7, 0x5a, 0x3b, 0xef, 0xdf, 0x69, 0x30,
-	0xdd, 0x0d, 0xfc, 0x79, 0x2a, 0x34, 0x94, 0xb5, 0x0b, 0x8e, 0x93, 0x76, 0x4c, 0xeb, 0xad, 0x43,
-	0xb9, 0x4f, 0xec, 0x6c, 0xb0, 0x4c, 0xe1, 0xda, 0x3f, 0x80, 0x89, 0x0e, 0x35, 0x8a, 0xdd, 0x30,
-	0x0c, 0x88, 0x15, 0x94, 0xc4, 0xa2, 0x39, 0xf5, 0x64, 0x4c, 0xc2, 0xb5, 0x7a, 0xf3, 0x4a, 0x89,
-	0xfa, 0x44, 0x36, 0x2f, 0xd8, 0xb6, 0x47, 0x38, 0x27, 0xe1, 0x8c, 0x8f, 0x1a, 0x5c, 0xef, 0x5c,
-	0xa7, 0xe6, 0xd8, 0x30, 0x64, 0xca, 0x97, 0xf9, 0x8a, 0x49, 0xbd, 0xba, 0x0f, 0xb3, 0x5d, 0xf8,
-	0x70, 0x14, 0xf7, 0x99, 0x49, 0x3d, 0x65, 0xca, 0x7f, 0x66, 0xe3, 0x15, 0x9f, 0xf9, 0x05, 0xd0,
-	0x2f, 0xe8, 0xa0, 0x2f, 0x1a, 0x0c, 0x35, 0xdd, 0x77, 0x34, 0xd7, 0xc5, 0xa8, 0xb6, 0x19, 0xa2,
-	0xcf, 0x9f, 0xb0, 0x5b, 0xca, 0x37, 0x12, 0xef, 0xbf, 0xfe, 0xfc, 0xdc, 0x77, 0x03, 0x4d, 0x62,
-	0x95, 0x6f, 0x32, 0xd7, 0x12, 0x87, 0x73, 0x4d, 0x2e, 0x09, 0xda, 0xd3, 0x20, 0x1a, 0xa2, 0xa0,
-	0x7b, 0xdd, 0xce, 0x3e, 0x9c, 0x36, 0xfa, 0xec, 0x09, 0x3a, 0x15, 0xe3, 0x55, 0xc1, 0xf8, 0x15,
-	0x7a, 0xd9, 0x81, 0xb1, 0xbc, 0x2c, 0x1c, 0x6f, 0xb5, 0xba, 0x40, 0xdb, 0x07, 0x04, 0x61, 0xb9,
-	0x55, 0x78, 0x4b, 0x7c, 0xce, 0x4f, 0x4f, 0x6f, 0xa3, 0x1f, 0x1a, 0x5c, 0x68, 0x11, 0x0c, 0x28,
-	0xdd, 0x33, 0xe5, 0x23, 0x99, 0xa4, 0x67, 0x4e, 0x85, 0xa1, 0x0c, 0x78, 0x28, 0x0c, 0x98, 0x45,
-	0x77, 0x3b, 0x19, 0x10, 0xf4, 0x48, 0xfd, 0x22, 0x01, 0x0f, 0x6a, 0x46, 0x1f, 0xfa, 0xe0, 0x6a,
-	0xc7, 0x88, 0x40, 0xcb, 0x27, 0xe4, 0xd9, 0x32, 0xc8, 0xf4, 0x27, 0x67, 0x84, 0xa6, 0xf4, 0x2f,
-	0x0b, 0xfd, 0x8b, 0x28, 0x7b, 0x16, 0x0b, 0x80, 0x6a, 0x1a, 0xc4, 0x5a, 0x05, 0x11, 0xca, 0xf4,
-	0x70, 0xb1, 0xda, 0x45, 0x9d, 0x9e, 0x3d, 0x1d, 0x48, 0x0f, 0xbf, 0x78, 0x28, 0x09, 0x17, 0x1a,
-	0x38, 0x79, 0xb9, 0xde, 0xe8, 0xb7, 0x06, 0x97, 0xda, 0x04, 0x21, 0x5a, 0xec, 0x81, 0x62, 0x87,
-	0xc4, 0xd5, 0x1f, 0x9d, 0x1a, 0x47, 0xa9, 0x4d, 0x0b, 0xb5, 0x73, 0xe8, 0x7e, 0x57, 0x6a, 0x37,
-	0x1a, 0x50, 0x79, 0xb3, 0x8e, 0x95, 0x5e, 0xd9, 0xa9, 0xc5, 0xb5, 0xdd, 0x5a, 0x5c, 0xdb, 0xab,
-	0xc5, 0xb5, 0x4f, 0xfb, 0xf1, 0xc8, 0xee, 0x7e, 0x3c, 0xf2, 0x6d, 0x3f, 0x1e, 0x79, 0x3d, 0x5f,
-	0xa4, 0x7e, 0xa9, 0x5a, 0x48, 0x5a, 0xac, 0x8c, 0x2d, 0xc6, 0xcb, 0x8c, 0x07, 0x63, 0x12, 0x45,
-	0x86, 0xd7, 0x53, 0x29, 0x5c, 0x66, 0x76, 0xd5, 0x21, 0xbc, 0xd5, 0x54, 0x7f, 0xb3, 0x42, 0x78,
-	0x61, 0x40, 0xfc, 0xad, 0xbb, 0xfd, 0x27, 0x00, 0x00, 0xff, 0xff, 0xe4, 0x75, 0x7e, 0xd4, 0x95,
-	0x0a, 0x00, 0x00,
+	// 847 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0x4f, 0x6f, 0x23, 0x35,
+	0x1c, 0x8d, 0x03, 0xbb, 0x10, 0x97, 0x3d, 0x60, 0xc2, 0xb2, 0x3b, 0x82, 0x6c, 0x37, 0xfc, 0x69,
+	0x89, 0xc8, 0x58, 0x29, 0x42, 0x50, 0xd4, 0x0a, 0x35, 0x89, 0x5a, 0x55, 0x14, 0x51, 0x06, 0x89,
+	0x22, 0x0e, 0x8d, 0x3c, 0x33, 0xd6, 0xc4, 0x30, 0x19, 0x4f, 0xc7, 0x93, 0xa0, 0xaa, 0xea, 0x05,
+	0xf5, 0xc4, 0x09, 0x89, 0xaf, 0xc0, 0xa7, 0x80, 0x0b, 0xc7, 0x8a, 0x53, 0x25, 0x84, 0xc4, 0x09,
+	0xaa, 0x94, 0x2b, 0x7c, 0x06, 0x34, 0xb6, 0xf3, 0xb7, 0x49, 0x9a, 0xa4, 0xb9, 0xf4, 0x94, 0x8c,
+	0x9d, 0xdf, 0xfb, 0xbd, 0xf7, 0xf2, 0xb3, 0x9f, 0x06, 0x16, 0x99, 0xed, 0x60, 0x12, 0x86, 0x3e,
+	0x73, 0x48, 0xcc, 0x78, 0x20, 0x70, 0x44, 0x62, 0x5a, 0xf3, 0x59, 0x83, 0xc5, 0x2c, 0xf0, 0x70,
+	0xab, 0x84, 0x8f, 0x9a, 0x34, 0x3a, 0x36, 0xc3, 0x88, 0xc7, 0x1c, 0x3d, 0x65, 0xb6, 0x63, 0xf6,
+	0xff, 0xdc, 0x1c, 0xf8, 0xb9, 0xd9, 0x2a, 0x19, 0x05, 0x87, 0x8b, 0x06, 0x17, 0xd8, 0x26, 0x82,
+	0xaa, 0x5a, 0xdc, 0x2a, 0xd9, 0x34, 0x26, 0x25, 0x1c, 0x12, 0x8f, 0x05, 0xb2, 0x4e, 0xc1, 0x19,
+	0x59, 0x8f, 0x7b, 0x5c, 0x7e, 0xc5, 0xc9, 0x37, 0xbd, 0xfa, 0xaa, 0xc7, 0xb9, 0xe7, 0x53, 0x4c,
+	0x42, 0x86, 0x49, 0x10, 0xf0, 0x58, 0xb7, 0x52, 0xbb, 0xef, 0xdd, 0xcc, 0x78, 0x90, 0x93, 0x2c,
+	0xcb, 0x3b, 0xf0, 0xf1, 0x67, 0x09, 0x99, 0x2d, 0xdf, 0xb7, 0x48, 0x4c, 0xf7, 0x92, 0x5d, 0x61,
+	0xd1, 0xa3, 0x26, 0x15, 0x31, 0xda, 0x86, 0xb0, 0xc7, 0xed, 0x11, 0x58, 0x06, 0xab, 0x4b, 0x6b,
+	0x6f, 0x99, 0x4a, 0x88, 0x99, 0x08, 0x31, 0x95, 0x09, 0x5a, 0x88, 0xb9, 0x4f, 0x3c, 0xaa, 0x6b,
+	0xad, 0xbe, 0xca, 0xfc, 0xcf, 0x00, 0x1a, 0xa3, 0xba, 0x88, 0x90, 0x07, 0x82, 0xa2, 0xcf, 0xe1,
+	0x52, 0x8f, 0x9a, 0x78, 0x04, 0x96, 0x9f, 0x59, 0x5d, 0x5a, 0x7b, 0xc7, 0xbc, 0xd1, 0x53, 0xb3,
+	0x8b, 0x55, 0x7e, 0xf6, 0xfc, 0xaf, 0x27, 0x29, 0x0b, 0x46, 0x5d, 0x70, 0xb4, 0x33, 0xc0, 0x3d,
+	0x2d, 0xb9, 0xaf, 0xdc, 0xc8, 0x5d, 0x31, 0x1a, 0x20, 0x7f, 0x08, 0x5f, 0x96, 0xdc, 0xbb, 0xcd,
+	0x3a, 0xee, 0x64, 0xe1, 0x3d, 0x97, 0x06, 0xbc, 0x21, 0x8d, 0xc9, 0x58, 0xea, 0x01, 0x61, 0x98,
+	0x75, 0xea, 0x24, 0x08, 0xa8, 0x5f, 0xe3, 0x51, 0xcd, 0xf1, 0x19, 0x0d, 0xe2, 0x1a, 0x73, 0x25,
+	0x83, 0x8c, 0xf5, 0xa2, 0xde, 0xfb, 0x34, 0xaa, 0xc8, 0x9d, 0x5d, 0x37, 0x4f, 0xe1, 0xc3, 0x61,
+	0x7c, 0xed, 0xcb, 0xc7, 0x10, 0xf6, 0x24, 0x6b, 0xfb, 0x67, 0xb2, 0xc5, 0xca, 0x74, 0x0d, 0xc9,
+	0x9f, 0x01, 0xf8, 0x64, 0xb0, 0x8f, 0x28, 0x1f, 0x57, 0xea, 0x84, 0x05, 0xbb, 0xd5, 0x8e, 0xa2,
+	0xc7, 0xf0, 0x79, 0x27, 0x59, 0x49, 0xf8, 0x2a, 0x51, 0xcf, 0xc9, 0xe7, 0x5d, 0x77, 0x68, 0x14,
+	0xd2, 0x73, 0x8f, 0xc2, 0xaf, 0x00, 0x2e, 0x8f, 0xa7, 0x71, 0x27, 0x06, 0xe2, 0x27, 0x00, 0xdf,
+	0x1e, 0x25, 0x61, 0xe0, 0x7f, 0xed, 0x7a, 0x3a, 0x6e, 0x1e, 0xc0, 0x98, 0x79, 0x58, 0x98, 0xd3,
+	0xbf, 0x01, 0x58, 0x98, 0x86, 0xe6, 0x9d, 0xf0, 0xfc, 0x6b, 0x3d, 0x35, 0x5b, 0xbe, 0x5f, 0xf6,
+	0x89, 0xf3, 0x8d, 0xcf, 0x44, 0x4c, 0xdd, 0x6a, 0x72, 0xe2, 0x16, 0x7e, 0x5b, 0x9d, 0x01, 0xf8,
+	0x74, 0x42, 0x33, 0xed, 0xd7, 0x43, 0x78, 0x5f, 0x1e, 0x78, 0x65, 0x55, 0xc6, 0xd2, 0x4f, 0x8b,
+	0x93, 0xdc, 0x80, 0xaf, 0x77, 0x58, 0x1c, 0xd4, 0x59, 0x4c, 0x15, 0x8b, 0x2d, 0xd7, 0x8d, 0xa8,
+	0x10, 0x74, 0xe1, 0xaa, 0xff, 0x00, 0xf0, 0x8d, 0xc9, 0xfd, 0xb4, 0x70, 0x17, 0x3e, 0x20, 0x6a,
+	0xb1, 0x16, 0x12, 0x16, 0x75, 0x46, 0x65, 0x7d, 0x8a, 0x51, 0xb9, 0x8e, 0xbb, 0x4f, 0x58, 0xa4,
+	0xe7, 0xe6, 0x05, 0xd2, 0x5b, 0x5a, 0x9c, 0x8d, 0x6b, 0xff, 0x42, 0x78, 0x4f, 0xea, 0x42, 0xbf,
+	0x00, 0xf8, 0x60, 0x20, 0x80, 0xd0, 0xc6, 0x14, 0x9c, 0xc7, 0xa6, 0xa3, 0xb1, 0x39, 0x67, 0xb5,
+	0x22, 0x99, 0x2f, 0x7e, 0xf7, 0xfb, 0x3f, 0x3f, 0xa6, 0x57, 0xd0, 0x9b, 0x58, 0x27, 0xb7, 0x4a,
+	0xec, 0xe2, 0x70, 0x62, 0xab, 0x03, 0x89, 0x2e, 0x01, 0xcc, 0x74, 0x51, 0xd0, 0x07, 0xd3, 0xf6,
+	0x1e, 0x4e, 0x2d, 0x63, 0x7d, 0x8e, 0x4a, 0xcd, 0xf8, 0x50, 0x32, 0xfe, 0x12, 0x7d, 0x31, 0x81,
+	0xb1, 0xba, 0xe0, 0x04, 0x3e, 0x19, 0x75, 0xe9, 0x9d, 0xf6, 0x09, 0xc2, 0xea, 0xbc, 0xe0, 0x13,
+	0xf9, 0xb9, 0x59, 0x28, 0x9c, 0xa2, 0xbf, 0x01, 0x7c, 0x69, 0x44, 0x2c, 0xa0, 0xf2, 0xcc, 0x94,
+	0xaf, 0x45, 0x9b, 0x51, 0xb9, 0x15, 0x86, 0x36, 0xe0, 0x23, 0x69, 0xc0, 0x3a, 0x7a, 0x7f, 0x92,
+	0x01, 0x49, 0x8d, 0xd2, 0x2f, 0x83, 0xb4, 0x5f, 0x33, 0xfa, 0x3e, 0x0d, 0x5f, 0x9b, 0x78, 0x1d,
+	0xa3, 0xbd, 0x39, 0x79, 0x8e, 0x0c, 0x1f, 0xe3, 0x93, 0x05, 0xa1, 0x69, 0xfd, 0x7b, 0x52, 0xff,
+	0x36, 0xaa, 0x2e, 0x62, 0x00, 0x50, 0x1b, 0xc0, 0xec, 0xa8, 0x2b, 0x16, 0x55, 0x66, 0x38, 0x58,
+	0xe3, 0xd2, 0xc0, 0xa8, 0xde, 0x0e, 0x64, 0x86, 0x7f, 0xbc, 0x2b, 0x09, 0xdb, 0x3d, 0x9c, 0x9a,
+	0x8e, 0x83, 0xff, 0x00, 0x7c, 0x65, 0xcc, 0x8d, 0x8a, 0xb6, 0x67, 0xa0, 0x38, 0x21, 0x02, 0x8c,
+	0x9d, 0x5b, 0xe3, 0x68, 0xb5, 0x65, 0xa9, 0x76, 0x03, 0x7d, 0x38, 0x95, 0xda, 0x6f, 0x7b, 0x50,
+	0x35, 0xd2, 0xc1, 0x2a, 0x1f, 0x9c, 0xb7, 0x73, 0xe0, 0xa2, 0x9d, 0x03, 0x97, 0xed, 0x1c, 0xf8,
+	0xe1, 0x2a, 0x97, 0xba, 0xb8, 0xca, 0xa5, 0xfe, 0xbc, 0xca, 0xa5, 0xbe, 0xda, 0xf4, 0x58, 0x5c,
+	0x6f, 0xda, 0xa6, 0xc3, 0x1b, 0x58, 0xbf, 0x0c, 0x31, 0xdb, 0x29, 0x7a, 0x1c, 0xb7, 0x4a, 0x25,
+	0xdc, 0xe0, 0x6e, 0xd3, 0xa7, 0x62, 0x54, 0xd7, 0xf8, 0x38, 0xa4, 0xc2, 0xbe, 0x2f, 0x5f, 0x58,
+	0xde, 0xfd, 0x3f, 0x00, 0x00, 0xff, 0xff, 0xd3, 0x27, 0x0a, 0x9a, 0x9b, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -648,7 +734,7 @@ type QueryClient interface {
 	AllRateLimits(ctx context.Context, in *QueryAllRateLimitsRequest, opts ...grpc.CallOption) (*QueryAllRateLimitsResponse, error)
 	// Queries a specific rate limit by channel or client ID and denom
 	// Ex:
-	//  - /ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom}
+	//   - /ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom}
 	RateLimit(ctx context.Context, in *QueryRateLimitRequest, opts ...grpc.CallOption) (*QueryRateLimitResponse, error)
 	// Queries all the rate limits for a given chain
 	RateLimitsByChainID(ctx context.Context, in *QueryRateLimitsByChainIDRequest, opts ...grpc.CallOption) (*QueryRateLimitsByChainIDResponse, error)
@@ -728,7 +814,7 @@ type QueryServer interface {
 	AllRateLimits(context.Context, *QueryAllRateLimitsRequest) (*QueryAllRateLimitsResponse, error)
 	// Queries a specific rate limit by channel or client ID and denom
 	// Ex:
-	//  - /ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom}
+	//   - /ibc/apps/rate-limiting/v1/clients/{channel_or_client_id}/ratelimits/denoms/{denom}
 	RateLimit(context.Context, *QueryRateLimitRequest) (*QueryRateLimitResponse, error)
 	// Queries all the rate limits for a given chain
 	RateLimitsByChainID(context.Context, *QueryRateLimitsByChainIDRequest) (*QueryRateLimitsByChainIDResponse, error)
@@ -929,6 +1015,18 @@ func (m *QueryAllRateLimitsRequest) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -952,6 +1050,18 @@ func (m *QueryAllRateLimitsResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.RateLimits) > 0 {
 		for iNdEx := len(m.RateLimits) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1061,6 +1171,18 @@ func (m *QueryRateLimitsByChainIDRequest) MarshalToSizedBuffer(dAtA []byte) (int
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.ChainId) > 0 {
 		i -= len(m.ChainId)
 		copy(dAtA[i:], m.ChainId)
@@ -1091,6 +1213,18 @@ func (m *QueryRateLimitsByChainIDResponse) MarshalToSizedBuffer(dAtA []byte) (in
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.RateLimits) > 0 {
 		for iNdEx := len(m.RateLimits) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1128,6 +1262,18 @@ func (m *QueryRateLimitsByChannelOrClientIDRequest) MarshalToSizedBuffer(dAtA []
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.ChannelOrClientId) > 0 {
 		i -= len(m.ChannelOrClientId)
 		copy(dAtA[i:], m.ChannelOrClientId)
@@ -1158,6 +1304,18 @@ func (m *QueryRateLimitsByChannelOrClientIDResponse) MarshalToSizedBuffer(dAtA [
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.RateLimits) > 0 {
 		for iNdEx := len(m.RateLimits) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1195,6 +1353,18 @@ func (m *QueryAllBlacklistedDenomsRequest) MarshalToSizedBuffer(dAtA []byte) (in
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -1218,6 +1388,18 @@ func (m *QueryAllBlacklistedDenomsResponse) MarshalToSizedBuffer(dAtA []byte) (i
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.Denoms) > 0 {
 		for iNdEx := len(m.Denoms) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.Denoms[iNdEx])
@@ -1250,6 +1432,18 @@ func (m *QueryAllWhitelistedAddressesRequest) MarshalToSizedBuffer(dAtA []byte) 
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -1273,6 +1467,18 @@ func (m *QueryAllWhitelistedAddressesResponse) MarshalToSizedBuffer(dAtA []byte)
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.AddressPairs) > 0 {
 		for iNdEx := len(m.AddressPairs) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1307,6 +1513,10 @@ func (m *QueryAllRateLimitsRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1321,6 +1531,10 @@ func (m *QueryAllRateLimitsResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -1365,6 +1579,10 @@ func (m *QueryRateLimitsByChainIDRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1380,6 +1598,10 @@ func (m *QueryRateLimitsByChainIDResponse) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1391,6 +1613,10 @@ func (m *QueryRateLimitsByChannelOrClientIDRequest) Size() (n int) {
 	_ = l
 	l = len(m.ChannelOrClientId)
 	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
@@ -1408,6 +1634,10 @@ func (m *QueryRateLimitsByChannelOrClientIDResponse) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1417,6 +1647,10 @@ func (m *QueryAllBlacklistedDenomsRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1432,6 +1666,10 @@ func (m *QueryAllBlacklistedDenomsResponse) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1441,6 +1679,10 @@ func (m *QueryAllWhitelistedAddressesRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -1455,6 +1697,10 @@ func (m *QueryAllWhitelistedAddressesResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -1494,6 +1740,42 @@ func (m *QueryAllRateLimitsRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryAllRateLimitsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1575,6 +1857,42 @@ func (m *QueryAllRateLimitsResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.RateLimits = append(m.RateLimits, RateLimit{})
 			if err := m.RateLimits[len(m.RateLimits)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1860,6 +2178,42 @@ func (m *QueryRateLimitsByChainIDRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.ChainId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1941,6 +2295,42 @@ func (m *QueryRateLimitsByChainIDResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.RateLimits = append(m.RateLimits, RateLimit{})
 			if err := m.RateLimits[len(m.RateLimits)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2026,6 +2416,42 @@ func (m *QueryRateLimitsByChannelOrClientIDRequest) Unmarshal(dAtA []byte) error
 			}
 			m.ChannelOrClientId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2110,6 +2536,42 @@ func (m *QueryRateLimitsByChannelOrClientIDResponse) Unmarshal(dAtA []byte) erro
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2160,6 +2622,42 @@ func (m *QueryAllBlacklistedDenomsRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryAllBlacklistedDenomsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2242,6 +2740,42 @@ func (m *QueryAllBlacklistedDenomsResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.Denoms = append(m.Denoms, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2292,6 +2826,42 @@ func (m *QueryAllWhitelistedAddressesRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryAllWhitelistedAddressesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -2373,6 +2943,42 @@ func (m *QueryAllWhitelistedAddressesResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.AddressPairs = append(m.AddressPairs, WhitelistedAddressPair{})
 			if err := m.AddressPairs[len(m.AddressPairs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
