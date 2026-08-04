@@ -79,8 +79,13 @@ func DefaultGenesisState() GenesisState {
 // failure.
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
-	// the next sequence used in creating connection identifiers.
-	var maxSequence uint64
+	// the next sequence used in creating channel identifiers.
+	// hasSequence records whether any identifier contributed a sequence at all,
+	// so that a genesis whose only identifier has sequence 0 is still checked.
+	var (
+		maxSequence uint64
+		hasSequence bool
+	)
 
 	for i, channel := range gs.Channels {
 		sequence, err := ParseChannelSequence(channel.ChannelId)
@@ -88,16 +93,17 @@ func (gs GenesisState) Validate() error {
 			return err
 		}
 
-		if sequence > maxSequence {
+		if !hasSequence || sequence > maxSequence {
 			maxSequence = sequence
 		}
+		hasSequence = true
 
 		if err := channel.ValidateBasic(); err != nil {
 			return fmt.Errorf("invalid channel %v channel index %d: %w", channel, i, err)
 		}
 	}
 
-	if maxSequence != 0 && maxSequence >= gs.NextChannelSequence {
+	if hasSequence && maxSequence >= gs.NextChannelSequence {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidSequence, "next channel sequence %d must be greater than maximum sequence used in channel identifier %d", gs.NextChannelSequence, maxSequence)
 	}
 

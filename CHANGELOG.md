@@ -59,6 +59,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (core/02-client, core/03-connection, core/04-channel) [\#9019](https://github.com/cosmos/ibc-go/pull/9019) Genesis validation no longer skips the next-sequence check when the highest identifier sequence is zero, so a genesis containing `07-tendermint-0`, `connection-0` or `channel-0` with a next sequence of `0` is now rejected instead of allowing the next generated identifier to collide with the existing one.
 
 ### Testing API
 

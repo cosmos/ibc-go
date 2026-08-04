@@ -43,7 +43,12 @@ func DefaultGenesisState() GenesisState {
 func (gs GenesisState) Validate() error {
 	// keep track of the max sequence to ensure it is less than
 	// the next sequence used in creating connection identifiers.
-	var maxSequence uint64
+	// hasSequence records whether any identifier contributed a sequence at all,
+	// so that a genesis whose only identifier has sequence 0 is still checked.
+	var (
+		maxSequence uint64
+		hasSequence bool
+	)
 
 	for i, conn := range gs.Connections {
 		if conn.Id != exported.LocalhostConnectionID {
@@ -51,9 +56,10 @@ func (gs GenesisState) Validate() error {
 			if err != nil {
 				return err
 			}
-			if sequence > maxSequence {
+			if !hasSequence || sequence > maxSequence {
 				maxSequence = sequence
 			}
+			hasSequence = true
 		}
 
 		if err := conn.ValidateBasic(); err != nil {
@@ -72,7 +78,7 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	if maxSequence != 0 && maxSequence >= gs.NextConnectionSequence {
+	if hasSequence && maxSequence >= gs.NextConnectionSequence {
 		return fmt.Errorf("next connection sequence %d must be greater than maximum sequence used in connection identifier %d", gs.NextConnectionSequence, maxSequence)
 	}
 

@@ -33,10 +33,24 @@ func TestValidateGenesis(t *testing.T) {
 				[]types.ConnectionPaths{
 					{clientID, []string{connectionID}},
 				},
-				0,
+				1,
 				types.DefaultParams(),
 			),
 			expError: nil,
+		},
+		{
+			name: "next connection sequence is equal to the only connection identifier sequence",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedConnection{
+					types.NewIdentifiedConnection(connectionID, types.NewConnectionEnd(types.INIT, clientID, types.Counterparty{clientID2, connectionID2, commitmenttypes.NewMerklePrefix([]byte("prefix"))}, []*types.Version{ibctesting.ConnectionVersion}, 500)),
+				},
+				[]types.ConnectionPaths{
+					{clientID, []string{connectionID}},
+				},
+				0,
+				types.DefaultParams(),
+			),
+			expError: errors.New("next connection sequence 0 must be greater than maximum sequence used in connection identifier 0"),
 		},
 		{
 			name: "invalid connection",
@@ -131,7 +145,7 @@ func TestValidateGenesis(t *testing.T) {
 				[]types.ConnectionPaths{
 					{clientID, []string{connectionID}},
 				},
-				0,
+				1,
 				types.Params{},
 			),
 			expError: errors.New("MaxExpectedTimePerBlock cannot be zero"),

@@ -213,6 +213,21 @@ func TestValidateGenesis(t *testing.T) {
 			),
 			expErr: ibcerrors.ErrInvalidSequence,
 		},
+		{
+			name: "next channel sequence is equal to the only channel identifier sequence",
+			genState: types.NewGenesisState(
+				[]types.IdentifiedChannel{
+					types.NewIdentifiedChannel(
+						testPort1, testChannel1, types.NewChannel(
+							types.INIT, testChannelOrder, counterparty2, []string{testConnectionIDA}, testChannelVersion,
+						),
+					),
+				},
+				nil, nil, nil, nil, nil, nil,
+				0,
+			),
+			expErr: ibcerrors.ErrInvalidSequence,
+		},
 	}
 
 	for _, tc := range testCases {
