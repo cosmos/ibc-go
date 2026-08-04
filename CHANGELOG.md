@@ -59,7 +59,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
-* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire the pagination flags of the `checksums` CLI query into the query request, they were previously accepted but ignored. Note that as a result, bare invocations now report `pagination.total` as `0`; pass `--count-total` to get the real count.
+* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire pagination flags into the `checksums` CLI query; they were previously accepted but ignored. Bare invocations now report `pagination.total` as `0`; pass `--count-total` for the real count.
 
 ### Testing API
 
