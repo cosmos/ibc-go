@@ -43,9 +43,13 @@ var (
 	PendingSendPacketChannelLength = 64
 )
 
-// Get the rate limit byte key built from the denom and channelId
-func RateLimitItemKey(denom string, channelID string) []byte {
-	return append(bytes(denom), bytes(channelID)...)
+// RateLimitItemKey returns an unambiguous key for a (denom, channelOrClientID) pair:
+//
+//	uvarint(len(channelOrClientID)) || channelOrClientID || denom
+//
+// Channel-first ordering groups a channel or client's rate limits by prefix.
+func RateLimitItemKey(denom string, channelOrClientID string) []byte {
+	return lengthPrefixedKey(channelOrClientID, denom)
 }
 
 // Get the pending packet key from the channel ID and sequence number
@@ -65,7 +69,22 @@ func PendingPacketKey(channelID string, sequenceNumber uint64) ([]byte, error) {
 	return append(channelIDBz, sequenceNumberBz...), nil
 }
 
-// Get the whitelist path key from a sender and receiver address
+// AddressWhitelistKey returns an unambiguous key for a (sender, receiver) pair:
+//
+//	uvarint(len(sender)) || sender || receiver
 func AddressWhitelistKey(sender, receiver string) []byte {
-	return append(bytes(sender), bytes(receiver)...)
+	return lengthPrefixedKey(sender, receiver)
+}
+
+// lengthPrefixedKey returns uvarint(len(first)) || first || second.
+//
+// Grown by append rather than sized up front on purpose: a make() capacity
+// computed from the argument lengths trips CodeQL go/allocation-size-overflow,
+// and bounding that computation with a panic trips beginendblock-panic, since
+// BeginBlocker builds these keys and must never halt the chain. The extra
+// allocations are noise next to the store read that follows.
+func lengthPrefixedKey(first, second string) []byte {
+	key := binary.AppendUvarint(nil, uint64(len(first)))
+	key = append(key, first...)
+	return append(key, second...)
 }
