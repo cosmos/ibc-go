@@ -40,8 +40,10 @@ jobs:
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
          - name: Build and push image
+           env:
+             IBC_GO_VERSION: ${{ inputs.ibc-go-version }}
            run: |
             # remove any `/` characters from the docker tag and replace them with a -
             docker_tag="$(echo $GIT_TAG | sed 's/[^a-zA-Z0-9\.]/-/g')"
-            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg IBC_GO_VERSION=${{ inputs.ibc-go-version }}
+            docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}" --build-arg "IBC_GO_VERSION=${IBC_GO_VERSION}"
             docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:${docker_tag}"
