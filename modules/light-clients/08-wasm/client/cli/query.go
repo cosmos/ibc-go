@@ -53,7 +53,7 @@ func getCmdChecksums() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "checksums",
 		Short:   "Query all checksums",
-		Long:    "Query all checksums for all deployed light client wasm contracts",
+		Long:    "Query all checksums for all deployed light client wasm contracts. The --page-key flag expects the base64-encoded next_key from a previous response, not a hex-encoded checksum",
 		Example: fmt.Sprintf("%s query %s wasm checksums", version.AppName, ibcexported.ModuleName),
 		Args:    cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -62,7 +62,20 @@ func getCmdChecksums() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			req := types.QueryChecksumsRequest{}
+
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
+			if err != nil {
+				return err
+			}
+
+			req := types.QueryChecksumsRequest{
+				Pagination: pageReq,
+			}
 
 			res, err := queryClient.Checksums(context.Background(), &req)
 			if err != nil {
@@ -74,7 +87,7 @@ func getCmdChecksums() *cobra.Command {
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "all wasm code")
+	flags.AddPaginationFlagsToCmd(cmd, "checksums")
 
 	return cmd
 }
