@@ -12,7 +12,8 @@ import (
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
-// LegacyParamsKey is the store key used by the deprecated PFM params state.
+// LegacyParamsKey is the store key the upstream packetforward middleware used for
+// its params (ParamsKey in packetforward/types/keys.go, removed by cosmos/ibc-apps#202).
 var LegacyParamsKey = []byte{0x00}
 
 // Migrate migrates the x/packetforward module state from consensus version 3 to version 4.
