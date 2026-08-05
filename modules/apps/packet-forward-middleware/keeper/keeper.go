@@ -141,10 +141,9 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 			if err := k.bankKeeper.SendCoins(ctx, escrowAddress, refundEscrowAddress, newToken); err != nil {
 				return fmt.Errorf("failed to send coins from escrow account to refund escrow account: %w", err)
 			}
-			if err := k.transferKeeper.SubFromChannelEscrow(ctx, packet.SourceChannel, coin); err != nil {
+			if err := k.moveEscrow(ctx, packet.SourceChannel, inFlightPacket.RefundChannelId, coin); err != nil {
 				return err
 			}
-			k.transferKeeper.AddToChannelEscrow(ctx, inFlightPacket.RefundChannelId, coin)
 		} else {
 			// Transfer the coins from the escrow account to the module account and burn them.
 			if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, escrowAddress, transfertypes.ModuleName, newToken); err != nil {
@@ -158,7 +157,7 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 				panic(fmt.Sprintf("cannot burn coins after a successful send from escrow account to module account: %v", err))
 			}
 
-			if err := k.transferKeeper.SubFromChannelEscrow(ctx, packet.SourceChannel, coin); err != nil {
+			if err := k.unescrowCoin(ctx, packet.SourceChannel, coin); err != nil {
 				return err
 			}
 		}
@@ -177,6 +176,21 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 	}
 
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, inFlightPacket.ChannelPacket(), ack)
+}
+
+// unescrowCoin subtracts a coin from the channel and total escrow accounting.
+func (k *Keeper) unescrowCoin(ctx sdk.Context, channel string, coin sdk.Coin) error {
+	return k.transferKeeper.SubFromChannelEscrow(ctx, channel, coin)
+}
+
+// moveEscrow moves escrow accounting from one channel to another.
+func (k *Keeper) moveEscrow(ctx sdk.Context, sourceChannel, destinationChannel string, coin sdk.Coin) error {
+	if err := k.transferKeeper.SubFromChannelEscrow(ctx, sourceChannel, coin); err != nil {
+		return err
+	}
+
+	k.transferKeeper.AddToChannelEscrow(ctx, destinationChannel, coin)
+	return nil
 }
 
 func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label) error {
