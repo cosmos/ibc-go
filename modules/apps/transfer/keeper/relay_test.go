@@ -218,7 +218,11 @@ func (s *KeeperTestSuite) TestSendTransfer() {
 				memo,
 			)
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(s.chainA.GetContext(), msg)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(cacheCtx, msg)
+			if err == nil {
+				writeCache()
+			}
 
 			if tc.expError == nil {
 				s.Require().NoError(err)
@@ -751,7 +755,11 @@ func (s *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			sourceChannel := path.EndpointA.ChannelID
 			preAcknowledgementBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := s.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(s.chainA.GetContext(), sourcePort, sourceChannel, data, tc.ack)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			err := s.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(cacheCtx, sourcePort, sourceChannel, data, tc.ack)
+			if err == nil {
+				writeCache()
+			}
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainA.GetContext(), denom.IBCDenom())
@@ -986,7 +994,11 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 			sourceChannel := path.EndpointA.ChannelID
 			preTimeoutBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := s.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(s.chainA.GetContext(), sourcePort, sourceChannel, data)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			err := s.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(cacheCtx, sourcePort, sourceChannel, data)
+			if err == nil {
+				writeCache()
+			}
 
 			postTimeoutBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 			deltaAmount := postTimeoutBalance.Amount.Sub(preTimeoutBalance.Amount)
