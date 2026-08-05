@@ -111,6 +111,7 @@ linters:
       - path: e2e/*
         linters:
           - testpackage
+          - goconst
       - linters:
           - revive
         text: '^package-naming:'
