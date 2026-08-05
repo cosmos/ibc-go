@@ -240,6 +240,22 @@ func (s *KeeperTestSuite) TestMigrate3to4() {
 			expectedErr: "invalid in-flight packet found during migration",
 		},
 		{
+			name: "failure: empty packet timeout height",
+			malleate: func() {
+				packet := addLegacyPacket(1, false)
+				packet.PacketTimeoutHeight = ""
+
+				rawBz, err := packet.Marshal()
+				s.Require().NoError(err)
+
+				setRawPacket(packet.PacketSrcChannelId, packet.RefundSequence, rawBz)
+			},
+			expectedErr: fmt.Sprintf(
+				"invalid in-flight packet found during migration for key %q",
+				string(pfmtypes.RefundPacketKey("channel-1", "transfer", 1)),
+			),
+		},
+		{
 			name: "success: legacy params and one refundable in-flight packet",
 			malleate: func() {
 				addLegacyParams()

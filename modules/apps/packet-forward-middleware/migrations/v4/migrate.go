@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
 	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
 )
 
 // LegacyParamsKey is the store key the upstream packetforward middleware used for
@@ -55,6 +56,10 @@ func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.B
 			RefundSequence:         legacyInFlightPacket.RefundSequence,
 			RetriesRemaining:       legacyInFlightPacket.RetriesRemaining,
 			Timeout:                legacyInFlightPacket.Timeout,
+		}
+
+		if _, err := clienttypes.ParseHeight(inFlightPacket.PacketTimeoutHeight); err != nil {
+			return fmt.Errorf("invalid in-flight packet found during migration for key %q: %w", string(itr.Key()), err)
 		}
 
 		if err := inFlightPacket.ChannelPacket().ValidateBasic(); err != nil {
