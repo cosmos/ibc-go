@@ -288,13 +288,13 @@ func (k *Keeper) refundPacketTokens(
 
 // EscrowCoin sends the coin to the channel or client escrow account and updates its accounting.
 func (k *Keeper) EscrowCoin(ctx sdk.Context, portID, channelOrClientID string, sender sdk.AccAddress, coin sdk.Coin) error {
+	k.AddToChannelEscrow(ctx, channelOrClientID, coin)
+
 	escrowAddress := types.GetEscrowAddress(portID, channelOrClientID)
 	if err := k.BankKeeper.SendCoins(ctx, sender, escrowAddress, sdk.NewCoins(coin)); err != nil {
 		// failure is expected for insufficient balances
 		return err
 	}
-
-	k.AddToChannelEscrow(ctx, channelOrClientID, coin)
 
 	return nil
 }
@@ -305,9 +305,9 @@ func (k *Keeper) UnescrowCoin(ctx sdk.Context, portID, channelOrClientID string,
 	if channelEscrow.Amount.LT(coin.Amount) {
 		return errorsmod.Wrapf(types.ErrInsufficientEscrow, "unable to unescrow tokens: %s/%s has %s, requested %s", portID, channelOrClientID, channelEscrow, coin)
 	}
-	totalEscrow := k.GetTotalEscrowForDenom(ctx, coin.Denom)
-	if totalEscrow.Amount.LT(coin.Amount) {
-		return fmt.Errorf("total escrow invariant broken for denom %s: total escrow %s is less than amount to subtract %s", coin.Denom, totalEscrow, coin)
+
+	if err := k.SubFromChannelEscrow(ctx, channelOrClientID, coin); err != nil {
+		return err
 	}
 
 	escrowAddress := types.GetEscrowAddress(portID, channelOrClientID)
@@ -319,7 +319,7 @@ func (k *Keeper) UnescrowCoin(ctx sdk.Context, portID, channelOrClientID string,
 		return errorsmod.Wrap(err, "unable to unescrow tokens, this may be caused by a malicious counterparty module or a bug: please open an issue on counterparty module")
 	}
 
-	return k.SubFromChannelEscrow(ctx, channelOrClientID, coin)
+	return nil
 }
 
 // AddToChannelEscrow adds a coin to both the channel or client escrow and total escrow accounting.
