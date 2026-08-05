@@ -22,14 +22,8 @@ var LegacyParamsKey = []byte{0x00}
 func Migrate(ctx sdk.Context, storeService corestore.KVStoreService, cdc codec.BinaryCodec) error {
 	store := storeService.OpenKVStore(ctx)
 
-	hasLegacyParams, err := store.Has(LegacyParamsKey)
-	if err != nil {
-		return fmt.Errorf("failed to check legacy PFM params key: %w", err)
-	}
-	if hasLegacyParams {
-		if err := store.Delete(LegacyParamsKey); err != nil {
-			return fmt.Errorf("failed to delete legacy PFM params key: %w", err)
-		}
+	if err := store.Delete(LegacyParamsKey); err != nil {
+		return fmt.Errorf("failed to delete legacy PFM params key: %w", err)
 	}
 
 	itr, err := store.Iterator(nil, nil)
