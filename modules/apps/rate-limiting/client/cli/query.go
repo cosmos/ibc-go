@@ -52,7 +52,12 @@ Example:
 
 			// Query all rate limits for the channel/client ID if denom is not specified.
 			if denom == "" {
-				pageReq, err := client.ReadPageRequest(cmd.Flags())
+				flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+				if err != nil {
+					return err
+				}
+
+				pageReq, err := client.ReadPageRequest(flagSet)
 				if err != nil {
 					return err
 				}
@@ -109,7 +114,13 @@ func GetCmdQueryAllRateLimits() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
 			if err != nil {
 				return err
 			}
@@ -146,7 +157,12 @@ func GetCmdQueryRateLimitsByChainID() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
 			if err != nil {
 				return err
 			}
@@ -182,7 +198,13 @@ func GetCmdQueryAllBlacklistedDenoms() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
 			if err != nil {
 				return err
 			}
@@ -214,7 +236,13 @@ func GetCmdQueryAllWhitelistedAddresses() *cobra.Command {
 				return err
 			}
 			queryClient := types.NewQueryClient(clientCtx)
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
 			if err != nil {
 				return err
 			}
