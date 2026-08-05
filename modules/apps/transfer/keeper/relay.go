@@ -348,21 +348,6 @@ func (k *Keeper) SubFromChannelEscrow(ctx sdk.Context, channelOrClientID string,
 	return nil
 }
 
-// MoveChannelEscrow moves accounting between escrow accounts without changing total escrow.
-// This is for middleware modules that want to move escrow between channels or clients without changing the total amount of escrowed tokens.
-func (k *Keeper) MoveChannelEscrow(ctx sdk.Context, sourceChannelOrClientID, destChannelOrClientID string, coin sdk.Coin) error {
-	sourceEscrow := k.GetChannelEscrowForDenom(ctx, sourceChannelOrClientID, coin.Denom)
-	if sourceEscrow.Amount.LT(coin.Amount) {
-		return errorsmod.Wrapf(types.ErrInsufficientEscrow, "%s has %s, requested %s", sourceChannelOrClientID, sourceEscrow, coin)
-	}
-
-	destEscrow := k.GetChannelEscrowForDenom(ctx, destChannelOrClientID, coin.Denom)
-	k.SetChannelEscrowForDenom(ctx, sourceChannelOrClientID, sourceEscrow.Sub(coin))
-	k.SetChannelEscrowForDenom(ctx, destChannelOrClientID, destEscrow.Add(coin))
-
-	return nil
-}
-
 // tokenFromCoin constructs an IBC token given an SDK coin.
 func (k *Keeper) TokenFromCoin(ctx sdk.Context, coin sdk.Coin) (types.Token, error) {
 	// if the coin does not have an IBC denom, return as is

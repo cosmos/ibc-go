@@ -21,7 +21,6 @@ type TransferKeeper interface {
 	GetChannelEscrowForDenom(ctx sdk.Context, channelOrClientID, denom string) sdk.Coin
 	AddToChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin)
 	SubFromChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin) error
-	MoveChannelEscrow(ctx sdk.Context, sourceChannelOrClientID, destChannelOrClientID string, coin sdk.Coin) error
 	DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error)
 
 	// Only used for v3 migration

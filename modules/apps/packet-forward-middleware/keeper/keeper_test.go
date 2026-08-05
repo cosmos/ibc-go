@@ -363,10 +363,6 @@ func (*transferMock) SubFromChannelEscrow(_ sdk.Context, _ string, _ sdk.Coin) e
 	return nil
 }
 
-func (*transferMock) MoveChannelEscrow(_ sdk.Context, _, _ string, _ sdk.Coin) error {
-	return nil
-}
-
 func (*transferMock) DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error) {
 	return "", nil
 }

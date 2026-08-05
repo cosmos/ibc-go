@@ -141,9 +141,10 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 			if err := k.bankKeeper.SendCoins(ctx, escrowAddress, refundEscrowAddress, newToken); err != nil {
 				return fmt.Errorf("failed to send coins from escrow account to refund escrow account: %w", err)
 			}
-			if err := k.transferKeeper.MoveChannelEscrow(ctx, packet.SourceChannel, inFlightPacket.RefundChannelId, coin); err != nil {
+			if err := k.transferKeeper.SubFromChannelEscrow(ctx, packet.SourceChannel, coin); err != nil {
 				return err
 			}
+			k.transferKeeper.AddToChannelEscrow(ctx, inFlightPacket.RefundChannelId, coin)
 		} else {
 			// Transfer the coins from the escrow account to the module account and burn them.
 			if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, escrowAddress, transfertypes.ModuleName, newToken); err != nil {
