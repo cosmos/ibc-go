@@ -19,7 +19,7 @@ func getICS27PacketABI() abi.Arguments {
 	// - bytes for Salt and Payload.
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
-			Name: AttributeKeySender,
+			Name: "sender",
 			Type: solidityTypeString,
 		},
 		{
@@ -27,7 +27,7 @@ func getICS27PacketABI() abi.Arguments {
 			Type: solidityTypeString,
 		},
 		{
-			Name: AttributeKeySalt,
+			Name: "salt",
 			Type: solidityTypeBytes,
 		},
 		{

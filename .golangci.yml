@@ -112,6 +112,11 @@ linters:
         linters:
           - testpackage
           - goconst
+      # "sender"/"salt" recur as proto field names, ABI component names, and
+      # log keys; goconst wrongly suggests reusing the event attribute constants.
+      - path: modules/apps/27-gmp/types/(autocli|solidity_abi)\.go
+        linters:
+          - goconst
       - linters:
           - revive
         text: '^package-naming:'
