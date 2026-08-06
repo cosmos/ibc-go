@@ -97,21 +97,23 @@ func (m Migrator) MigrateChannelEscrow(ctx sdk.Context) error {
 		calculatedTotal = calculatedTotal.Add(balances...)
 	}
 
-	existingTotal := m.keeper.GetAllTotalEscrowed(ctx)
-	if !calculatedTotal.Equal(existingTotal) {
-		return fmt.Errorf("calculated channel escrow %s does not match existing total escrow %s", calculatedTotal, existingTotal)
-	}
-
 	if err := m.keeper.ChannelEscrows.Clear(ctx, nil); err != nil {
 		return err
 	}
+	for _, coin := range m.keeper.GetAllTotalEscrowed(ctx) {
+		m.keeper.SetTotalEscrowForDenom(ctx, sdk.NewInt64Coin(coin.Denom, 0))
+	}
+
 	for _, escrow := range channelEscrows {
 		for _, coin := range escrow.Tokens {
 			m.keeper.SetChannelEscrowForDenom(ctx, escrow.ChannelOrClientId, coin)
 		}
 	}
+	for _, coin := range calculatedTotal {
+		m.keeper.SetTotalEscrowForDenom(ctx, coin)
+	}
 
-	m.keeper.Logger(ctx).Info("successfully set per-channel escrow", "number of channels or clients", len(channelEscrows), "number of denominations", calculatedTotal.Len())
+	m.keeper.Logger(ctx).Info("successfully set channel and total escrow", "number of channels or clients", len(channelEscrows), "number of denominations", calculatedTotal.Len())
 	return nil
 }
 

@@ -297,7 +297,8 @@ func (s *KeeperTestSuite) TestMigrateChannelEscrow() {
 	}
 
 	expectedTotal := sdk.NewInt64Coin(sdk.DefaultBondDenom, 150)
-	transferKeeper.SetTotalEscrowForDenom(ctx, expectedTotal)
+	transferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewInt64Coin(sdk.DefaultBondDenom, 1))
+	transferKeeper.SetTotalEscrowForDenom(ctx, sdk.NewInt64Coin("stale", 1))
 	transferKeeper.SetChannelEscrowForDenom(ctx, "channel-999", sdk.NewInt64Coin("stale", 1))
 
 	migrator := transferkeeper.NewMigrator(*transferKeeper)
@@ -307,10 +308,11 @@ func (s *KeeperTestSuite) TestMigrateChannelEscrow() {
 		s.Require().Equal(escrow.coin, transferKeeper.GetChannelEscrowForDenom(ctx, escrow.channelOrClientID, escrow.coin.Denom))
 	}
 	s.Require().Equal(expectedTotal, transferKeeper.GetTotalEscrowForDenom(ctx, sdk.DefaultBondDenom))
+	s.Require().True(transferKeeper.GetTotalEscrowForDenom(ctx, "stale").IsZero())
 	s.Require().True(transferKeeper.GetChannelEscrowForDenom(ctx, "channel-999", "stale").IsZero())
 }
 
-func (s *KeeperTestSuite) TestMigrateChannelEscrowTotalMismatch() {
+func (s *KeeperTestSuite) TestMigrateChannelEscrowUpdatesMismatchedTotal() {
 	path := ibctesting.NewTransferPath(s.chainA, s.chainB)
 	path.Setup()
 
@@ -324,10 +326,9 @@ func (s *KeeperTestSuite) TestMigrateChannelEscrowTotalMismatch() {
 	transferKeeper.SetTotalEscrowForDenom(ctx, existingTotal)
 
 	migrator := transferkeeper.NewMigrator(*transferKeeper)
-	err := migrator.MigrateChannelEscrow(ctx)
-	s.Require().ErrorContains(err, "does not match existing total escrow")
-	s.Require().Equal(existingTotal, transferKeeper.GetTotalEscrowForDenom(ctx, sdk.DefaultBondDenom))
-	s.Require().Empty(transferKeeper.GetAllChannelEscrows(ctx))
+	s.Require().NoError(migrator.MigrateChannelEscrow(ctx))
+	s.Require().Equal(coin, transferKeeper.GetTotalEscrowForDenom(ctx, sdk.DefaultBondDenom))
+	s.Require().Equal(coin, transferKeeper.GetChannelEscrowForDenom(ctx, path.EndpointA.ChannelID, sdk.DefaultBondDenom))
 }
 
 func (s *KeeperTestSuite) TestMigratorMigrateMetadata() {
