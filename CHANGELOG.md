@@ -42,7 +42,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
+<<<<<<< HEAD
 * (apps/rate-limiting) [\#8995](https://github.com/cosmos/ibc-go/pull/8995) style(ratelimit)!: fix typos (backport of [\#8994](https://github.com/cosmos/ibc-go/pull/8994))
+=======
+* (apps/rate-limiting) [\#8996](https://github.com/cosmos/ibc-go/pull/8996) Paginate the rate-limiting queries to avoid returning the full store contents in a single response.
+
+### Dependencies
+
+### API Breaking
+
+### State Machine Breaking
+
+* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
+
+### Improvements
+
+### Bug Fixes
+
+* (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
+* (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
+* (core, apps) [\#9024](https://github.com/cosmos/ibc-go/pull/9024) Decode base64 `--page-key` in CLI queries so a printed `next_key` round-trips. `--page-key` now expects that base64 value, not raw bytes.
+* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire pagination flags into the `checksums` CLI query; they were previously accepted but ignored. Bare invocations now report `pagination.total` as `0`; pass `--count-total` for the real count.
+
+### Testing API
+>>>>>>> 85696210 (fix(apps/pfm): remove legacy params before v3 to v4 migration (#9006))
 
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
