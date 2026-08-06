@@ -45,13 +45,15 @@ func (gs GenesisState) Validate() error {
 	// ChannelEscrows is nil when importing a legacy genesis created before
 	// per-channel escrow accounting was added.
 	if gs.ChannelEscrows != nil {
-		gs.validateChannelEscrows(gs.ChannelEscrows)
+		if err := gs.validateChannelEscrows(); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (gs GenesisState) validateChannelEscrows(channelEscrows []ChannelEscrow) error {
+func (gs GenesisState) validateChannelEscrows() error {
 	seen := make(map[string]struct{}, len(gs.ChannelEscrows))
 	var channelTotal sdk.Coins
 	for _, escrow := range gs.ChannelEscrows {
