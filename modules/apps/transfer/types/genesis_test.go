@@ -67,6 +67,15 @@ func TestValidateGenesis(t *testing.T) {
 				PortId:        types.PortID,
 				TotalEscrowed: sdk.NewCoins(sdk.NewInt64Coin("stake", 10)),
 			},
+			nil,
+		},
+		{
+			"channel escrow present but empty",
+			&types.GenesisState{
+				PortId:         types.PortID,
+				TotalEscrowed:  sdk.NewCoins(sdk.NewInt64Coin("stake", 10)),
+				ChannelEscrows: []types.ChannelEscrow{},
+			},
 			errors.New("total escrowed"),
 		},
 	}

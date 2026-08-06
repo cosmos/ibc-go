@@ -12,11 +12,10 @@ import (
 // NewGenesisState creates a new ibc-transfer GenesisState instance.
 func NewGenesisState(portID string, denoms Denoms, params Params, totalEscrowed sdk.Coins) *GenesisState {
 	return &GenesisState{
-		PortId:         portID,
-		Denoms:         denoms,
-		Params:         params,
-		TotalEscrowed:  totalEscrowed,
-		ChannelEscrows: []ChannelEscrow{},
+		PortId:        portID,
+		Denoms:        denoms,
+		Params:        params,
+		TotalEscrowed: totalEscrowed,
 	}
 }
 
@@ -43,7 +42,16 @@ func (gs GenesisState) Validate() error {
 	if err := gs.TotalEscrowed.Validate(); err != nil {
 		return err
 	}
+	// ChannelEscrows is nil when importing a legacy genesis created before
+	// per-channel escrow accounting was added.
+	if gs.ChannelEscrows != nil {
+		gs.validateChannelEscrows(gs.ChannelEscrows)
+	}
 
+	return nil
+}
+
+func (gs GenesisState) validateChannelEscrows(channelEscrows []ChannelEscrow) error {
 	seen := make(map[string]struct{}, len(gs.ChannelEscrows))
 	var channelTotal sdk.Coins
 	for _, escrow := range gs.ChannelEscrows {
