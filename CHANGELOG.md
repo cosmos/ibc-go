@@ -54,7 +54,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
 
-### Improvements
 
 ### Bug Fixes
 
