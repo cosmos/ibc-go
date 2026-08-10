@@ -67,7 +67,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Testing API
 
->>>>>>> 85696210 (fix(apps/pfm): remove legacy params before v3 to v4 migration (#9006))
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
 ### Features
