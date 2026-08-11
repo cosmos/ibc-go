@@ -61,7 +61,10 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof, attestationType
 			return errorsmod.Wrapf(ErrInvalidSignature, "signature %d has invalid length: expected %d, got %d", i, SignatureLength, len(sig))
 		}
 
-		normalizedSig := normalizeSignature(sig)
+		normalizedSig, err := normalizeSignature(sig)
+		if err != nil {
+			return errorsmod.Wrapf(ErrInvalidSignature, "signature %d: %v", i, err)
+		}
 
 		recoveredPubKey, err := crypto.SigToPub(hash[:], normalizedSig)
 		if err != nil {
@@ -94,7 +97,11 @@ func (cs *ClientState) verifySignatures(proof *AttestationProof, attestationType
 // normalizeSignature converts the ECDSA recovery ID (v) from Ethereum format (27/28)
 // to raw format (0/1). go-ethereum's crypto.SigToPub expects raw format, while
 // Solidity's ECDSA.recover and most signing libraries produce Ethereum format.
-func normalizeSignature(sig []byte) []byte {
+//
+// Recovery IDs outside {0, 1, 27, 28} are rejected: go-ethereum's cgo and non-cgo
+// backends disagree on which out-of-spec values they accept, so passing one through
+// could verify on some validators and fail on others.
+func normalizeSignature(sig []byte) ([]byte, error) {
 	normalized := make([]byte, SignatureLength)
 	copy(normalized, sig)
 
@@ -104,9 +111,10 @@ func normalizeSignature(sig []byte) []byte {
 		normalized[recoveryIDIndex] = 0
 	case 28:
 		normalized[recoveryIDIndex] = 1
+	case 0, 1:
 	default:
-		// Already in raw format (0/1) or unknown, leave unchanged
+		return nil, errorsmod.Wrapf(ErrInvalidSignature, "invalid recovery id: %d", v)
 	}
 
-	return normalized
+	return normalized, nil
 }

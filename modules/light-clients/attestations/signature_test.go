@@ -74,6 +74,22 @@ func (s *AttestationsTestSuite) TestVerifySignatures() {
 			},
 			errContains: "quorum not met",
 		},
+		{
+			// v = recovery_id + 4 recovers on non-cgo builds but errors on cgo builds.
+			name: "failure: out-of-spec recovery id (cgo/non-cgo divergent)",
+			setupProof: func(attestationData []byte) *attestations.AttestationProof {
+				hash := attestations.TaggedSigningInput(attestationData, attestations.AttestationTypeState)
+				sig, _ := crypto.Sign(hash[:], s.attestors[0])
+				sig[64] += 4
+				sig2, _ := crypto.Sign(hash[:], s.attestors[1])
+				sig3, _ := crypto.Sign(hash[:], s.attestors[2])
+				return &attestations.AttestationProof{
+					AttestationData: attestationData,
+					Signatures:      [][]byte{sig, sig2, sig3},
+				}
+			},
+			errContains: "invalid recovery id",
+		},
 	}
 
 	for _, tc := range testCases {
