@@ -36,26 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### Features
-
-* (apps/rate-limiting) [\#8268](https://github.com/cosmos/ibc-go/pull/8268) feat: rate limit module
-* [\#8545](https://github.com/cosmos/ibc-go/pull/8545) Support sending multiple payloads in the same packet for atomic payload execution.
-* [\#8473](https://github.com/cosmos/ibc-go/pull/8473) Support sending v2 packets on v1 channel identifiers using aliasing.
-
-### Improvements
-
-* (apps/rate-limiting) [\#8996](https://github.com/cosmos/ibc-go/pull/8996) Paginate the rate-limiting queries to avoid returning the full store contents in a single response.
-
-### State Machine Breaking
-
-* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
-
 ### Bug Fixes
 
 * (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
-* (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
-* (core, apps) [\#9024](https://github.com/cosmos/ibc-go/pull/9024) Decode base64 `--page-key` in CLI queries so a printed `next_key` round-trips. `--page-key` now expects that base64 value, not raw bytes.
-* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire pagination flags into the `checksums` CLI query; they were previously accepted but ignored. Bare invocations now report `pagination.total` as `0`; pass `--count-total` for the real count.
 
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
