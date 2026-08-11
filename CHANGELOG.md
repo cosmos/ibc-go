@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
+
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
 ### Features
