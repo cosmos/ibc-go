@@ -12,12 +12,16 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+permissions: {}
+
 env:
   DOCKER_IMAGE_NAME: ghcr.io/cosmos/ibc-go-simd
 
 jobs:
   e2e-upgrade-tests:
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix: 
@@ -92,6 +96,8 @@ jobs:
   # the published-tag-only matrix above.
   legacy-v10-ibc-apps-upgrade-tests:
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

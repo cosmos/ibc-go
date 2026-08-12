@@ -2,10 +2,7 @@ name: golangci-lint
 on:
   push:
   pull_request:
-permissions:
-  contents: read
-  # Optional: allow read access to pull request. Use with `only-new-issues` option.
-  pull-requests: read
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,6 +13,9 @@ jobs:
     name: lint
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
     strategy:
       matrix:
         working-directory: ['.', 'modules/light-clients/08-wasm', 'e2e']

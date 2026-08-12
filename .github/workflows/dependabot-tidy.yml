@@ -6,6 +6,8 @@ on:
       - opened
       - synchronize
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,8 +17,7 @@ jobs:
     timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Check out PR

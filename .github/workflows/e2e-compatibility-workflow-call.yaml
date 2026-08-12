@@ -20,11 +20,15 @@ on:
         type: string
         default: ghcr.io/cosmos/ibc-go-simd
 
+permissions: {}
+
 jobs:
   load-test-matrix:
     outputs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -40,6 +44,8 @@ jobs:
 
   e2e:
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     needs: load-test-matrix
     # this job is skipped if the test-matrix generated is empty. i.e. if the file was not present.
     # this allows us to not have to handle special case versions which may not have certain tests run against them.
