@@ -151,6 +151,44 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			s.Require().True(ok)
 		}, types.ErrTimeoutElapsed},
+		{"timeout height has unreachable revision number", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			latestHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			s.Require().True(ok)
+			timeoutHeight = clienttypes.NewHeight(latestHeight.RevisionNumber+1, 100)
+		}, clienttypes.ErrInvalidHeight},
+		{"timeout height has unreachable revision number: revision-0 counterparty", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			connection := path.EndpointA.GetConnection()
+			clientState := path.EndpointA.GetClientState()
+			cs, ok := clientState.(*ibctm.ClientState)
+			s.Require().True(ok)
+
+			// simulate a chain-id without a revision suffix by moving the client to revision 0.
+			// a consensus state is stored there to allow the client status check to pass.
+			consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
+			zeroRevisionHeight := clienttypes.NewHeight(0, cs.LatestHeight.RevisionHeight)
+			path.EndpointA.SetConsensusState(consensusState, zeroRevisionHeight)
+
+			cs.LatestHeight = zeroRevisionHeight
+			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(s.chainA.GetContext(), connection.ClientId, cs)
+
+			timeoutHeight = clienttypes.NewHeight(1, 100)
+		}, clienttypes.ErrInvalidHeight},
+		{"timeout height has unreachable revision number: localhost client", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			// swap client with the localhost sentinel, which stores no client state
+			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = exported.LocalhostClientID })
+
+			latestHeight := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(s.chainA.GetContext(), exported.LocalhostClientID)
+			timeoutHeight = clienttypes.NewHeight(latestHeight.RevisionNumber+1, 100)
+		}, clienttypes.ErrInvalidHeight},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID

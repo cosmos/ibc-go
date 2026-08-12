@@ -53,6 +53,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
+* (core/04-channel) [\#9033](https://github.com/cosmos/ibc-go/pull/9033) Reject in `SendPacket` a timeout height whose revision number exceeds the counterparty client's current revision number (an unreachable timeout that can never elapse). See [\#8653](https://github.com/cosmos/ibc-go/issues/8653).
 
 ### Improvements
 
