@@ -11,6 +11,8 @@ on:
       - '.github/workflows/docker.yml'
       - '**.go'
 
+permissions: {}
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ibc-go-simd

@@ -8,6 +8,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -16,6 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
     strategy:
       matrix:
         go-arch: ['amd64', 'arm64']
@@ -52,6 +56,8 @@ jobs:
   unit-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
     strategy:
       matrix:
         module: [
