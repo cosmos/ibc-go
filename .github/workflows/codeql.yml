@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+            runner: ubuntu-24.04
+            queries: security-and-quality
+          - language: go
+            build-mode: manual
+            runner: depot-ubuntu-24.04-4
+            queries: crypto-com/cosmos-sdk-codeql@main,security-and-quality
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        if: matrix.language == 'go'
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: '**/go.sum'
+
+      - uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: ${{ matrix.queries }}
+
+      - name: Build Go modules
+        if: matrix.language == 'go'
+        env:
+          CGO_ENABLED: 1
+        run: |
+          for mod in $(git ls-files '*go.mod'); do
+            dir=$(dirname "$mod")
+            echo "::group::go build $dir"
+            (cd "$dir" && go build ./...)
+            echo "::endgroup::"
+          done
+
+      - name: Build e2e tests
+        if: matrix.language == 'go'
+        env:
+          CGO_ENABLED: 1
+        working-directory: e2e
+        run: |
+          find ./tests -type d | while IFS= read -r dir; do
+            if ls "${dir}"/*.go >/dev/null 2>&1; then
+              echo "::group::go test -c $dir"
+              go test -c -o /dev/null "$dir"
+              echo "::endgroup::"
+            fi
+          done
+
+      - uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        with:
+          category: /language:${{ matrix.language }}
