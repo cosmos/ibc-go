@@ -44,8 +44,8 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v7
-    - uses: technote-space/get-diff-action@v6.1.2
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+    - uses: technote-space/get-diff-action@f27caffdd0fb9b13f4fc191c016bb4e0632844af # v6.1.2
       with:
         PATTERNS: |
           **/**.go
@@ -54,7 +54,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
+      uses: github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -67,7 +67,7 @@ jobs:
     # If this step fails, then you should remove it and run the build manually (see below)
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
+      uses: github/codeql-action/autobuild@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
       if: env.GIT_DIFF
 
     # ℹ️ Command-line programs to run using the OS shell.
@@ -82,5 +82,5 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
       if: env.GIT_DIFF
