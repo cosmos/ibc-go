@@ -48,6 +48,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cosmos/cosmos-sdk** to **0.55.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cometbft/cometbft** to **0.40.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **Go** to **1.26**
+
 ### API Breaking
 
 ### State Machine Breaking
