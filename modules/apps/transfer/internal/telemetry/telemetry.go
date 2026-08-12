@@ -13,6 +13,8 @@ import (
 	coremetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
 )
 
+const metricNameIBC = "ibc"
+
 func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChannel string, token types.Token) {
 	labels := []metrics.Label{
 		telemetry.NewLabel(coremetrics.LabelDestinationPort, destinationPort),
@@ -22,7 +24,7 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 	amount, ok := sdkmath.NewIntFromString(token.Amount)
 	if ok && amount.IsInt64() {
 		telemetry.SetGaugeWithLabels(
-			[]string{"tx", "msg", "ibc", "transfer"},
+			[]string{"tx", "msg", metricNameIBC, "transfer"},
 			float32(amount.Int64()),
 			[]metrics.Label{telemetry.NewLabel(coremetrics.LabelDenom, token.Denom.Path())},
 		)
@@ -31,7 +33,7 @@ func ReportTransfer(sourcePort, sourceChannel, destinationPort, destinationChann
 	labels = append(labels, telemetry.NewLabel(coremetrics.LabelSource, fmt.Sprintf("%t", !token.Denom.HasPrefix(sourcePort, sourceChannel))))
 
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", types.ModuleName, "send"},
+		[]string{metricNameIBC, types.ModuleName, "send"},
 		1,
 		labels,
 	)
@@ -55,7 +57,7 @@ func ReportOnRecvPacket(sourcePort, sourceChannel, destinationPort, destinationC
 	transferAmount, ok := sdkmath.NewIntFromString(token.Amount)
 	if ok && transferAmount.IsInt64() {
 		telemetry.SetGaugeWithLabels(
-			[]string{"ibc", types.ModuleName, "packet", "receive"},
+			[]string{metricNameIBC, types.ModuleName, "packet", "receive"},
 			float32(transferAmount.Int64()),
 			[]metrics.Label{telemetry.NewLabel(coremetrics.LabelDenom, token.Denom.Path())},
 		)
@@ -64,7 +66,7 @@ func ReportOnRecvPacket(sourcePort, sourceChannel, destinationPort, destinationC
 	labels = append(labels, telemetry.NewLabel(coremetrics.LabelSource, fmt.Sprintf("%t", token.Denom.HasPrefix(sourcePort, sourceChannel))))
 
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", types.ModuleName, "receive"},
+		[]string{metricNameIBC, types.ModuleName, "receive"},
 		1,
 		labels,
 	)

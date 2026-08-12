@@ -94,7 +94,7 @@ func (s *RateLimV2TestSuite) TestRateLimitIBCV2() {
 	ibcTokenB := testsuite.GetIBCToken(denomA, transfertypes.PortID, clientIDB)
 
 	t.Run("add outgoing v2 rate limit on chainA", func(t *testing.T) {
-		s.addRateLimit(ctx, chainA, userA, denomA, clientIDA, authorityA.String(), 10, 0, 1)
+		s.addRateLimit(ctx, chainA, userA, denomA, clientIDA, authorityA.String(), 10, 0, 24)
 
 		rateLimit := s.rateLimit(ctx, chainA, denomA, clientIDA)
 		s.Require().NotNil(rateLimit)
@@ -132,7 +132,7 @@ func (s *RateLimV2TestSuite) TestRateLimitIBCV2() {
 	})
 
 	t.Run("add permissive incoming v2 rate limit on chainB", func(t *testing.T) {
-		s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), clientIDB, authorityB.String(), 100, 100, 1)
+		s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), clientIDB, authorityB.String(), 100, 100, 24)
 
 		rateLimit := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), clientIDB)
 		s.Require().NotNil(rateLimit)
@@ -246,7 +246,7 @@ func (s *RateLimV2TestSuite) updateRateLimit(ctx context.Context, chain ibc.Chai
 		ChannelOrClientId: clientID,
 		MaxPercentSend:    sdkmath.NewInt(sendPercent),
 		MaxPercentRecv:    sdkmath.NewInt(recvPercent),
-		DurationHours:     1,
+		DurationHours:     24,
 	}
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }
