@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: proto breaking check
 # proto breaking check workflow checks if Protobuf file contains breaking changes.
 # This workflow runs when a PR that targets Protobuf is opened.

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # Runs compatibility tests for ibc-go.
 # Can be triggered manually by setting values for release-branch and ibc-go-version.
 # On a weekly schedule with default values of 'main' for release-branch and 'main-cron-job' for ibc-go-version.

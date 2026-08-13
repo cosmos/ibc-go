@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package types
 
 // ICS27 Interchain Accounts events

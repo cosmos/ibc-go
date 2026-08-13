@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Docker Build & Push Simapp (main)
 # Build & Push builds the simapp docker image on every push to main and
 # and pushes the image to https://ghcr.io/cosmos/ibc-go-simd

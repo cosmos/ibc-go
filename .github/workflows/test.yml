@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
 #  This workflow is run on pushes to main & every pull requests

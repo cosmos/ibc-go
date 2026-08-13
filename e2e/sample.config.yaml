@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # This file contains a bare minimum configuration for running e2e tests.
 # for a more detailed configuration, see sample.config.extended.yaml.
 ---

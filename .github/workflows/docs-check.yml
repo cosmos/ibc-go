@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Check docs build
 on:
   merge_group:

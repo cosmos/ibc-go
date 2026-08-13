@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Buf-Push
 # Protobuf runs buf (https://buf.build/) push updated proto files to https://buf.build/cosmos/ibc
 # This workflow is only run when a .proto file has been changed

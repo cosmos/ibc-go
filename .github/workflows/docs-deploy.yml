@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # This deploy-docs workflow was created based on instructions from:
 # https://docusaurus.io/docs/deployment
 name: Deploy to GitHub Pages
