@@ -14,13 +14,16 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-permissions: read-all
+permissions: {}
 
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: ${{ matrix.timeout }}
+    env:
+      CGO_ENABLED: 1
+      GOTOOLCHAIN: auto
     permissions:
       actions: read
       contents: read
@@ -61,8 +64,6 @@ jobs:
 
       - name: Build Go modules
         if: matrix.language == 'go'
-        env:
-          CGO_ENABLED: 1
         run: |
           for mod in $(git ls-files '*go.mod'); do
             dir=$(dirname "$mod")
@@ -73,8 +74,6 @@ jobs:
 
       - name: Build e2e tests
         if: matrix.language == 'go'
-        env:
-          CGO_ENABLED: 1
         working-directory: e2e
         run: |
           find ./tests -type d | while IFS= read -r dir; do
