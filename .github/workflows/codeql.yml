@@ -20,7 +20,7 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 45
+    timeout-minutes: ${{ matrix.timeout }}
     permissions:
       actions: read
       contents: read
@@ -33,15 +33,17 @@ jobs:
           - language: actions
             build-mode: none
             runner: ubuntu-24.04
+            timeout: 15
             queries: security-and-quality
           - language: go
             build-mode: manual
             runner: depot-ubuntu-24.04-4
+            timeout: 45
             queries: crypto-com/cosmos-sdk-codeql@main,security-and-quality
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         if: matrix.language == 'go'
         with:
           go-version-file: 'go.mod'
@@ -52,6 +54,10 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           queries: ${{ matrix.queries }}
+          config: |
+            paths-ignore:
+              - '**/*.pb.go'
+              - '**/*.pb.gw.go'
 
       - name: Build Go modules
         if: matrix.language == 'go'
