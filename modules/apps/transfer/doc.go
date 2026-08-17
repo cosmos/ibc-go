@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package transfer implements the packet data structure, state machine handling logic,
 and encoding details for the transfer of fungible tokens over an IBC channel between

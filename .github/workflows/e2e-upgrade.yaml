@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Tests / E2E Upgrade
 on:
   workflow_dispatch:

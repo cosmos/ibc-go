@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package wasm implements a concrete LightClientModule, ClientState, ConsensusState,
 ClientMessage and types for the proxy light client module communicating

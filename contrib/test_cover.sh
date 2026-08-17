@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+
 set -e
 
 PKGS=$(go list ./... | grep -v '/simapp')

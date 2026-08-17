@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package client implements the ICS 02 - Client Semantics specification
 (https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics). This
