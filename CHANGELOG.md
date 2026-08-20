@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* (apps/pfm) [\#9032](https://github.com/cosmos/ibc-go/pull/9032) fix(apps/pfm): remove legacy params before the v3 to v4 migration
+
 ## [v11.2.0](https://github.com/cosmos/ibc-go/releases/tag/v11.2.0) - 2026-07-15
 
 ### Features
@@ -105,7 +111,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (light-clients/attestation) [\#8723](https://github.com/cosmos/ibc-go/pull/8723) fix(attestations): add Solidity compatibility for signature and ABI encoding 
+* (light-clients/attestation) [\#8723](https://github.com/cosmos/ibc-go/pull/8723) fix(attestations): add Solidity compatibility for signature and ABI encoding
 * (apps/27-gmp) [\#8811](https://github.com/cosmos/ibc-go/pull/8811) fix(27-gmp): InitGenesis populates Accounts but not AccountsByAddress (#8811)
 * (apps/callbacks) [\#8870](https://github.com/cosmos/ibc-go/pull/8870) OnTimeoutPacket blocked by UnmarshalPacketData error (backport of [\#8856](https://github.com/cosmos/ibc-go/pull/8856))
 * (core/02-client) [\#8448](https://github.com/cosmos/ibc-go/pull/8448) fix: support amino encoding on MsgRecoverClient
