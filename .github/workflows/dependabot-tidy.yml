@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Dependabot Tidy
 
 on:
@@ -5,6 +7,8 @@ on:
     types:
       - opened
       - synchronize
+
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,12 +19,11 @@ jobs:
     timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Check out PR
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
@@ -45,7 +48,7 @@ jobs:
 
       - name: Push changes if any
         if: ${{ steps.commit.outputs.changed == 'true' }}
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@881a6320fdb16eb5318c5054f31c218aec2b324c # master
         with:
           github_token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
           branch: ${{ github.event.pull_request.head.ref }}

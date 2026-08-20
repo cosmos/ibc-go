@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: proto breaking check
 # proto breaking check workflow checks if Protobuf file contains breaking changes.
 # This workflow runs when a PR that targets Protobuf is opened.
@@ -7,6 +9,8 @@ on:
     paths:
       - "proto/**/*.proto"
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -15,7 +19,9 @@ jobs:
   proto-breaking-check:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Run proto-breaking check
         run: make proto-check-breaking

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package types
 
 // IBC 08-wasm events

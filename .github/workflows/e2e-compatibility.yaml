@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # Runs compatibility tests for ibc-go.
 # Can be triggered manually by setting values for release-branch and ibc-go-version.
 # On a weekly schedule with default values of 'main' for release-branch and 'main-cron-job' for ibc-go-version.
@@ -25,6 +27,9 @@ on:
         required: true
         type: string
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: ghcr.io
   ORG: cosmos
@@ -35,6 +40,7 @@ env:
 jobs:
   determine-image-tag:
     runs-on: depot-ubuntu-24.04-4
+    permissions: {}
     outputs:
       release-version: ${{ steps.set-release-version.outputs.release-version }}
     steps:
@@ -62,14 +68,14 @@ jobs:
           - release/v11.2.x
           - main
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         if: env.RELEASE_BRANCH == matrix.release-branch
         with:
           ref: "${{ matrix.release-branch }}"
           fetch-depth: 0
       - name: Log in to the Container registry
         if: env.RELEASE_BRANCH == matrix.release-branch
-        uses: docker/login-action@v4.5.2
+        uses: docker/login-action@371161bbe7024a29a25c5e19bfcbc0804fe9ad2c # v4.5.2
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}

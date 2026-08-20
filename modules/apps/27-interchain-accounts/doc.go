@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package ica implements the packet data structure, state machine handling logic,
 and encoding details for the account management system over an IBC channel

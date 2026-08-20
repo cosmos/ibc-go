@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package mock
 
 import sdk "github.com/cosmos/cosmos-sdk/types"

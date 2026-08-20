@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build !test_e2e
 
 package ratelimiting
@@ -101,7 +103,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 
 		sendPercentage := int64(10)
 		recvPercentage := int64(0)
-		s.addRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), sendPercentage, recvPercentage, 1)
+		s.addRateLimit(ctx, chainA, userA, denomA, chanAB.ChannelID, authority.String(), sendPercentage, recvPercentage, 24)
 
 		resp, err = query.GRPCQuery[ratelimitingtypes.QueryAllRateLimitsResponse](ctx, chainA, &ratelimitingtypes.QueryAllRateLimitsRequest{})
 		s.Require().NoError(err)
@@ -112,7 +114,7 @@ func (s *RateLimTestSuite) TestRateLimit() {
 		s.Require().Equal(int64(0), rateLimit.Flow.Inflow.Int64())
 		s.Require().Equal(rateLimit.Quota.MaxPercentSend.Int64(), sendPercentage)
 		s.Require().Equal(rateLimit.Quota.MaxPercentRecv.Int64(), recvPercentage)
-		s.Require().Equal(uint64(1), rateLimit.Quota.DurationHours)
+		s.Require().Equal(uint64(24), rateLimit.Quota.DurationHours)
 	})
 
 	t.Run("Transfer updates the rate limit flow", func(_ *testing.T) {
@@ -248,7 +250,7 @@ func (s *RateLimTestSuite) TestRateLimitWithPFM() {
 	s.Require().NoError(err)
 	s.Require().Equal(seedAmount.Amount.Int64(), userBBalance.Int64())
 
-	s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID, authorityB.String(), 100, 100, 1)
+	s.addRateLimit(ctx, chainB, userB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID, authorityB.String(), 100, 100, 24)
 
 	t.Run("successful async ack keeps inflow", func(_ *testing.T) {
 		inflowBefore := s.rateLimit(ctx, chainB, ibcTokenB.IBCDenom(), chanAB.Counterparty.ChannelID).Flow.Inflow.Int64()
@@ -333,7 +335,7 @@ func (s *RateLimTestSuite) updateRateLimit(ctx context.Context, chain ibc.Chain,
 		ChannelOrClientId: chanID,
 		MaxPercentSend:    sdkmath.NewInt(sendPercent),
 		MaxPercentRecv:    sdkmath.NewInt(recvPercent),
-		DurationHours:     1,
+		DurationHours:     24,
 	}
 	s.ExecuteAndPassGovV1Proposal(ctx, msg, chain, user)
 }

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package tendermint implements a concrete LightClientModule, ClientState, ConsensusState,
 Header, Misbehaviour and types for the Tendermint consensus light client.

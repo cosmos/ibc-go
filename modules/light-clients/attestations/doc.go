@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 // Package attestations implements an attestor-based IBC light client that verifies
 // IBC packets using quorum-signed ECDSA attestations from a fixed set of trusted
 // signers.
