@@ -34,6 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+* (apps/pfm) [\#9032](https://github.com/cosmos/ibc-go/pull/9032) fix(apps/pfm): remove legacy params before the v3 to v4 migration
+
 ## [v11.2.0](https://github.com/cosmos/ibc-go/releases/tag/v11.2.0) - 2026-07-15
 
 ### Features
@@ -42,30 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 
-<<<<<<< HEAD
 * (apps/rate-limiting) [\#8995](https://github.com/cosmos/ibc-go/pull/8995) style(ratelimit)!: fix typos (backport of [\#8994](https://github.com/cosmos/ibc-go/pull/8994))
-=======
-* (apps/rate-limiting) [\#8996](https://github.com/cosmos/ibc-go/pull/8996) Paginate the rate-limiting queries to avoid returning the full store contents in a single response.
-
-### Dependencies
-
-### API Breaking
-
-### State Machine Breaking
-
-* (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
-
-### Improvements
-
-### Bug Fixes
-
-* (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
-* (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
-* (core, apps) [\#9024](https://github.com/cosmos/ibc-go/pull/9024) Decode base64 `--page-key` in CLI queries so a printed `next_key` round-trips. `--page-key` now expects that base64 value, not raw bytes.
-* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire pagination flags into the `checksums` CLI query; they were previously accepted but ignored. Bare invocations now report `pagination.total` as `0`; pass `--count-total` for the real count.
-
-### Testing API
->>>>>>> 85696210 (fix(apps/pfm): remove legacy params before v3 to v4 migration (#9006))
 
 ## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
 
@@ -128,7 +111,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-* (light-clients/attestation) [\#8723](https://github.com/cosmos/ibc-go/pull/8723) fix(attestations): add Solidity compatibility for signature and ABI encoding 
+* (light-clients/attestation) [\#8723](https://github.com/cosmos/ibc-go/pull/8723) fix(attestations): add Solidity compatibility for signature and ABI encoding
 * (apps/27-gmp) [\#8811](https://github.com/cosmos/ibc-go/pull/8811) fix(27-gmp): InitGenesis populates Accounts but not AccountsByAddress (#8811)
 * (apps/callbacks) [\#8870](https://github.com/cosmos/ibc-go/pull/8870) OnTimeoutPacket blocked by UnmarshalPacketData error (backport of [\#8856](https://github.com/cosmos/ibc-go/pull/8856))
 * (core/02-client) [\#8448](https://github.com/cosmos/ibc-go/pull/8448) fix: support amino encoding on MsgRecoverClient
