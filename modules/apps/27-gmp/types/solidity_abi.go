@@ -1,9 +1,16 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package types
 
 import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 
 	errorsmod "cosmossdk.io/errors"
+)
+
+const (
+	solidityTypeBytes  = "bytes"
+	solidityTypeString = "string"
 )
 
 // getICS27PacketABI returns an abi.Arguments slice describing the Solidity types of the struct.
@@ -15,23 +22,23 @@ func getICS27PacketABI() abi.Arguments {
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "sender",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
 			Name: "receiver",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 		{
 			Name: "salt",
-			Type: "bytes",
+			Type: solidityTypeBytes,
 		},
 		{
 			Name: "payload",
-			Type: "bytes",
+			Type: solidityTypeBytes,
 		},
 		{
 			Name: "memo",
-			Type: "string",
+			Type: solidityTypeString,
 		},
 	})
 	if err != nil {
@@ -56,7 +63,7 @@ func getICS27AckABI() abi.Arguments {
 	tupleType, err := abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{
 			Name: "result",
-			Type: "bytes",
+			Type: solidityTypeBytes,
 		},
 	})
 	if err != nil {

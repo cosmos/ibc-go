@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package cli
 
 import (
@@ -59,7 +61,12 @@ func GetCmdQueryDenoms() *cobra.Command {
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			flagSet, err := client.FlagSetWithPageKeyDecoded(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			pageReq, err := client.ReadPageRequest(flagSet)
 			if err != nil {
 				return err
 			}

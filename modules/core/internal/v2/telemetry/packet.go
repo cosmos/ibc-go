@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package telemetry
 
 import (
@@ -9,10 +11,12 @@ import (
 	ibcmetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
 )
 
+const metricNameIBC = "ibc"
+
 func ReportRecvPacket(packet types.Packet) {
 	for _, payload := range packet.Payloads {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", types.EventTypeRecvPacket},
+			[]string{"tx", "msg", metricNameIBC, types.EventTypeRecvPacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
@@ -27,7 +31,7 @@ func ReportRecvPacket(packet types.Packet) {
 func ReportTimeoutPacket(packet types.Packet) {
 	for _, payload := range packet.Payloads {
 		telemetry.IncrCounterWithLabels(
-			[]string{"ibc", "timeout", "packet"},
+			[]string{metricNameIBC, "timeout", "packet"},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),
@@ -43,7 +47,7 @@ func ReportTimeoutPacket(packet types.Packet) {
 func ReportAcknowledgePacket(packet types.Packet) {
 	for _, payload := range packet.Payloads {
 		telemetry.IncrCounterWithLabels(
-			[]string{"tx", "msg", "ibc", types.EventTypeAcknowledgePacket},
+			[]string{"tx", "msg", metricNameIBC, types.EventTypeAcknowledgePacket},
 			1,
 			[]metrics.Label{
 				telemetry.NewLabel(ibcmetrics.LabelSourcePort, payload.SourcePort),

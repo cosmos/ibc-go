@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 //go:build !test_e2e
 
 package client
@@ -17,7 +19,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	paramsproposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
@@ -29,6 +30,7 @@ import (
 	cmtversion "github.com/cometbft/cometbft/version"
 
 	"github.com/cosmos/ibc-go/e2e/dockerutil"
+	paramsproposaltypes "github.com/cosmos/ibc-go/e2e/paramsproposal"
 	"github.com/cosmos/ibc-go/e2e/testsuite"
 	"github.com/cosmos/ibc-go/e2e/testsuite/query"
 	"github.com/cosmos/ibc-go/e2e/testvalues"

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package keeper
 
 import (
@@ -11,6 +13,13 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
 )
+
+// prefixedStore returns a prefix.Store scoped to the given key prefix. It is used
+// by the paginated gRPC queries to iterate over a single logical collection.
+func (k *Keeper) prefixedStore(ctx sdk.Context, keyPrefix []byte) prefix.Store {
+	adapter := runtime.KVStoreAdapter(k.storeService.OpenKVStore(ctx))
+	return prefix.NewStore(adapter, keyPrefix)
+}
 
 // Stores/Updates a rate limit object in the store
 func (k *Keeper) SetRateLimit(ctx sdk.Context, rateLimit types.RateLimit) {

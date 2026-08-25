@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: license
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  spdx-headers:
+    name: spdx-headers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check SPDX license headers
+        run: ./scripts/check-license-headers.sh

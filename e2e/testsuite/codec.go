@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package testsuite
 
 import (
@@ -18,9 +20,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	proposaltypes "github.com/cosmos/ibc-go/e2e/paramsproposal"
 	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
 	gmptypes "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
 	icacontrollertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"

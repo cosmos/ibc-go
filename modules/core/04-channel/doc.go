@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package channel implements the ICS 04 - Channel and Packet Semantics specification
 (https://github.com/cosmos/ibc/tree/main/spec/core/ics-004-channel-and-packet-semantics). This
