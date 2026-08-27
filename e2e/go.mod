@@ -27,9 +27,9 @@ require (
 	github.com/ethereum/go-ethereum v1.17.5
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/pelletier/go-toml v1.9.5
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/mod v0.38.0
+	golang.org/x/mod v0.40.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa
 	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.12
@@ -267,7 +267,6 @@ require (
 	github.com/pion/webrtc/v4 v4.1.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
@@ -349,17 +348,17 @@ require (
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/arch v0.26.0 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260527015227-08cc5374adb3 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260625142307-59b4966ccb57 // indirect
+	golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5 // indirect
 	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/api v0.276.0 // indirect
 	google.golang.org/genproto v0.0.0-20260511170946-3700d4141b60 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
