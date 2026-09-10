@@ -3,6 +3,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -70,7 +72,7 @@ func (k *Keeper) GetAllRateLimits(ctx sdk.Context) []types.RateLimit {
 		rateLimit := types.RateLimit{}
 		if err := k.cdc.Unmarshal(iterator.Value(), &rateLimit); err != nil {
 			// Log the error and skip this entry if unmarshalling fails
-			k.Logger(ctx).Error("failed to unmarshal rate limit", "key", string(iterator.Key()), "error", err)
+			k.Logger(ctx).Error("failed to unmarshal rate limit", "key", fmt.Sprintf("%X", iterator.Key()), "error", err)
 			continue
 		}
 		allRateLimits = append(allRateLimits, rateLimit)

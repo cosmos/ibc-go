@@ -34,10 +34,7 @@ func (k *Keeper) IsAddressPairWhitelisted(ctx sdk.Context, sender, receiver stri
 	store := prefix.NewStore(adapter, types.AddressWhitelistKeyPrefix)
 
 	key := types.AddressWhitelistKey(sender, receiver)
-	value := store.Get(key)
-	found := len(value) != 0
-
-	return found
+	return store.Has(key)
 }
 
 // Get all the whitelisted addresses
