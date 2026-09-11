@@ -67,6 +67,30 @@ func (k *Keeper) SendPacket(
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
 	}
 
+	// a packet timeout height must not be set on a revision number the counterparty
+	// client has not reached: the client cannot consider such a height elapsed, and
+	// with a zero timeout timestamp the packet has no other timeout condition.
+	// see https://github.com/cosmos/ibc-go/issues/8653
+	if !timeoutHeight.IsZero() && timeoutHeight.RevisionNumber > latestHeight.RevisionNumber {
+		// the localhost client stores no client state, so the type is taken from the identifier
+		clientType, _, err := clienttypes.ParseClientIdentifier(connectionEnd.ClientId)
+		if err != nil {
+			return 0, errorsmod.Wrapf(err, "unable to parse client identifier %s", connectionEnd.ClientId)
+		}
+
+		// only tendermint and localhost clients use revision-numbered heights,
+		// including revision 0. other clients are assumed to have no revision
+		// semantics; update this sanity check if new light clients with revision
+		// semantics are added.
+		if clientType == exported.Tendermint || clientType == exported.Localhost {
+			return 0, errorsmod.Wrapf(
+				clienttypes.ErrInvalidHeight,
+				"packet timeout height revision number (%d) cannot exceed the counterparty client's current revision number (%d)",
+				timeoutHeight.RevisionNumber, latestHeight.RevisionNumber,
+			)
+		}
+	}
+
 	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)
 	if err != nil {
 		return 0, err
