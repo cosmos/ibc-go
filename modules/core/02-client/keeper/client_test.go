@@ -588,9 +588,24 @@ func (s *KeeperTestSuite) TestRecoverClient() {
 		{
 			"substitute client does not exist",
 			func() {
-				substitute = ibctesting.InvalidID
+				substitute = clienttypes.FormatClientIdentifier(exported.Tendermint, 100)
 			},
 			clienttypes.ErrClientNotActive,
+		},
+		{
+			"substitute client identifier is invalid",
+			func() {
+				substitute = ibctesting.InvalidID
+			},
+			host.ErrInvalidID,
+		},
+		{
+			"substitute client type does not match subject client type",
+			func() {
+				sm := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "06-solomachine-0", "testing", 1)
+				substitute = sm.CreateClient(s.chainA)
+			},
+			clienttypes.ErrInvalidClientType,
 		},
 		{
 			"subject and substitute have equal latest height",
