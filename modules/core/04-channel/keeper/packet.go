@@ -68,7 +68,7 @@ func (k *Keeper) SendPacket(
 	}
 
 	// a packet timeout height must not be set on a revision number the counterparty
-	// client has not reached:
+	// client has not reached.
 	if !timeoutHeight.IsZero() && timeoutHeight.RevisionNumber > latestHeight.RevisionNumber {
 		return 0, errorsmod.Wrapf(
 			clienttypes.ErrInvalidHeight,
