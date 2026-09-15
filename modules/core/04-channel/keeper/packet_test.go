@@ -60,6 +60,9 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
 			path.EndpointA.SetClientState(solomachine.ClientState())
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
+
+			// solomachine heights use revision 0, so the timeout height must too
+			timeoutHeight = clienttypes.NewHeight(0, 100)
 		}, nil},
 		{"success with solomachine: ORDERED channel", func() {
 			path.SetChannelOrdered()
@@ -72,6 +75,9 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetClientState(solomachine.ClientState())
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
+
+			// solomachine heights use revision 0, so the timeout height must too
+			timeoutHeight = clienttypes.NewHeight(0, 100)
 		}, nil},
 		{"packet basic validation failed, empty packet data", func() {
 			path.Setup()
@@ -181,15 +187,17 @@ func (s *KeeperTestSuite) TestSendPacket() {
 
 			timeoutHeight = clienttypes.NewHeight(1, 100)
 		}, clienttypes.ErrInvalidHeight},
-		{"timeout height has unreachable revision number: localhost client", func() {
+		{"timeout height has unreachable revision number: solomachine client", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
 
-			// swap client with the localhost sentinel, which stores no client state
-			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = exported.LocalhostClientID })
+			// swap client with solomachine, whose heights always use revision 0
+			solomachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachinesingle", "testing", 1)
+			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
+			path.EndpointA.SetClientState(solomachine.ClientState())
+			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
 
-			latestHeight := s.chainA.App.GetIBCKeeper().ClientKeeper.GetClientLatestHeight(s.chainA.GetContext(), exported.LocalhostClientID)
-			timeoutHeight = clienttypes.NewHeight(latestHeight.RevisionNumber+1, 100)
+			timeoutHeight = clienttypes.NewHeight(1, 100)
 		}, clienttypes.ErrInvalidHeight},
 		{"timeout timestamp passed", func() {
 			path.Setup()
