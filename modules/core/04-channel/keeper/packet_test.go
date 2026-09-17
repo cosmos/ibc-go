@@ -60,6 +60,9 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
 			path.EndpointA.SetClientState(solomachine.ClientState())
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
+
+			// solomachine heights use revision 0, so the timeout height must too
+			timeoutHeight = clienttypes.NewHeight(0, 100)
 		}, nil},
 		{"success with solomachine: ORDERED channel", func() {
 			path.SetChannelOrdered()
@@ -72,6 +75,9 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			path.EndpointA.SetClientState(solomachine.ClientState())
 
 			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
+
+			// solomachine heights use revision 0, so the timeout height must too
+			timeoutHeight = clienttypes.NewHeight(0, 100)
 		}, nil},
 		{"packet basic validation failed, empty packet data", func() {
 			path.Setup()
@@ -153,6 +159,46 @@ func (s *KeeperTestSuite) TestSendPacket() {
 			timeoutHeight, ok = path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
 			s.Require().True(ok)
 		}, types.ErrTimeoutElapsed},
+		{"timeout height has unreachable revision number", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			latestHeight, ok := path.EndpointA.GetClientLatestHeight().(clienttypes.Height)
+			s.Require().True(ok)
+			timeoutHeight = clienttypes.NewHeight(latestHeight.RevisionNumber+1, 100)
+		}, clienttypes.ErrInvalidHeight},
+		{"timeout height has unreachable revision number: revision-0 counterparty", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			connection := path.EndpointA.GetConnection()
+			clientState := path.EndpointA.GetClientState()
+			cs, ok := clientState.(*ibctm.ClientState)
+			s.Require().True(ok)
+
+			// simulate a chain-id without a revision suffix by moving the client to revision 0.
+			// a consensus state is stored there to allow the client status check to pass.
+			consensusState := path.EndpointA.GetConsensusState(cs.LatestHeight)
+			zeroRevisionHeight := clienttypes.NewHeight(0, cs.LatestHeight.RevisionHeight)
+			path.EndpointA.SetConsensusState(consensusState, zeroRevisionHeight)
+
+			cs.LatestHeight = zeroRevisionHeight
+			s.chainA.App.GetIBCKeeper().ClientKeeper.SetClientState(s.chainA.GetContext(), connection.ClientId, cs)
+
+			timeoutHeight = clienttypes.NewHeight(1, 100)
+		}, clienttypes.ErrInvalidHeight},
+		{"timeout height has unreachable revision number: solomachine client", func() {
+			path.Setup()
+			sourceChannel = path.EndpointA.ChannelID
+
+			// swap client with solomachine, whose heights always use revision 0
+			solomachine := ibctesting.NewSolomachine(s.T(), s.chainA.Codec, "solomachinesingle", "testing", 1)
+			path.EndpointA.ClientID = clienttypes.FormatClientIdentifier(exported.Solomachine, 10)
+			path.EndpointA.SetClientState(solomachine.ClientState())
+			path.EndpointA.UpdateConnection(func(c *connectiontypes.ConnectionEnd) { c.ClientId = path.EndpointA.ClientID })
+
+			timeoutHeight = clienttypes.NewHeight(1, 100)
+		}, clienttypes.ErrInvalidHeight},
 		{"timeout timestamp passed", func() {
 			path.Setup()
 			sourceChannel = path.EndpointA.ChannelID
