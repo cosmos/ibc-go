@@ -64,14 +64,46 @@ func TestGenesisState_Validate(t *testing.T) {
 			true,
 		},
 		{
-			"failure: invalid sender address",
+			"success: sender is a counterparty (non-bech32) identifier",
 			&types.GenesisState{
 				Ics27Accounts: []types.RegisteredICS27Account{
 					{
 						AccountAddress: validAddress,
 						AccountId: types.AccountIdentifier{
 							ClientId: validClientID,
-							Sender:   "invalid",
+							Sender:   "0x1234567890abcdef1234567890abcdef12345678",
+							Salt:     []byte("salt"),
+						},
+					},
+				},
+			},
+			false,
+		},
+		{
+			"failure: empty sender address",
+			&types.GenesisState{
+				Ics27Accounts: []types.RegisteredICS27Account{
+					{
+						AccountAddress: validAddress,
+						AccountId: types.AccountIdentifier{
+							ClientId: validClientID,
+							Sender:   " ",
+							Salt:     []byte("salt"),
+						},
+					},
+				},
+			},
+			true,
+		},
+		{
+			"failure: sender address exceeds max length",
+			&types.GenesisState{
+				Ics27Accounts: []types.RegisteredICS27Account{
+					{
+						AccountAddress: validAddress,
+						AccountId: types.AccountIdentifier{
+							ClientId: validClientID,
+							Sender:   ibctesting.GenerateString(types.MaximumSenderLength + 1),
 							Salt:     []byte("salt"),
 						},
 					},
