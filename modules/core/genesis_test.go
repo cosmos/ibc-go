@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/cosmos/gogoproto/proto"
 	testifysuite "github.com/stretchr/testify/suite"
@@ -472,4 +473,60 @@ func (s *IBCTestSuite) TestExportGenesis() {
 			})
 		})
 	}
+}
+
+// A v2 packet sent on a v1 channel identifier (channel aliasing) keeps its state under
+// the channel ID; it has to survive a genesis export and import together with the
+// alias and the counterparty of the channel.
+func (s *IBCTestSuite) TestExportImportGenesisAliasedChannel() {
+	s.coordinator = ibctesting.NewCoordinator(s.T(), 3)
+	s.chainA = s.coordinator.GetChain(ibctesting.GetChainID(1))
+	s.chainB = s.coordinator.GetChain(ibctesting.GetChainID(2))
+	chainC := s.coordinator.GetChain(ibctesting.GetChainID(3))
+
+	path := ibctesting.NewPath(s.chainA, s.chainB)
+	path.Setup()
+	channelID := path.EndpointA.ChannelID
+
+	timeout := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+	msg := channelv2types.NewMsgSendPacket(channelID, timeout, s.chainA.SenderAccount.GetAddress().String(), mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+	res, err := s.chainA.SendMsgs(msg)
+	s.Require().NoError(err)
+	packet, err := ibctesting.ParseV2PacketFromEvents(res.Events)
+	s.Require().NoError(err)
+
+	ctxA := s.chainA.GetContext()
+	keeperA := s.chainA.App.GetIBCKeeper()
+	commitment := keeperA.ChannelKeeperV2.GetPacketCommitment(ctxA, channelID, packet.Sequence)
+	s.Require().NotEmpty(commitment)
+	counterparty, found := keeperA.ClientV2Keeper.GetClientCounterparty(ctxA, channelID)
+	s.Require().True(found)
+
+	gs := ibc.ExportGenesis(ctxA, *keeperA)
+	s.Require().NoError(gs.Validate())
+	s.Require().Contains(gs.ChannelV2Genesis.Commitments, channelv2types.NewPacketState(channelID, packet.Sequence, commitment))
+
+	// import into a chain that has none of this state, through JSON like a genesis file
+	cdc := codec.NewProtoCodec(s.chainA.GetSimApp().InterfaceRegistry())
+	var imported types.GenesisState
+	cdc.MustUnmarshalJSON(cdc.MustMarshalJSON(gs), &imported)
+
+	ctxC := chainC.GetContext()
+	keeperC := chainC.App.GetIBCKeeper()
+	_, found = keeperC.ChannelKeeperV2.GetClientForAlias(ctxC, channelID)
+	s.Require().False(found)
+	s.Require().NotPanics(func() {
+		ibc.InitGenesis(ctxC, *keeperC, &imported)
+	})
+
+	s.Require().Equal(commitment, keeperC.ChannelKeeperV2.GetPacketCommitment(ctxC, channelID, packet.Sequence))
+	importedCounterparty, found := keeperC.ClientV2Keeper.GetClientCounterparty(ctxC, channelID)
+	s.Require().True(found)
+	s.Require().Equal(counterparty, importedCounterparty)
+	clientID, found := keeperC.ChannelKeeperV2.GetClientForAlias(ctxC, channelID)
+	s.Require().True(found)
+	s.Require().Equal(path.EndpointA.ClientID, clientID)
+	nextSeq, found := keeperC.ChannelKeeperV2.GetNextSequenceSend(ctxC, channelID)
+	s.Require().True(found)
+	s.Require().Equal(packet.Sequence+1, nextSeq)
 }

@@ -53,17 +53,7 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) types.GenesisState {
 		SendSequences:    make([]types.PacketSequence, 0),
 	}
 	for _, clientState := range clientStates {
-		acks := k.GetAllPacketAcknowledgementsForClient(ctx, clientState.ClientId)
-		gs.Acknowledgements = append(gs.Acknowledgements, acks...)
-
-		comms := k.GetAllPacketCommitmentsForClient(ctx, clientState.ClientId)
-		gs.Commitments = append(gs.Commitments, comms...)
-
-		receipts := k.GetAllPacketReceiptsForClient(ctx, clientState.ClientId)
-		gs.Receipts = append(gs.Receipts, receipts...)
-
-		asyncPackets := k.GetAllAsyncPacketsForClient(ctx, clientState.ClientId)
-		gs.AsyncPackets = append(gs.AsyncPackets, asyncPackets...)
+		ExportPacketState(ctx, k, &gs, clientState.ClientId)
 
 		seq, ok := k.GetNextSequenceSend(ctx, clientState.ClientId)
 		if ok {
@@ -72,4 +62,14 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) types.GenesisState {
 	}
 
 	return gs
+}
+
+// ExportPacketState appends the acknowledgements, commitments, receipts and async
+// packets stored under the given identifier to the genesis state. The identifier is
+// a client ID, or a v1 channel ID for packets sent through channel aliasing.
+func ExportPacketState(ctx sdk.Context, k *keeper.Keeper, gs *types.GenesisState, clientID string) {
+	gs.Acknowledgements = append(gs.Acknowledgements, k.GetAllPacketAcknowledgementsForClient(ctx, clientID)...)
+	gs.Commitments = append(gs.Commitments, k.GetAllPacketCommitmentsForClient(ctx, clientID)...)
+	gs.Receipts = append(gs.Receipts, k.GetAllPacketReceiptsForClient(ctx, clientID)...)
+	gs.AsyncPackets = append(gs.AsyncPackets, k.GetAllAsyncPacketsForClient(ctx, clientID)...)
 }
