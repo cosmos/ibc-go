@@ -29,6 +29,27 @@ func NewAccountIdentifier(clientID, sender string, salt []byte) AccountIdentifie
 	}
 }
 
+// Validate performs basic validation of the account identifier fields.
+// The sender is an opaque identifier on the counterparty chain (for example an
+// EVM hex address or a bech32 address with a foreign prefix), so it is only
+// checked for presence and length, mirroring GMPPacketData.ValidateBasic.
+func (id AccountIdentifier) Validate() error {
+	if err := host.ClientIdentifierValidator(id.ClientId); err != nil {
+		return errorsmod.Wrapf(err, "invalid client ID %s", id.ClientId)
+	}
+	if strings.TrimSpace(id.Sender) == "" {
+		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "missing sender address")
+	}
+	if len(id.Sender) > MaximumSenderLength {
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "sender address must not exceed %d bytes", MaximumSenderLength)
+	}
+	if len(id.Salt) > MaximumSaltLength {
+		return errorsmod.Wrapf(ErrInvalidSalt, "salt must not exceed %d bytes", MaximumSaltLength)
+	}
+
+	return nil
+}
+
 // NewICS27Account creates a new ICS27Account with the given address and accountId.
 func NewICS27Account(addr string, accountID *AccountIdentifier) ICS27Account {
 	return ICS27Account{
