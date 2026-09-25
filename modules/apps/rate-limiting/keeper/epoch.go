@@ -50,7 +50,7 @@ func (k *Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
 
 	// If GetHourEpoch returned a zero-value epoch (due to error or missing key),
 	// we cannot proceed with the check.
-	if hourEpoch.Duration == 0 || hourEpoch.EpochStartTime.IsZero() {
+	if hourEpoch.Duration <= 0 || hourEpoch.EpochStartTime.IsZero() {
 		return false, 0, errorsmod.Wrapf(types.ErrInvalidEpoch, "cannot check hour epoch starting. epoch: %v", hourEpoch)
 	}
 
@@ -59,8 +59,12 @@ func (k *Keeper) CheckHourEpochStarting(ctx sdk.Context) (bool, uint64, error) {
 	currentEpochEndTime := hourEpoch.EpochStartTime.Add(hourEpoch.Duration)
 	shouldNextEpochStart := ctx.BlockTime().After(currentEpochEndTime)
 	if shouldNextEpochStart {
-		hourEpoch.EpochNumber++
-		hourEpoch.EpochStartTime = currentEpochEndTime
+		// After a halt several epochs may have ended since the last block. Move to the
+		// epoch the block time falls in at once rather than one epoch per block, otherwise
+		// each of the following blocks starts a new epoch and resets the quotas again.
+		elapsedEpochs := (ctx.BlockTime().Sub(hourEpoch.EpochStartTime) - 1) / hourEpoch.Duration
+		hourEpoch.EpochNumber += uint64(elapsedEpochs)
+		hourEpoch.EpochStartTime = hourEpoch.EpochStartTime.Add(elapsedEpochs * hourEpoch.Duration)
 		hourEpoch.EpochStartHeight = ctx.BlockHeight()
 
 		if err := k.SetHourEpoch(ctx, hourEpoch); err != nil {
