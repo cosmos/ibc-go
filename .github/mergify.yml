@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 queue_rules:
   - name: default
     queue_conditions:

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package keeper_test
 
 import "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"

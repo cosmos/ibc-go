@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package exported
 
 // PacketI defines the standard interface for IBC packets

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package solomachine implements a concrete LightClientModule, ClientState, ConsensusState,
 Header and Misbehaviour types for the Localhost light client.

@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
 
 SIMD_BIN=${SIMD_BIN:=$(which simd 2>/dev/null)}
 

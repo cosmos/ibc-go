@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package telemetry
 
 import (
@@ -8,9 +10,14 @@ import (
 	ibcmetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
 )
 
+const (
+	metricNameClient = "client"
+	metricNameIBC    = "ibc"
+)
+
 func ReportCreateClient(clientType string) {
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "create"},
+		[]string{metricNameIBC, metricNameClient, "create"},
 		1,
 		[]metrics.Label{telemetry.NewLabel(ibcmetrics.LabelClientType, clientType)},
 	)
@@ -31,12 +38,12 @@ func ReportUpdateClient(foundMisbehaviour bool, clientType, clientID string) {
 		updateType = "update"
 	}
 
-	telemetry.IncrCounterWithLabels([]string{"ibc", "client", updateType}, 1, labels)
+	telemetry.IncrCounterWithLabels([]string{metricNameIBC, metricNameClient, updateType}, 1, labels)
 }
 
 func ReportUpgradeClient(clientType, clientID string) {
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "upgrade"},
+		[]string{metricNameIBC, metricNameClient, "upgrade"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel(ibcmetrics.LabelClientType, clientType),
@@ -47,7 +54,7 @@ func ReportUpgradeClient(clientType, clientID string) {
 
 func ReportRecoverClient(clientType, subjectClientID string) {
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "client", "update"},
+		[]string{metricNameIBC, metricNameClient, "update"},
 		1,
 		[]metrics.Label{
 			telemetry.NewLabel(ibcmetrics.LabelClientType, clientType),

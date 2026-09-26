@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Build Simd Image
 on:
   workflow_dispatch:
@@ -10,6 +12,8 @@ on:
         description: 'The ibc-go version to be added as a label'
         required: true
         type: string
+
+permissions: {}
 
 env:
    REGISTRY: ghcr.io
@@ -29,12 +33,12 @@ jobs:
         packages: write
         contents: read
       steps:
-         - uses: actions/checkout@v7
+         - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
            with:
             ref: "${{ env.GIT_TAG }}"
             fetch-depth: 0
          - name: Log in to the Container registry
-           uses: docker/login-action@v4.5.2
+           uses: docker/login-action@371161bbe7024a29a25c5e19bfcbc0804fe9ad2c # v4.5.2
            with:
               registry: ${{ env.REGISTRY }}
               username: ${{ github.actor }}

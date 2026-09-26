@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package keeper
 
 import (
@@ -63,6 +65,16 @@ func (k *Keeper) SendPacket(
 	latestHeight := k.clientKeeper.GetClientLatestHeight(ctx, connectionEnd.ClientId)
 	if latestHeight.IsZero() {
 		return 0, errorsmod.Wrapf(clienttypes.ErrInvalidHeight, "cannot send packet using client (%s) with zero height", connectionEnd.ClientId)
+	}
+
+	// a packet timeout height must not be set on a revision number the counterparty
+	// client has not reached.
+	if !timeoutHeight.IsZero() && timeoutHeight.RevisionNumber > latestHeight.RevisionNumber {
+		return 0, errorsmod.Wrapf(
+			clienttypes.ErrInvalidHeight,
+			"packet timeout height revision number (%d) cannot exceed the counterparty client's current revision number (%d)",
+			timeoutHeight.RevisionNumber, latestHeight.RevisionNumber,
+		)
 	}
 
 	latestTimestamp, err := k.clientKeeper.GetClientTimestampAtHeight(ctx, connectionEnd.ClientId, latestHeight)

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 version: "2"
 run:
   tests: true
@@ -102,15 +104,27 @@ linters:
       - legacy
       - std-error-handling
     rules:
+      - path: '(.+)_test\.go'
+        linters:
+          - goconst
       - linters:
           - staticcheck
         text: 'SA1019:' # TODO: This should really be removed!
       - path: e2e/*
         linters:
           - testpackage
+          - goconst
+      # "sender"/"salt" recur as proto field names, ABI component names, and
+      # log keys; goconst wrongly suggests reusing the event attribute constants.
+      - path: modules/apps/27-gmp/types/(autocli|solidity_abi)\.go
+        linters:
+          - goconst
       - linters:
           - revive
         text: '^package-naming:'
+      - linters:
+          - govet
+        text: 'Constant reflect.Ptr should be inlined'
     paths:
       - third_party$
       - builtin$

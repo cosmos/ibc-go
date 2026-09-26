@@ -48,11 +48,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cosmos/cosmos-sdk** to **0.55.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cometbft/cometbft** to **0.40.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **Go** to **1.26**
+
 ### API Breaking
 
 ### State Machine Breaking
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
+* (core/04-channel) [\#9033](https://github.com/cosmos/ibc-go/pull/9033) Reject in `SendPacket` a timeout height whose revision number exceeds the counterparty client's current revision number (an unreachable timeout that can never elapse). See [\#8653](https://github.com/cosmos/ibc-go/issues/8653).
 * (apps/rate-limiting) [\#9020](https://github.com/cosmos/ibc-go/pull/9020) Re-key rate-limit and address-whitelist entries with unambiguous length-prefixed keys. Includes the v2-to-v3 store migration for existing v11.2.0 and legacy cosmos/ibc-apps state, and bumps the module consensus version to 3.
 
 ### Improvements

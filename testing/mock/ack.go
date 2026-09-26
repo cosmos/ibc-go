@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package mock
 
 // EmptyAcknowledgement implements the exported.Acknowledgement interface and always returns an empty byte string as Response

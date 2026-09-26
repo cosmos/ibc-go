@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 # This deploy-docs workflow was created based on instructions from:
 # https://docusaurus.io/docs/deployment
 name: Deploy to GitHub Pages
@@ -11,6 +13,8 @@ on:
       - "docs/**"
       - .github/workflows/deploy-docs.yml
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -20,9 +24,11 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
           cache: npm
@@ -32,7 +38,7 @@ jobs:
         run: make build-docs
 
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
           branch: gh-pages
           folder: docs/build
