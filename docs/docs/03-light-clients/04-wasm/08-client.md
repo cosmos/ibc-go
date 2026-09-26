@@ -55,10 +55,12 @@ The `checksums` command allows users to query the list of checksums of Wasm ligh
 simd query ibc-wasm checksums [flags]
 ```
 
+The command supports the standard pagination flags. Bare invocations report `pagination.total` as `"0"`; pass `--count-total` to include the real total. Note that `--count-total` has no effect when paginating with `--page-key`: the by-key pagination path does not compute a total, so it remains `"0"`. The `--page-key` flag expects the base64-encoded `next_key` from a previous response, not a hex-encoded checksum.
+
 Example:
 
 ```shell
-simd query ibc-wasm checksums
+simd query ibc-wasm checksums --count-total
 ```
 
 Example Output:

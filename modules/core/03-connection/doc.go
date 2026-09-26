@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package connection implements the ICS 03 - Connection Semantics specification
 (https://github.com/cosmos/ibc/tree/main/spec/core/ics-003-connection-semantics). This

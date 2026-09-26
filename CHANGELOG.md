@@ -48,6 +48,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Dependencies
 
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cosmos/cosmos-sdk** to **0.55.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **github.com/cometbft/cometbft** to **0.40.0**
+* [\#9011](https://github.com/cosmos/ibc-go/pull/9011) Bump **Go** to **1.26**
+
 ### Client Breaking
 
 * (apps/rate-limiting) [\#9023](https://github.com/cosmos/ibc-go/pull/9023) Move the rate-limiting query REST routes to non-overlapping, resource-nested paths: `/ibc/apps/rate-limiting/v1/chains/{chain_id}/ratelimits`, `.../clients/{channel_or_client_id}/ratelimits`, and `.../clients/{channel_or_client_id}/ratelimits/denoms/{denom}` (denom moves from the `?denom=` query parameter into the path and may contain slashes); `AllRateLimits` and the blacklist/whitelist routes are unchanged. This breaks the v11.2.0 `ratelimit/ratelimits/{chain_id}` and `ratelimit/ratelimit/{channel_or_client_id}/by_denom?denom={denom}` URLs. `RateLimitsByChannelOrClientID` compiled to the same grpc-gateway pattern as `RateLimitsByChainID` and has been shadowed (unreachable over REST) in every release, so its route change breaks no consumer.
@@ -57,13 +61,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### State Machine Breaking
 
 * (apps/rate-limiting) [\#8937](https://github.com/cosmos/ibc-go/pull/8937) imp(ratelimit): use collections for pending markers.
+* (core/04-channel) [\#9033](https://github.com/cosmos/ibc-go/pull/9033) Reject in `SendPacket` a timeout height whose revision number exceeds the counterparty client's current revision number (an unreachable timeout that can never elapse). See [\#8653](https://github.com/cosmos/ibc-go/issues/8653).
 
 ### Improvements
 
 ### Bug Fixes
 
+* (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
 * (core, apps) [\#9024](https://github.com/cosmos/ibc-go/pull/9024) Decode base64 `--page-key` in CLI queries so a printed `next_key` round-trips. `--page-key` now expects that base64 value, not raw bytes.
+* (light-clients/08-wasm) [\#9025](https://github.com/cosmos/ibc-go/pull/9025) Wire pagination flags into the `checksums` CLI query; they were previously accepted but ignored. Bare invocations now report `pagination.total` as `0`; pass `--count-total` for the real count.
 
 ### Testing API
 

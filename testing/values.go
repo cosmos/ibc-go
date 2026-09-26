@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 This file contains the variables, constants, and default values
 used in the testing package and commonly defined in tests.

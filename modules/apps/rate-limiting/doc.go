@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 Package rate-limiting implements a middleware to rate limit IBC transfers
 between different chains to prevent excessive token flow in either direction.

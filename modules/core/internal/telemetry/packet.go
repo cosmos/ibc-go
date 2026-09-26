@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package telemetry
 
 import (
@@ -11,7 +13,7 @@ import (
 
 func ReportRecvPacket(packet types.Packet) {
 	telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", types.EventTypeRecvPacket},
+		[]string{"tx", "msg", metricNameIBC, types.EventTypeRecvPacket},
 		1,
 		addPacketLabels(packet),
 	)
@@ -20,7 +22,7 @@ func ReportRecvPacket(packet types.Packet) {
 func ReportTimeoutPacket(packet types.Packet, timeoutType string) {
 	labels := append(addPacketLabels(packet), telemetry.NewLabel(ibcmetrics.LabelTimeoutType, timeoutType))
 	telemetry.IncrCounterWithLabels(
-		[]string{"ibc", "timeout", "packet"},
+		[]string{metricNameIBC, "timeout", "packet"},
 		1,
 		labels,
 	)
@@ -28,7 +30,7 @@ func ReportTimeoutPacket(packet types.Packet, timeoutType string) {
 
 func ReportAcknowledgePacket(packet types.Packet) {
 	telemetry.IncrCounterWithLabels(
-		[]string{"tx", "msg", "ibc", types.EventTypeAcknowledgePacket},
+		[]string{"tx", "msg", metricNameIBC, types.EventTypeAcknowledgePacket},
 		1,
 		addPacketLabels(packet),
 	)

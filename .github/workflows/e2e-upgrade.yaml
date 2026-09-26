@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Tests / E2E Upgrade
 on:
   workflow_dispatch:
@@ -12,12 +14,16 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+permissions: {}
+
 env:
   DOCKER_IMAGE_NAME: ghcr.io/cosmos/ibc-go-simd
 
 jobs:
   e2e-upgrade-tests:
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix: 
@@ -59,12 +65,12 @@ jobs:
           },
         ]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: cosmos/ibc-go
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: '1.25.9'
+          go-version: '1.26.5'
           cache-dependency-path: 'e2e/go.sum'
       - name: Run e2e Test
         id: e2e_test
@@ -80,7 +86,7 @@ jobs:
           cd e2e
           make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: ${{ failure() }}
         continue-on-error: true
         with:
@@ -92,6 +98,8 @@ jobs:
   # the published-tag-only matrix above.
   legacy-v10-ibc-apps-upgrade-tests:
     runs-on: depot-ubuntu-24.04-4
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -108,12 +116,12 @@ jobs:
     env:
       SIMD_TAG: local
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: cosmos/ibc-go
-      - uses: actions/setup-go@v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
-          go-version: '1.25.9'
+          go-version: '1.26.5'
           cache-dependency-path: 'e2e/go.sum'
       - name: Build current simd image
         run: |
@@ -132,7 +140,7 @@ jobs:
           cd e2e
           make e2e-test test=${{ matrix.test-config.test }}
       - name: Upload Diagnostics
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: ${{ failure() }}
         continue-on-error: true
         with:

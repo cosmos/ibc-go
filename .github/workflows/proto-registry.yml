@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Buf-Push
 # Protobuf runs buf (https://buf.build/) push updated proto files to https://buf.build/cosmos/ibc
 # This workflow is only run when a .proto file has been changed
@@ -11,6 +13,8 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -19,9 +23,11 @@ jobs:
   push:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
-      - uses: bufbuild/buf-action@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: bufbuild/buf-action@8c6a16e16f12ba20b6470afa9c2ba9b5ba8c97c3 # v1
         with:
           token: ${{ secrets.BUF_TOKEN }}
           setup_only: false

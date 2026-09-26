@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package types
 
 // NewCounterpartyInfo creates a new counterparty info instance from merlePrefix and clientID

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package keeper
 
 // Option is an extension point to instantiate keeper with non default values

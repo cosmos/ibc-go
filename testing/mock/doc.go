@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 /*
 This package is only intended to be used for testing core IBC. In order to maintain secure
 testing, we need to do message passing and execution which requires connecting an IBC application
