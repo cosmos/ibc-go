@@ -39,7 +39,7 @@ env:
 
 jobs:
   determine-image-tag:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions: {}
     outputs:
       release-version: ${{ steps.set-release-version.outputs.release-version }}
@@ -54,7 +54,7 @@ jobs:
   # build-release-images builds all docker images that are relevant for the compatibility tests. If a single release
   # branch is specified, only that image will be built, e.g. release-v6.0.x.
   build-release-images:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read

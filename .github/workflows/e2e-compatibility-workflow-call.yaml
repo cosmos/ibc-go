@@ -28,7 +28,7 @@ jobs:
   load-test-matrix:
     outputs:
       test-matrix: ${{ steps.set-test-matrix.outputs.test-matrix }}
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -45,7 +45,7 @@ jobs:
         id: set-test-matrix
 
   e2e:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: load-test-matrix
