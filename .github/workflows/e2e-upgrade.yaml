@@ -21,7 +21,7 @@ env:
 
 jobs:
   e2e-upgrade-tests:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
@@ -97,7 +97,7 @@ jobs:
   # These tests upgrade a hardcoded legacy v10 ibc-apps fixture to the current image, so they cannot use
   # the published-tag-only matrix above.
   legacy-v10-ibc-apps-upgrade-tests:
-    runs-on: depot-ubuntu-24.04-4
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
