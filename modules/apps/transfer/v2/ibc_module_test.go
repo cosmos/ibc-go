@@ -226,7 +226,7 @@ func (s *TransferTestSuite) TestOnRecvPacket() {
 
 			originalBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), tc.sourceDenomToTransfer)
 
-			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 			amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 			s.Require().True(ok)
@@ -296,7 +296,7 @@ func (s *TransferTestSuite) TestOnAckPacket() {
 
 			originalBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), tc.sourceDenomToTransfer)
 
-			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 			amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 			s.Require().True(ok)
@@ -379,7 +379,7 @@ func (s *TransferTestSuite) TestOnTimeoutPacket() {
 
 			originalBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), tc.sourceDenomToTransfer)
 
-			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+			timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 			amount, ok := sdkmath.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
 			s.Require().True(ok)

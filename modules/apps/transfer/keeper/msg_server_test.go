@@ -255,7 +255,7 @@ func (s *KeeperTestSuite) TestMsgTransferIBCV2() {
 			path = ibctesting.NewPath(s.chainA, s.chainB)
 			path.SetupV2()
 
-			timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+			timeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 			msg = types.NewMsgTransfer(
 				types.PortID,

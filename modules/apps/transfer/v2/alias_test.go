@@ -79,7 +79,7 @@ func (s *TransferTestSuite) TestAliasedTransferChannel() {
 	s.assertReceiverEqual(s.chainB, ibcDenom.IBCDenom(), receiver, ibctesting.DefaultCoinAmount)
 
 	// v2 packets only support timeout timestamps in UNIX time.
-	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).Unix())
+	timeoutTimestamp := uint64(s.chainB.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 	// send v2 packet on aliased channel
 	msgTransferAlias := types.NewMsgTransferAliased(
@@ -131,7 +131,7 @@ func (s *TransferTestSuite) TestAliasedTransferChannel() {
 	revCoin, err := revToken.ToCoin()
 	s.Require().NoError(err, "convert token to coin failed")
 
-	revTimeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).Unix())
+	revTimeoutTimestamp := uint64(s.chainA.GetContext().BlockTime().Add(time.Hour).UnixNano())
 
 	// send v2 packet
 	// using encoding here just to use both message constructor functions
@@ -216,10 +216,11 @@ func (s *TransferTestSuite) TestDifferentAppPostAlias() {
 	receiver := s.chainB.SenderAccount.GetAddress()
 
 	// now send a transfer v2 packet
+	// MsgTransfer takes its timeout in nanoseconds, unlike MsgSendPacket above
 	msgTransferAlias := types.NewMsgTransferAliased(
 		path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID,
 		ibctesting.TestCoin, sender.String(), receiver.String(),
-		clienttypes.Height{}, timeoutTimestamp, "",
+		clienttypes.Height{}, timeoutTimestamp*1e9, "",
 	)
 	res, err = path.EndpointA.Chain.SendMsgs(msgTransferAlias)
 	s.Require().NoError(err, "send v2 packet failed")

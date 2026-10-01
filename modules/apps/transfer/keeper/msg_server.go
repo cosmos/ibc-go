@@ -110,8 +110,10 @@ func (k *Keeper) transferV2Packet(ctx sdk.Context, encoding, sourceChannel strin
 		types.PortID, types.PortID,
 		types.V1, encoding, data,
 	)
+	// MsgTransfer documents its timeout timestamp in absolute nanoseconds since the unix
+	// epoch, while MsgSendPacket/Packet expect seconds, so convert at the v2 boundary.
 	msg := channeltypesv2.NewMsgSendPacket(
-		sourceChannel, timeoutTimestamp,
+		sourceChannel, timeoutTimestamp/1e9,
 		packetData.Sender, payload,
 	)
 
