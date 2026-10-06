@@ -2,10 +2,12 @@
 
 name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
-#  This workflow is run on pushes to main & every pull requests
+#  This workflow is run on pushes to main & every pull requests, and is dispatched
+#  by dependabot-tidy.yml for the commits it creates
 on:
   merge_group:
   pull_request:
+  workflow_dispatch:
   push:
     branches:
       - main
