@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
+      actions: write # dispatch PR checks for the tidy commit
       contents: write
     runs-on: ubuntu-24.04
     steps:
@@ -77,3 +78,13 @@ jobs:
             }}}' > "$RUNNER_TEMP/request.json"
 
           gh api graphql --input "$RUNNER_TEMP/request.json" --jq '.data.createCommitOnBranch.commit.url'
+
+      - name: Run PR checks on tidy commit
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          for workflow in test.yml golangci.yml e2e.yaml; do
+            gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
+          done
