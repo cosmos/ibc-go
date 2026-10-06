@@ -19,37 +19,61 @@ jobs:
     timeout-minutes: 15
     if: github.actor == 'dependabot[bot]'
     permissions:
-      contents: read
+      contents: write
     runs-on: ubuntu-24.04
     steps:
       - name: Check out PR
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
-          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+          persist-credentials: false
 
       - name: Run make tidy-all
         run: make tidy-all
 
-      - name: Commit changes if any
-        id: commit
+      - name: Check for changes
+        id: changes
         run: |
-          if ! git diff --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add .
-            git commit --signoff -m "chore: run make tidy-all"
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
+          git add -A
+          if git diff --cached --quiet; then
             echo "No changes after make tidy-all"
-            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Push changes if any
-        if: ${{ steps.commit.outputs.changed == 'true' }}
-        uses: ad-m/github-push-action@881a6320fdb16eb5318c5054f31c218aec2b324c # master
-        with:
-          github_token: ${{ secrets.DEPENDABOT_PUSH_PAT }}
-          branch: ${{ github.event.pull_request.head.ref }}
-          force_with_lease: true
+      - name: Commit changes if any
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+
+          signoff="Signed-off-by: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+
+          git diff --cached --name-only --diff-filter=d -z |
+            while IFS= read -r -d '' path; do
+              jq -n --arg path "$path" --rawfile contents <(base64 -w0 "$path") \
+                '{path: $path, contents: $contents}'
+            done | jq -s . > "$RUNNER_TEMP/additions.json"
+
+          git diff --cached --name-only --diff-filter=D -z |
+            jq -R -s 'split("\u0000") | map(select(length > 0) | {path: .})' > "$RUNNER_TEMP/deletions.json"
+
+          jq -n \
+            --arg query 'mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid url } } }' \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg branch "$BRANCH" \
+            --arg head "$(git rev-parse HEAD)" \
+            --arg body "$signoff" \
+            --slurpfile additions "$RUNNER_TEMP/additions.json" \
+            --slurpfile deletions "$RUNNER_TEMP/deletions.json" \
+            '{query: $query, variables: {input: {
+              branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+              expectedHeadOid: $head,
+              message: {headline: "chore: run make tidy-all", body: $body},
+              fileChanges: {additions: $additions[0], deletions: $deletions[0]}
+            }}}' > "$RUNNER_TEMP/request.json"
+
+          gh api graphql --input "$RUNNER_TEMP/request.json" --jq '.data.createCommitOnBranch.commit.url'
