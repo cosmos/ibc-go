@@ -4,7 +4,7 @@ Thank you for considering making contributions to ibc-go! 🎉👍
 
 ## Code of conduct
 
-This project and everyone participating in it is governed by ibc-go's [code of conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code
+This project and everyone participating in it is governed by the Cosmos [code of conduct](https://github.com/cosmos/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code
 
 ## How can I contribute?
 
