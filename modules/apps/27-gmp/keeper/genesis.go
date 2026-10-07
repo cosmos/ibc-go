@@ -20,8 +20,8 @@ func (k *Keeper) InitGenesis(ctx context.Context, data *types.GenesisState) erro
 		if _, err := sdk.AccAddressFromBech32(account.AccountAddress); err != nil {
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
-		if _, err := sdk.AccAddressFromBech32(account.AccountId.Sender); err != nil {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
+		if err := account.AccountId.Validate(); err != nil {
+			return err
 		}
 
 		ics27Account := types.ICS27Account{
