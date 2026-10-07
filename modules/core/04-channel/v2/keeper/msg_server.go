@@ -85,6 +85,12 @@ func (k *Keeper) RecvPacket(goCtx context.Context, msg *types.MsgRecvPacket) (*t
 		AppAcknowledgements: [][]byte{},
 	}
 
+	// Use a fresh cached context for the application callbacks so that the
+	// TAO state and events written above are not written (and emitted) a
+	// second time, and so that TAO events are not re-emitted as error events
+	// when an application returns a failure.
+	cacheCtx, writeFn = ctx.CacheContext()
+
 	var isAsync bool
 	isSuccess := true
 	for _, pd := range msg.Packet.Payloads {
