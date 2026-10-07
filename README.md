@@ -46,7 +46,7 @@ Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/mai
 
 ## Applications, Middleware, and Tools
 
-IBC has an extensive list of applications, middleware, and tools, including relayers. View the list on the [IBC technical resource catalogue](https://ibcprotocol.dev/technical-resource-catalog) on our website.
+IBC has an extensive list of applications, middleware, and tools, including relayers. View the list on the [IBC technical resource catalogue](https://ibc.cosmos.network/applications) on our website.
 
 ## Developer Community and Support
 
@@ -56,7 +56,7 @@ The issue list of this repo is exclusively for bug reports and feature requests.
 
 ## Security
 
-To report a security vulnerability, see our [Coordinated Vulnerability Disclosure Policy](./SECURITY.md).
+To report a security vulnerability, see our [Coordinated Vulnerability Disclosure Policy](https://github.com/cosmos/ibc-go/security/policy).
 
 ## Audits
 
