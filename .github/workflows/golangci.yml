@@ -4,6 +4,7 @@ name: golangci-lint
 on:
   push:
   pull_request:
+  workflow_dispatch:
 permissions: {}
 
 concurrency:
