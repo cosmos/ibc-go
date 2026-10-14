@@ -126,6 +126,17 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
 	}
 
+	// the subject light client module is used to inspect the substitute below,
+	// so the substitute must be of the same client type.
+	subjectClientType := types.MustParseClientIdentifier(subjectClientID)
+	substituteClientType, _, err := types.ParseClientIdentifier(substituteClientID)
+	if err != nil {
+		return errorsmod.Wrapf(err, "unable to parse substitute client identifier %s", substituteClientID)
+	}
+	if substituteClientType != subjectClientType {
+		return errorsmod.Wrapf(types.ErrInvalidClientType, "substitute client type (%s) does not match subject client type (%s)", substituteClientType, subjectClientType)
+	}
+
 	if status := clientModule.Status(ctx, subjectClientID); status == exported.Active {
 		return errorsmod.Wrapf(types.ErrInvalidRecoveryClient, "cannot recover subject client (%s) with status %s", subjectClientID, status)
 	}
