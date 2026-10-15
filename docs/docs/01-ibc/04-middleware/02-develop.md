@@ -470,7 +470,7 @@ func GetAppVersion(
   // unwrap channel version
   metadata, err := Unmarshal(version)
   if err != nil {
-    panic(fmt.Errof("unable to unmarshal version: %w", err))
+    panic(fmt.Errorf("unable to unmarshal version: %w", err))
   }
 
   return metadata.AppVersion, true
