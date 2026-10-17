@@ -126,7 +126,7 @@ func (k *Keeper) RecoverClient(ctx sdk.Context, subjectClientID, substituteClien
 		return errorsmod.Wrap(types.ErrRouteNotFound, subjectClientID)
 	}
 
-	// the subject light client module is used to inspect the substitute below,
+	// The subject light client module is used to inspect the substitute below,
 	// so the substitute must be of the same client type.
 	subjectClientType := types.MustParseClientIdentifier(subjectClientID)
 	substituteClientType, _, err := types.ParseClientIdentifier(substituteClientID)
