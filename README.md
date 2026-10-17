@@ -20,6 +20,9 @@
   <a href="https://codecov.io/gh/cosmos/ibc-go" > 
     <img src="https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn"/> 
   </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go">
+    <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge" />
+  </a>
 </div>
 <div align="center">
   <a href="https://discord.com/invite/interchain">
