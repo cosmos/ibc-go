@@ -2,10 +2,12 @@
 
 name: Tests / Code Coverage
 #  Tests / Code Coverage workflow runs unit tests and uploads a code coverage report
-#  This workflow is run on pushes to main & every pull requests
+#  This workflow is run on pushes to main & every pull requests, and is dispatched
+#  by dependabot-tidy.yml for the commits it creates
 on:
   merge_group:
   pull_request:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -88,7 +90,7 @@ jobs:
         run: |
           cd ${{ matrix.module.path }} && go test -mod=readonly -coverprofile=profile.out -covermode=atomic ${{ matrix.module.additional-args }} ./...
 
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
         with:
           fail_ci_if_error: false
           files: ${{ matrix.module.path }}/profile.out
