@@ -40,7 +40,7 @@ jobs:
             queries: security-and-quality
           - language: go
             build-mode: manual
-            runner: depot-ubuntu-24.04-4
+            runner: ubuntu-latest
             timeout: 45
             queries: crypto-com/cosmos-sdk-codeql@main,security-and-quality
     steps:
