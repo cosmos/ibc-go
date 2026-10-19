@@ -318,6 +318,51 @@ func TestGetPacketMetadataRetriesParsing(t *testing.T) {
 	require.Equal(t, uint8(5), *packetMetadata.Forward.Retries)
 }
 
+func TestGetPacketMetadataRetriesBoundaries(t *testing.T) {
+	tests := []struct {
+		name              string
+		retries           float64
+		expectedRetries   uint8
+	}{
+		{
+			name:            "retries at lower boundary",
+			retries:         float64(0),
+			expectedRetries: 0,
+		},
+		{
+			name:            "retries normal value",
+			retries:         float64(2),
+			expectedRetries: 2,
+		},
+		{
+			name:            "retries at upper boundary",
+			retries:         float64(255),
+			expectedRetries: 255,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProvider := &MockPacketDataProvider{
+				customData: map[string]any{
+					"forward": map[string]any{
+						"receiver": "test-receiver",
+						"port":     "test-port",
+						"channel":  "test-channel",
+						"retries":  tt.retries,
+					},
+				},
+			}
+
+			packetMetadata, hasForward, err := types.GetPacketMetadataFromPacketdata(mockProvider)
+			require.NoError(t, err)
+			require.True(t, hasForward)
+			require.NotNil(t, packetMetadata.Forward.Retries)
+			require.Equal(t, tt.expectedRetries, *packetMetadata.Forward.Retries)
+		})
+	}
+}
+
 func TestGetPacketMetadataErrorCases(t *testing.T) {
 	tests := []struct {
 		name               string
@@ -362,6 +407,45 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 				},
 			},
 			expectedError:      "key retries has invalid type, expected number",
+			expectedHasForward: true,
+		},
+		{
+			name: "fractional retries",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  float64(2.5), // Fractional value, not a valid uint8
+				},
+			},
+			expectedError:      "retries must be an integer",
+			expectedHasForward: true,
+		},
+		{
+			name: "retries value too low",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  float64(-1), // < 0
+				},
+			},
+			expectedError:      "retries must be between 0 and 255",
+			expectedHasForward: true,
+		},
+		{
+			name: "retries value at upper boundary exceeded",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  float64(256), // > 255
+				},
+			},
+			expectedError:      "retries must be between 0 and 255",
 			expectedHasForward: true,
 		},
 		{
