@@ -139,17 +139,19 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 |  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
 |  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
 |  | `ibc-go-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
+|  | `ghcr.io/cosmos/ibc-go-simd:vX.Y.Z` | `simd` container image built from the tagged commit, signed with cosign, with build provenance and SBOM attestations |
 | `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source archive of the 08-wasm module at the tagged commit, with `LICENSE` and `NOTICE` |
 |  | `ibc-go-08-wasm-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
 |  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
 |  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
 |  | `ibc-go-08-wasm-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
+|  | `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` | Multi-platform (`linux/amd64`, `linux/arm64`) wasm `simd` container image built from the tagged commit, signed with cosign, with build provenance and SBOM attestations |
 
-The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases).
+The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases), and the images are pushed to GHCR when the tag is pushed.
 
 The Go modules themselves are consumed from their tags through the Go module proxy.
 
-Container images are not built by tags. `ghcr.io/cosmos/ibc-go-simd` is built on every push to `main` and `release/v*`, and both `ghcr.io/cosmos/ibc-go-simd` and `ghcr.io/cosmos/ibc-go-wasm-simd` can be built on demand for a release tag. The images are signed with cosign and carry build provenance and SBOM attestations.
+Separately from tags, `ghcr.io/cosmos/ibc-go-simd` is rebuilt on pushes to `main` and `release/v*` that change Go files or the docker workflow. Maintainers can also rebuild the image for any tag by running the image workflow manually. Every image these workflows publish is signed with cosign and carries build provenance and SBOM attestations.
 
 See [Signed release assets](docs/dev/release-management.md#signed-release-assets) for how to verify the artifacts.
 

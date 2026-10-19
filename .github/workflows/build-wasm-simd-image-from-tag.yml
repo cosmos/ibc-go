@@ -8,6 +8,13 @@ on:
         description: 'The tag of the image to build'
         required: true
         type: string
+  # Called by release.yml for every modules/light-clients/08-wasm/vX.Y.Z tag.
+  workflow_call:
+    inputs:
+      tag:
+        description: 'The tag of the image to build'
+        required: true
+        type: string
 
 permissions: {}
 

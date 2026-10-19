@@ -12,6 +12,17 @@ on:
         description: 'The ibc-go version to be added as a label'
         required: true
         type: string
+  # Called by release.yml for every vX.Y.Z tag.
+  workflow_call:
+    inputs:
+      tag:
+        description: 'The tag of the image to build'
+        required: true
+        type: string
+      ibc-go-version:
+        description: 'The ibc-go version to be added as a label'
+        required: true
+        type: string
 
 permissions: {}
 

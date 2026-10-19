@@ -50,6 +50,8 @@ Push the tag with `git` before publishing the release. A release drafted from th
 
 #### Container images
 
+The release workflow also publishes the tag's image by calling the image workflows below: `ghcr.io/cosmos/ibc-go-simd:vX.Y.Z` for a `vX.Y.Z` tag, and `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` for an 08-wasm tag. The image build runs alongside the draft release and does not block it. If it fails, re-run the failed job, or run the image workflow manually for the tag.
+
 The [docker](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/docker.yml), [build-simd-image-from-tag](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/build-simd-image-from-tag.yml) and [build-wasm-simd-image-from-tag](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/build-wasm-simd-image-from-tag.yml) workflows attest the build provenance and SBOMs of every `ghcr.io/cosmos/ibc-go-simd` and `ghcr.io/cosmos/ibc-go-wasm-simd` image they publish, and sign it with cosign. Verify an image with:
 
 ```sh
@@ -58,6 +60,8 @@ cosign verify ghcr.io/cosmos/ibc-go-simd:<tag> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 gh attestation verify oci://ghcr.io/cosmos/ibc-go-simd:<tag> --repo cosmos/ibc-go
 ```
+
+The certificate identity of an image is the image workflow that built it, including for images built by a tag push, which is why the example matches any workflow in the repository.
 
 `ghcr.io/cosmos/ibc-go-wasm-simd` SBOMs are attached to the platform digests, not the multi-platform tag. To check one, pass the platform digest with `--predicate-type https://spdx.dev/Document/v2.3`.
 

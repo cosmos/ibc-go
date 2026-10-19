@@ -3,6 +3,7 @@
 name: Release
 # Builds a signed source archive, SBOM and build provenance for every ibc-go and
 # 08-wasm tag, and attaches them to a draft release so they exist before publishing.
+# Also publishes the tag's signed ibc-go-simd or ibc-go-wasm-simd image to GHCR.
 
 on:
   push:
@@ -33,6 +34,7 @@ jobs:
       title: ${{ steps.tag.outputs.title }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
       paths: ${{ steps.tag.outputs.paths }}
+      image: ${{ steps.tag.outputs.image }}
     steps:
       - name: Check tag format
         id: tag
@@ -47,16 +49,19 @@ jobs:
           if [[ -n "$module" ]]; then
             name="ibc-go-08-wasm-${version}"
             paths="modules/light-clients/08-wasm LICENSE NOTICE"
+            image="wasm-simd"
           else
             name="ibc-go-${version}"
             # Empty means the whole repository.
             paths=""
+            image="simd"
           fi
           {
             echo "name=${name}"
             echo "title=${TAG}"
             if [[ -n "$suffix" ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
             echo "paths=${paths}"
+            echo "image=${image}"
           } >> "$GITHUB_OUTPUT"
 
   build:
@@ -120,6 +125,37 @@ jobs:
           if-no-files-found: error
           overwrite: true
           retention-days: 7
+
+  # The image jobs reuse the manual build-*-image-from-tag workflows, so tag pushes and manual
+  # runs publish the same signed, attested images under the same image tags.
+  simd-image:
+    name: Build simd image
+    needs: [validate-tag]
+    if: needs.validate-tag.outputs.image == 'simd'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: ./.github/workflows/build-simd-image-from-tag.yml
+    with:
+      tag: ${{ github.ref_name }}
+      ibc-go-version: ${{ github.ref_name }}
+
+  wasm-simd-image:
+    name: Build wasm-simd image
+    needs: [validate-tag]
+    if: needs.validate-tag.outputs.image == 'wasm-simd'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: ./.github/workflows/build-wasm-simd-image-from-tag.yml
+    with:
+      tag: ${{ github.ref_name }}
 
   # This job is kept identical across cosmos/ibc, cosmos/ibc-go and cosmos/ibc-contracts.
   # Repository-specific behaviour belongs in the tag patterns, validate-tag and build.

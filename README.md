@@ -23,7 +23,7 @@ The release lines currently supported are v10 and v11. Please note that v9 has b
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
-See [Release artifacts](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#release-artifacts) for the files and images each release tag publishes.
+See [Release artifacts](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#release-artifacts) for the signed files and container images each release tag publishes.
 
 ## Applications, Middleware, and Tools
 
