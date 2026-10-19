@@ -52,23 +52,26 @@ Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/mai
 
 ### Release artifacts
 
-The Go modules are consumed from their tags through the Go module proxy. Each tag also produces:
-
-| Tag | Artifact | Published to |
+| Tag | Artifact | Description |
 | --- | --- | --- |
-| `vX.Y.Z` | Source archive of the tagged commit, `ibc-go-vX.Y.Z.tar.gz` | [GitHub release](https://github.com/cosmos/ibc-go/releases) |
-| `modules/light-clients/08-wasm/vX.Y.Z` | Source archive of the 08-wasm module, `ibc-go-08-wasm-vX.Y.Z.tar.gz` | [GitHub release](https://github.com/cosmos/ibc-go/releases) |
+| `vX.Y.Z` | `ibc-go-vX.Y.Z.tar.gz` | Source archive of the repository at the tagged commit |
+|  | `ibc-go-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
+|  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
+|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+|  | `ibc-go-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for offline verification with `gh attestation verify --bundle` |
+| `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source archive of the 08-wasm module at the tagged commit, with `LICENSE` and `NOTICE` |
+|  | `ibc-go-08-wasm-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
+|  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
+|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+|  | `ibc-go-08-wasm-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for offline verification with `gh attestation verify --bundle` |
 
-Every GitHub release also carries an SPDX SBOM (`<name>.spdx.json`), a `checksums.txt` signed with cosign (`checksums.txt.sigstore.json`), and its build provenance (`<name>.intoto.jsonl`).
+The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases).
 
-Container images:
+The Go modules themselves are consumed from their tags through the Go module proxy.
 
-| Image | Built from |
-| --- | --- |
-| `ghcr.io/cosmos/ibc-go-simd` | Every push to `main` and `release/v*` (tagged with the branch name), and on demand for a release tag |
-| `ghcr.io/cosmos/ibc-go-wasm-simd` (`linux/amd64`, `linux/arm64`) | On demand for a release tag |
+Container images are not built by tags. `ghcr.io/cosmos/ibc-go-simd` is built on every push to `main` and `release/v*`, and both `ghcr.io/cosmos/ibc-go-simd` and `ghcr.io/cosmos/ibc-go-wasm-simd` can be built on demand for a release tag. The images are signed with cosign and carry build provenance and SBOM attestations.
 
-The images carry build provenance and SBOM attestations and are signed with cosign. See [Signed release assets](https://github.com/cosmos/ibc-go/blob/main/docs/dev/release-management.md#signed-release-assets) for how to verify the release assets and images.
+See [Signed release assets](https://github.com/cosmos/ibc-go/blob/main/docs/dev/release-management.md#signed-release-assets) for how to verify the artifacts.
 
 ## Applications, Middleware, and Tools
 
