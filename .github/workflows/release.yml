@@ -16,6 +16,10 @@ concurrency:
 
 permissions: {}
 
+defaults:
+  run:
+    shell: bash
+
 env:
   TAG: ${{ github.ref_name }}
 
@@ -63,6 +67,7 @@ jobs:
       contents: read
       id-token: write
       attestations: write
+      artifact-metadata: write
     timeout-minutes: 20
     env:
       NAME: ${{ needs.validate-tag.outputs.name }}
@@ -113,6 +118,7 @@ jobs:
           name: release-assets
           path: out/
           if-no-files-found: error
+          overwrite: true
           retention-days: 7
 
   # This job is kept identical across cosmos/ibc, cosmos/ibc-go and cosmos/ibc-contracts.
@@ -143,7 +149,7 @@ jobs:
           mkdir dist
           mv out/assets/* out/sbom/* dist/
           (cd dist && sha256sum -- * > checksums.txt && cat checksums.txt)
-          jq -c . out/attestations/*.json > "dist/${NAME}.intoto.jsonl"
+          jq -c . out/attestations/*.json > "dist/${NAME}.sigstore.jsonl"
       - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Sign checksums
         working-directory: dist
@@ -155,7 +161,7 @@ jobs:
           # Use the first release asset that is not an SBOM, checksum or attestation file as the example.
           for path in dist/*; do
             case "$path" in
-              *.spdx.json | *.intoto.jsonl | dist/checksums.txt*) ;;
+              *.spdx.json | *.sigstore.jsonl | dist/checksums.txt*) ;;
               *) example="${path#dist/}" && break ;;
             esac
           done
@@ -164,7 +170,7 @@ jobs:
 
           Verify the build provenance of a release asset. Add
           \`--predicate-type https://spdx.dev/Document/v2.3\` to verify its SBOM instead, or
-          \`--bundle ${NAME}.intoto.jsonl\` to verify offline:
+          \`--bundle ${NAME}.sigstore.jsonl\` to verify without the attestations API:
 
           \`\`\`sh
           gh attestation verify ${example} \\

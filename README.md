@@ -4,7 +4,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge)](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/cosmos/ibc-go/blob/main/LICENSE)
 [![Discord](https://img.shields.io/discord/669268347736686612?logo=discord&label=Discord)](https://discord.com/invite/interchain)
-[![Version](https://img.shields.io/github/tag/cosmos/ibc-go.svg)](https://github.com/cosmos/ibc-go/releases/latest)
+[![Version](https://img.shields.io/github/v/tag/cosmos/ibc-go?filter=v*&label=version)](https://github.com/cosmos/ibc-go/releases/latest)
 [![GoDoc](https://godoc.org/github.com/cosmos/ibc-go?status.svg)](https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc)
 [![Code Coverage](https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn)](https://codecov.io/gh/cosmos/ibc-go)
 [![Tests / Code Coverage](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg)](https://github.com/cosmos/ibc-go/actions/workflows/test.yml)
@@ -31,12 +31,12 @@ Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/mai
 |  | `ibc-go-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
 |  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
 |  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
-|  | `ibc-go-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for offline verification with `gh attestation verify --bundle` |
+|  | `ibc-go-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
 | `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source archive of the 08-wasm module at the tagged commit, with `LICENSE` and `NOTICE` |
 |  | `ibc-go-08-wasm-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
 |  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
 |  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
-|  | `ibc-go-08-wasm-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for offline verification with `gh attestation verify --bundle` |
+|  | `ibc-go-08-wasm-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
 
 The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases).
 
