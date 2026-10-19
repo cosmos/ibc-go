@@ -352,6 +352,19 @@ func TestGetPacketMetadataErrorCases(t *testing.T) {
 			expectedHasForward: true,
 		},
 		{
+			name: "fractional retries value",
+			customData: map[string]any{
+				"forward": map[string]any{
+					"receiver": "test-receiver",
+					"port":     "test-port",
+					"channel":  "test-channel",
+					"retries":  2.9, // non-integer
+				},
+			},
+			expectedError:      "retries must be an integer",
+			expectedHasForward: true,
+		},
+		{
 			name: "invalid retries type",
 			customData: map[string]any{
 				"forward": map[string]any{
