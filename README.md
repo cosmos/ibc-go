@@ -50,6 +50,26 @@ The release lines currently supported are v10 and v11. Please note that v9 has b
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
+### Release artifacts
+
+The Go modules are consumed from their tags through the Go module proxy. Each tag also produces:
+
+| Tag | Artifact | Published to |
+| --- | --- | --- |
+| `vX.Y.Z` | Source archive of the tagged commit, `ibc-go-vX.Y.Z.tar.gz` | [GitHub release](https://github.com/cosmos/ibc-go/releases) |
+| `modules/light-clients/08-wasm/vX.Y.Z` | Source archive of the 08-wasm module, `ibc-go-08-wasm-vX.Y.Z.tar.gz` | [GitHub release](https://github.com/cosmos/ibc-go/releases) |
+
+Every GitHub release also carries an SPDX SBOM (`<name>.spdx.json`), a `checksums.txt` signed with cosign (`checksums.txt.sigstore.json`), and its build provenance (`<name>.intoto.jsonl`).
+
+Container images:
+
+| Image | Built from |
+| --- | --- |
+| `ghcr.io/cosmos/ibc-go-simd` | Every push to `main` and `release/v*` (tagged with the branch name), and on demand for a release tag |
+| `ghcr.io/cosmos/ibc-go-wasm-simd` (`linux/amd64`, `linux/arm64`) | On demand for a release tag |
+
+The images carry build provenance and SBOM attestations and are signed with cosign. See [Signed release assets](https://github.com/cosmos/ibc-go/blob/main/docs/dev/release-management.md#signed-release-assets) for how to verify the release assets and images.
+
 ## Applications, Middleware, and Tools
 
 IBC has an extensive list of applications, middleware, and tools, including relayers. View the list on the [IBC technical resource catalogue](https://ibcprotocol.dev/technical-resource-catalog) on our website.
