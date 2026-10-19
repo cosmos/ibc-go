@@ -23,6 +23,9 @@
   <a href="https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml">
     <img alt="CodeQL" src="https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml/badge.svg" />
   </a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go">
+    <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge" />
+  </a>
 </div>
 <div align="center">
   <a href="https://discord.com/invite/interchain">
