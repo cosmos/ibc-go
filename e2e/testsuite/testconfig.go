@@ -278,7 +278,7 @@ func (tc TestConfig) GetChainNumFullNodes(idx int) int {
 	return 0
 }
 
-// GetChainID returns the chain-id for i. Assumes indicies are correct.
+// GetChainID returns the chain-id for i. Assumes indices are correct.
 func (tc TestConfig) GetChainID(i int) string {
 	if tc.ChainConfigs[i].ChainID != "" {
 		return tc.ChainConfigs[i].ChainID
