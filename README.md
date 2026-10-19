@@ -20,6 +20,9 @@
   <a href="https://codecov.io/gh/cosmos/ibc-go" > 
     <img src="https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn"/> 
   </a>
+  <a href="https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml">
+    <img alt="CodeQL" src="https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml/badge.svg" />
+  </a>
 </div>
 <div align="center">
   <a href="https://discord.com/invite/interchain">

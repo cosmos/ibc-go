@@ -32,6 +32,12 @@ For specifics around point release procedure, see [the documentation for that be
 
 NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-wasm/v10.3.0`) from the same release branch as `ibc-go`.
 
+### Signed release assets
+
+Pushing a `v*` or `modules/light-clients/08-wasm/v*` tag runs the [release workflow](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/release.yml). It builds a source archive of the tagged commit and an SPDX SBOM, attests their build provenance, signs a `checksums.txt` over them with cosign, and attaches everything to a draft release for the tag. The release notes get a section explaining how to verify the assets.
+
+Push the tag with `git` before publishing the release. A release drafted from the GitHub UI only creates its tag when it is published, so its assets would be attached after publishing. The workflow runs from the tagged commit, so the release branch must contain `.github/workflows/release.yml`.
+
 ### 0: Before release
 
 1. Before tagging a new release, make sure to run the [compatibility e2e test suite](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
@@ -39,11 +45,11 @@ NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-w
 
 ### 1: Release ibc-go
 
-1. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
-2. Select the release branch (e.g. `release/v10.4.x`)
-3. Set the correct tag (e.g. `v10.4.0`)
-4. Write release notes
-5. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+1. Tag the head of the release branch and push the tag (e.g. `git tag v10.4.0 origin/release/v10.4.x && git push origin v10.4.0`).
+2. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release in [GitHub](https://github.com/cosmos/ibc-go/releases) with the signed assets attached.
+3. Edit the draft and write the release notes above the generated "Verifying the release" section.
+4. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates). The workflow already checks it for tags with a pre-release suffix such as `-rc.0`.
+5. Publish the release.
 
 ### 2: Release sub-modules
 
@@ -59,11 +65,11 @@ For each sub-module, from the release branch:
 +  github.com/cosmos/ibc-go/v10 v10.4.0
   ```
 3. Create a PR to the release branch, and after CI finishes, merge it.
-4. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
-5. Select the release branch (e.g. `release/v10.4.x`)
-6. Set the correct tag (e.g. `modules/light-clients/08-wasm/v10.4.0`)
-7. Write release notes
-8. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+4. Tag the merged commit on the release branch and push the tag (e.g. `git push origin modules/light-clients/08-wasm/v10.4.0`).
+5. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release with the signed assets attached.
+6. Edit the draft and write the release notes above the generated "Verifying the release" section.
+7. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+8. Publish the release.
 
 ### 3: Post-release procedure
 
@@ -118,8 +124,9 @@ Finally, when a point release is ready to be made:
 
 3. Create release in GitHub:
 
-- Select the correct target branch (e.g. `release/v1.0.x`).
-- Choose a tag (e.g. `v1.0.3`).
-- Write release notes.
+- Tag the head of the release branch and push the tag (e.g. `git tag v1.0.3 origin/release/v1.0.x && git push origin v1.0.3`).
+- Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release with the signed assets attached.
+- Edit the draft and write release notes above the generated "Verifying the release" section.
 - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+- Publish the release.
 
