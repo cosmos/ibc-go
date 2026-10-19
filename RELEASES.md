@@ -130,6 +130,29 @@ Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in 
 | 1.23 | v10.5 | v10.5 | v0.53 | v0.38 |
 | 1.25 | v11.1 | v11.1 | v0.54 | v0.39 |
 
+## Release artifacts
+
+| Tag | Artifact | Description |
+| --- | --- | --- |
+| `vX.Y.Z` | `ibc-go-vX.Y.Z.tar.gz` | Source archive of the repository at the tagged commit |
+|  | `ibc-go-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
+|  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
+|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+|  | `ibc-go-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
+| `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source archive of the 08-wasm module at the tagged commit, with `LICENSE` and `NOTICE` |
+|  | `ibc-go-08-wasm-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
+|  | `checksums.txt` | SHA-256 checksums of the source archive and the SBOM |
+|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+|  | `ibc-go-08-wasm-vX.Y.Z.sigstore.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
+
+The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases).
+
+The Go modules themselves are consumed from their tags through the Go module proxy.
+
+Container images are not built by tags. `ghcr.io/cosmos/ibc-go-simd` is built on every push to `main` and `release/v*`, and both `ghcr.io/cosmos/ibc-go-simd` and `ghcr.io/cosmos/ibc-go-wasm-simd` can be built on demand for a release tag. The images are signed with cosign and carry build provenance and SBOM attestations.
+
+See [Signed release assets](docs/dev/release-management.md#signed-release-assets) for how to verify the artifacts.
+
 ## Graphics
 
 The decision tree above was generated with the following code:
