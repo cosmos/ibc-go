@@ -8,6 +8,13 @@ on:
         description: 'The tag of the image to build'
         required: true
         type: string
+  # Called by release.yml for every modules/light-clients/08-wasm/vX.Y.Z tag.
+  workflow_call:
+    inputs:
+      tag:
+        description: 'The tag of the image to build'
+        required: true
+        type: string
 
 permissions: {}
 
@@ -27,6 +34,9 @@ jobs:
     permissions:
       packages: write
       contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     strategy:
       fail-fast: false
       matrix:
@@ -69,6 +79,33 @@ jobs:
           file: modules/light-clients/08-wasm/Dockerfile
           build-args: LIBWASM_VERSION=${{ env.LIBWASM_VERSION }}
           outputs: type=image,"name=${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=true
+          # Disable BuildKit's unsigned attestation, so the pushed digest is the platform image
+          # itself rather than an index wrapping it.
+          provenance: false
+
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: sbom.spdx.json
+          push-to-registry: true
 
       - name: Export digest
         run: |
@@ -90,6 +127,9 @@ jobs:
     permissions:
       packages: write
       contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     needs:
       - build-image-at-tag
     steps:
@@ -116,3 +156,25 @@ jobs:
         working-directory: ${{ runner.temp }}/digests
         run: |
           docker buildx imagetools create --tag ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }} $(printf '${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Resolve index digest
+        id: index
+        run: |
+          digest=$(docker buildx imagetools inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:${DOCKER_TAG}" \
+            --format '{{json .Manifest}}' | jq -r .digest)
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.index.outputs.digest }}
+          push-to-registry: true
+
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Sign image
+        env:
+          DIGEST: ${{ steps.index.outputs.digest }}
+        # --recursive also signs the platform manifests referenced by the index.
+        run: cosign sign --yes --recursive "${REGISTRY}/${ORG}/${IMAGE_NAME}@${DIGEST}"

@@ -32,6 +32,39 @@ For specifics around point release procedure, see [the documentation for that be
 
 NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-wasm/v10.3.0`) from the same release branch as `ibc-go`.
 
+### Signed release assets
+
+Pushing a `v*` or `modules/light-clients/08-wasm/v*` tag runs the [release workflow](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/release.yml). It builds a source archive of the tagged commit and an SPDX SBOM, attests their build provenance, signs a `checksums.txt` over them with cosign, and attaches everything to a draft release for the tag. The release notes get a section explaining how to verify the assets.
+
+| Asset | Purpose |
+| --- | --- |
+| `<name>.tar.gz` | Source archive of the tagged commit (`ibc-go-<version>` or `ibc-go-08-wasm-<version>`) |
+| `<name>.spdx.json` | SPDX SBOM |
+| `checksums.txt` | SHA-256 of the archive and the SBOM |
+| `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+| `<name>.sigstore.jsonl` | Provenance and SBOM attestation bundles, for `gh attestation verify --bundle` without the attestations API |
+
+The same release workflow runs in [cosmos/ibc](https://github.com/cosmos/ibc) and [cosmos/ibc-contracts](https://github.com/cosmos/ibc-contracts); only the tag patterns and the build differ.
+
+Push the tag with `git` before publishing the release. A release drafted from the GitHub UI only creates its tag when it is published, so its assets would be attached after publishing. The workflow runs from the tagged commit, so the release branch must contain `.github/workflows/release.yml`.
+
+#### Container images
+
+The release workflow also publishes the tag's image by calling the image workflows below: `ghcr.io/cosmos/ibc-go-simd:vX.Y.Z` for a `vX.Y.Z` tag, and `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` for an 08-wasm tag. The image build runs alongside the draft release and does not block it. If it fails, re-run the failed job, or run the image workflow manually for the tag.
+
+The [docker](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/docker.yml), [build-simd-image-from-tag](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/build-simd-image-from-tag.yml) and [build-wasm-simd-image-from-tag](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/build-wasm-simd-image-from-tag.yml) workflows attest the build provenance and SBOMs of every `ghcr.io/cosmos/ibc-go-simd` and `ghcr.io/cosmos/ibc-go-wasm-simd` image they publish, and sign it with cosign. Verify an image with:
+
+```sh
+cosign verify ghcr.io/cosmos/ibc-go-simd:<tag> \
+  --certificate-identity-regexp '^https://github.com/cosmos/ibc-go/.github/workflows/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+gh attestation verify oci://ghcr.io/cosmos/ibc-go-simd:<tag> --repo cosmos/ibc-go
+```
+
+The certificate identity of an image is the image workflow that built it, including for images built by a tag push, which is why the example matches any workflow in the repository.
+
+`ghcr.io/cosmos/ibc-go-wasm-simd` SBOMs are attached to the platform digests, not the multi-platform tag. To check one, pass the platform digest with `--predicate-type https://spdx.dev/Document/v2.3`.
+
 ### 0: Before release
 
 1. Before tagging a new release, make sure to run the [compatibility e2e test suite](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
@@ -39,11 +72,11 @@ NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-w
 
 ### 1: Release ibc-go
 
-1. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
-2. Select the release branch (e.g. `release/v10.4.x`)
-3. Set the correct tag (e.g. `v10.4.0`)
-4. Write release notes
-5. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+1. Tag the head of the release branch and push the tag (e.g. `git tag -s v10.4.0 -m v10.4.0 origin/release/v10.4.x && git push origin v10.4.0`).
+2. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release in [GitHub](https://github.com/cosmos/ibc-go/releases) with the signed assets attached.
+3. Edit the draft and write the release notes above the generated "Verifying the release" section.
+4. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates). The workflow already checks it for tags with a pre-release suffix such as `-rc.0`.
+5. Publish the release.
 
 ### 2: Release sub-modules
 
@@ -59,11 +92,11 @@ For each sub-module, from the release branch:
 +  github.com/cosmos/ibc-go/v10 v10.4.0
   ```
 3. Create a PR to the release branch, and after CI finishes, merge it.
-4. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
-5. Select the release branch (e.g. `release/v10.4.x`)
-6. Set the correct tag (e.g. `modules/light-clients/08-wasm/v10.4.0`)
-7. Write release notes
-8. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+4. Tag the merged commit on the release branch and push the tag (e.g. `git tag -s modules/light-clients/08-wasm/v10.4.0 -m modules/light-clients/08-wasm/v10.4.0 origin/release/v10.4.x && git push origin modules/light-clients/08-wasm/v10.4.0`).
+5. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release with the signed assets attached.
+6. Edit the draft and write the release notes above the generated "Verifying the release" section.
+7. Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates). The workflow already checks it for tags with a pre-release suffix such as `-rc.0`.
+8. Publish the release.
 
 ### 3: Post-release procedure
 
@@ -118,8 +151,9 @@ Finally, when a point release is ready to be made:
 
 3. Create release in GitHub:
 
-- Select the correct target branch (e.g. `release/v1.0.x`).
-- Choose a tag (e.g. `v1.0.3`).
-- Write release notes.
+- Tag the head of the release branch and push the tag (e.g. `git tag -s v1.0.3 -m v1.0.3 origin/release/v1.0.x && git push origin v1.0.3`).
+- Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release with the signed assets attached.
+- Edit the draft and write release notes above the generated "Verifying the release" section.
 - Check the `This is a pre-release` checkbox if needed (this applies for alpha, beta and release candidates).
+- Publish the release.
 

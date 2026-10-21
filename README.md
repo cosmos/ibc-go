@@ -1,40 +1,16 @@
-<div align="left">
-  <h1>ibc-go</h1>
-</div>
+# ibc-go
 
-![banner](.github/assets/cosmos-ibc-go-github.svg)
+[![CodeQL](https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml/badge.svg)](https://github.com/cosmos/ibc-go/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge)](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/cosmos/ibc-go/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/669268347736686612?logo=discord&label=Discord)](https://discord.com/invite/interchain)
+[![Version](https://img.shields.io/github/v/tag/cosmos/ibc-go?filter=v*&label=version)](https://github.com/cosmos/ibc-go/releases/latest)
+[![GoDoc](https://godoc.org/github.com/cosmos/ibc-go?status.svg)](https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc)
+[![Code Coverage](https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn)](https://codecov.io/gh/cosmos/ibc-go)
+[![Tests / Code Coverage](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg)](https://github.com/cosmos/ibc-go/actions/workflows/test.yml)
+[![Tests / E2E](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg)](https://github.com/cosmos/ibc-go/actions/workflows/e2e.yaml)
 
-<div align="center">
-  <a href="https://github.com/cosmos/ibc-go/releases/latest">
-    <img alt="Version" src="https://img.shields.io/github/tag/cosmos/ibc-go.svg" />
-  </a>
-  <a href="https://github.com/cosmos/ibc-go/blob/main/LICENSE">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/cosmos/ibc-go.svg" />
-  </a>
-  <a href="https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc">
-    <img alt="GoDoc" src="https://godoc.org/github.com/cosmos/ibc-go?status.svg" />
-  </a>
-  <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
-    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
-  </a>
-  <a href="https://codecov.io/gh/cosmos/ibc-go" > 
-    <img src="https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn"/> 
-  </a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go">
-    <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge" />
-  </a>
-</div>
-<div align="center">
-  <a href="https://discord.com/invite/interchain">
-    <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
-  </a>
-  <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">
-    <img alt="Imported by" src="https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg" />
-  </a>
-    <img alt="Tests / Code Coverage Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg" />
-    <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
-  <a href="https://deepwiki.com/cosmos/ibc-go"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-</div>
+![banner](./.github/assets/cosmos-ibc-go-github.svg)
 
 The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes — including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For information on what IBC is and how it works, please read [the docs](https://docs.cosmos.network/ibc/latest/intro).
 
@@ -46,6 +22,8 @@ The IBC implementation in Golang `ibc-go` has been used in production by the maj
 The release lines currently supported are v10 and v11. Please note that v9 has been retracted and has been replaced by v10.
 
 Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
+
+See [Release artifacts](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#release-artifacts) for the signed files and container images each release tag publishes.
 
 ## Applications, Middleware, and Tools
 
