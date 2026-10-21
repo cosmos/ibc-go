@@ -220,7 +220,11 @@ func (s *KeeperTestSuite) TestSendTransfer() {
 				memo,
 			)
 
-			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(s.chainA.GetContext(), msg)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			res, err := s.chainA.GetSimApp().TransferKeeper.Transfer(cacheCtx, msg)
+			if err == nil {
+				writeCache()
+			}
 
 			if tc.expError == nil {
 				s.Require().NoError(err)
@@ -487,7 +491,7 @@ func (s *KeeperTestSuite) TestOnRecvPacket_ReceiverIsSource() {
 			func() {
 				packetData.Token.Amount = sdkmath.NewInt(1000000).String()
 			},
-			sdkerrors.ErrInsufficientFunds,
+			types.ErrInsufficientEscrow,
 		},
 		{
 			"failure: empty denom",
@@ -640,6 +644,7 @@ func (s *KeeperTestSuite) TestOnRecvPacketSetsTotalEscrowAmountForSourceIBCToken
 	)
 
 	s.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainB.GetContext(), coin)
+	s.chainB.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainB.GetContext(), destinationChannel, coin)
 	totalEscrowChainB := s.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainB.GetContext(), coin.GetDenom())
 	s.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 
@@ -699,6 +704,7 @@ func (s *KeeperTestSuite) TestOnAcknowledgementPacket() {
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
+				s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), path.EndpointA.ChannelID, coin)
 			},
 			nil,
 		},
@@ -721,7 +727,9 @@ func (s *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				denom = types.NewDenom(sdk.DefaultBondDenom)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(sdk.DefaultBondDenom, amount))
+				coin := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), coin)
+				s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), path.EndpointA.ChannelID, coin)
 				expEscrowAmount = defaultAmount
 			},
 			sdkerrors.ErrInsufficientFunds,
@@ -749,7 +757,11 @@ func (s *KeeperTestSuite) TestOnAcknowledgementPacket() {
 			sourceChannel := path.EndpointA.ChannelID
 			preAcknowledgementBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := s.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(s.chainA.GetContext(), sourcePort, sourceChannel, data, tc.ack)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			err := s.chainA.GetSimApp().TransferKeeper.OnAcknowledgementPacket(cacheCtx, sourcePort, sourceChannel, data, tc.ack)
+			if err == nil {
+				writeCache()
+			}
 
 			// check total amount in escrow of sent token denom on sending chain
 			totalEscrow := s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainA.GetContext(), denom.IBCDenom())
@@ -841,6 +853,7 @@ func (s *KeeperTestSuite) TestOnAcknowledgementPacketSetsTotalEscrowAmountForSou
 	sourceChannel := path2.EndpointB.ChannelID
 
 	s.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainB.GetContext(), coin)
+	s.chainB.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainB.GetContext(), sourceChannel, coin)
 	totalEscrowChainB := s.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainB.GetContext(), coin.GetDenom())
 	s.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 
@@ -884,6 +897,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.Require().NoError(banktestutil.FundAccount(s.chainA.GetContext(), s.chainA.GetSimApp().BankKeeper, escrow, sdk.NewCoins(coin)))
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
 				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), coin)
+				s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), path.EndpointA.ChannelID, coin)
 			},
 			nil,
 		},
@@ -911,7 +925,9 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.Require().True(ok)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
+				coin := sdk.NewCoin(denom.IBCDenom(), expEscrowAmount)
+				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), coin)
+				s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), path.EndpointA.ChannelID, coin)
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
@@ -924,7 +940,9 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 				s.Require().True(ok)
 
 				// set escrow amount that would have been stored after successful execution of MsgTransfer
-				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), sdk.NewCoin(denom.IBCDenom(), expEscrowAmount))
+				coin := sdk.NewCoin(denom.IBCDenom(), expEscrowAmount)
+				s.chainA.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainA.GetContext(), coin)
+				s.chainA.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainA.GetContext(), path.EndpointA.ChannelID, coin)
 			},
 			sdkerrors.ErrInsufficientFunds,
 		},
@@ -978,7 +996,11 @@ func (s *KeeperTestSuite) TestOnTimeoutPacket() {
 			sourceChannel := path.EndpointA.ChannelID
 			preTimeoutBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 
-			err := s.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(s.chainA.GetContext(), sourcePort, sourceChannel, data)
+			cacheCtx, writeCache := s.chainA.GetContext().CacheContext()
+			err := s.chainA.GetSimApp().TransferKeeper.OnTimeoutPacket(cacheCtx, sourcePort, sourceChannel, data)
+			if err == nil {
+				writeCache()
+			}
 
 			postTimeoutBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), denom.IBCDenom())
 			deltaAmount := postTimeoutBalance.Amount.Sub(preTimeoutBalance.Amount)
@@ -1062,6 +1084,7 @@ func (s *KeeperTestSuite) TestOnTimeoutPacketSetsTotalEscrowAmountForSourceIBCTo
 	sourceChannel := path2.EndpointB.ChannelID
 
 	s.chainB.GetSimApp().TransferKeeper.SetTotalEscrowForDenom(s.chainB.GetContext(), coin)
+	s.chainB.GetSimApp().TransferKeeper.SetChannelEscrowForDenom(s.chainB.GetContext(), sourceChannel, coin)
 	totalEscrowChainB := s.chainB.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(s.chainB.GetContext(), coin.GetDenom())
 	s.Require().Equal(defaultAmount, totalEscrowChainB.Amount)
 

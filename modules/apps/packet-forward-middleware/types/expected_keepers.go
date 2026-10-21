@@ -20,6 +20,9 @@ type TransferKeeper interface {
 	GetDenom(ctx sdk.Context, denomHash cmtbytes.HexBytes) (transfertypes.Denom, bool)
 	GetTotalEscrowForDenom(ctx sdk.Context, denom string) sdk.Coin
 	SetTotalEscrowForDenom(ctx sdk.Context, coin sdk.Coin)
+	GetChannelEscrowForDenom(ctx sdk.Context, channelOrClientID, denom string) sdk.Coin
+	AddToChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin)
+	SubFromChannelEscrow(ctx sdk.Context, channelOrClientID string, coin sdk.Coin) error
 	DenomPathFromHash(ctx sdk.Context, ibcDenom string) (string, error)
 
 	// Only used for v3 migration

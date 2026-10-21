@@ -62,6 +62,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ClientKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				s.chainA.GetSimApp().AccountKeeper,
 				s.chainA.GetSimApp().BankKeeper,
@@ -74,6 +75,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ClientKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				authkeeper.AccountKeeper{}, // empty account keeper
 				s.chainA.GetSimApp().BankKeeper,
@@ -86,6 +88,7 @@ func (s *KeeperTestSuite) TestNewKeeper() {
 				s.chainA.GetSimApp().AccountKeeper.AddressCodec(),
 				runtime.NewKVStoreService(s.chainA.GetSimApp().GetKey(types.StoreKey)),
 				s.chainA.GetSimApp().IBCKeeper.ChannelKeeper,
+				s.chainA.GetSimApp().IBCKeeper.ClientKeeper,
 				s.chainA.GetSimApp().MsgServiceRouter(),
 				s.chainA.GetSimApp().AccountKeeper,
 				s.chainA.GetSimApp().BankKeeper,
@@ -184,6 +187,28 @@ func (s *KeeperTestSuite) TestSetGetTotalEscrowForDenom() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestSetGetChannelEscrowForDenom() {
+	const (
+		channelOrClientID = "channel-0"
+		denom             = "atom"
+	)
+	ctx := s.chainA.GetContext()
+	transferKeeper := s.chainA.GetSimApp().TransferKeeper
+
+	coin := sdk.NewInt64Coin(denom, 100)
+	transferKeeper.SetChannelEscrowForDenom(ctx, channelOrClientID, coin)
+	s.Require().Equal(coin, transferKeeper.GetChannelEscrowForDenom(ctx, channelOrClientID, denom))
+	s.Require().True(transferKeeper.GetChannelEscrowForDenom(ctx, "channel-1", denom).IsZero())
+
+	transferKeeper.SetChannelEscrowForDenom(ctx, channelOrClientID, sdk.NewInt64Coin(denom, 0))
+	s.Require().True(transferKeeper.GetChannelEscrowForDenom(ctx, channelOrClientID, denom).IsZero())
+	s.Require().Empty(transferKeeper.GetAllChannelEscrows(ctx))
+
+	s.Require().PanicsWithError("amount cannot be negative: -1", func() {
+		transferKeeper.SetChannelEscrowForDenom(ctx, channelOrClientID, sdk.Coin{Denom: denom, Amount: sdkmath.NewInt(-1)})
+	})
 }
 
 func (s *KeeperTestSuite) TestGetAllDenomEscrows() {
