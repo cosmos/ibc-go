@@ -185,7 +185,7 @@ func handler(msgData sdk.MsgData) error {
 switch msgData.MsgType {
 case sdk.MsgTypeURL(&banktypes.MsgSend{}):
   msgResponse := &banktypes.MsgSendResponse{}
-  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+  if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
     return err
   }
 
@@ -193,7 +193,7 @@ case sdk.MsgTypeURL(&banktypes.MsgSend{}):
 
 case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
   msgResponse := &stakingtypes.MsgDelegateResponse{}
-  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+  if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
     return err
   }
 
@@ -201,7 +201,7 @@ case sdk.MsgTypeURL(&stakingtypes.MsgDelegate{}):
 
 case sdk.MsgTypeURL(&transfertypes.MsgTransfer{}):
   msgResponse := &transfertypes.MsgTransferResponse{}
-  if err := proto.Unmarshal(msgData.Data, msgResponse}; err != nil {
+  if err := proto.Unmarshal(msgData.Data, msgResponse); err != nil {
       return err
   }
 
