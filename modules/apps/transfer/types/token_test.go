@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -102,7 +103,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: "0",
 			},
-			types.ErrInvalidAmount,
+			errorsmod.Wrap(types.ErrInvalidAmount, "amount must be strictly positive: got 0"),
 		},
 		{
 			"failure: amount is negative",
@@ -116,7 +117,7 @@ func TestValidate(t *testing.T) {
 				},
 				Amount: "-1",
 			},
-			types.ErrInvalidAmount,
+			errorsmod.Wrap(types.ErrInvalidAmount, "amount must be strictly positive: got -1"),
 		},
 		{
 			"failure: invalid identifier in trace",
