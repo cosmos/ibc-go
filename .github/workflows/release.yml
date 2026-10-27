@@ -1,0 +1,384 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Release
+# Archives the source of the tagged Go module for every release tag, generates an SBOM and build
+# provenance for it, signs a checksums file over it, and attaches everything to a draft release so
+# the signed assets exist before the release is published. Once the assets verify, it also publishes
+# the signed simd container images built from the tagged commit.
+#
+# The attesting, signing and publishing steps are the shared actions in cosmos/ibc's
+# .github/actions, which cosmos/ibc and cosmos/ibc-contracts use too. Images for branches are built,
+# unsigned, by docker.yml.
+
+on:
+  push:
+    # `*` does not match `/`, so `v*` only matches the root module's tags.
+    tags:
+      - "v*"
+      - "modules/light-clients/08-wasm/v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  validate-tag:
+    name: Validate tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    outputs:
+      name: ${{ steps.tag.outputs.name }}
+      module: ${{ steps.tag.outputs.module }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+      image-tag: ${{ steps.tag.outputs.image-tag }}
+      image-builds: ${{ steps.tag.outputs.image-builds }}
+      images: ${{ steps.tag.outputs.images }}
+    steps:
+      - name: Check tag format
+        id: tag
+        run: |
+          if [[ ! "$TAG" =~ ^(modules/light-clients/08-wasm/)?(v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$ ]]; then
+            echo "::error::Tag must match vX.Y.Z or modules/light-clients/08-wasm/vX.Y.Z, optionally followed by -<suffix>"
+            exit 1
+          fi
+          # Asset names cannot contain `/`, so they are named after the module and the version.
+          version="${BASH_REMATCH[2]}"
+          suffix="${BASH_REMATCH[3]}"
+          # Each image is built for the platforms listed with it. Docker on macOS runs these linux
+          # images: linux/arm64 on Apple silicon and linux/amd64 on Intel.
+          simd='{"image": "ibc-go-simd", "file": "Dockerfile", "platforms": ["linux-amd64", "linux-arm64"]}'
+          wasm_simd='{"image": "ibc-go-wasm-simd", "file": "modules/light-clients/08-wasm/Dockerfile", "platforms": ["linux-amd64", "linux-arm64"]}'
+          if [[ -n "${BASH_REMATCH[1]}" ]]; then
+            name="ibc-go-08-wasm-${version}"
+            module="modules/light-clients/08-wasm"
+            images="[${wasm_simd}]"
+          else
+            name="ibc-go-${version}"
+            module="."
+            images="[${simd}, ${wasm_simd}]"
+          fi
+          {
+            echo "name=${name}"
+            echo "module=${module}"
+            if [[ -n "$suffix" ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
+            # Image tags cannot contain `/`, so anything but letters, digits and `.` becomes `-`, as
+            # for the images built before this workflow.
+            echo "image-tag=${TAG//[^a-zA-Z0-9.]/-}"
+            echo "images=$(jq -c '[.[] | {image, platforms: (.platforms | join(" "))}]' <<< "$images")"
+            echo "image-builds=$(jq -c '[.[] | {image, file} + (.platforms[] | {platform: ., docker_platform: sub("-"; "/"), runner: (if endswith("arm64") then "ubuntu-24.04-arm" else "ubuntu-latest" end)})]' <<< "$images")"
+          } >> "$GITHUB_OUTPUT"
+      # Full history without trees: enough to tell which branches contain the tagged commit.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: tree:0
+      - name: Check tagged commit is on a protected main or release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Only sign commits that were reviewed into main or a release/* branch, i.e. a branch whose
+          # ruleset requires a pull request with at least one approval. Classic branch protection does
+          # not show up in this API. The check runs from the tagged commit, so it guards against
+          # tagging an unreviewed commit by mistake; the tag ruleset is what limits who can get a
+          # commit signed.
+          branches=$(git branch --remotes --contains "$GITHUB_SHA" --format='%(refname:lstrip=3)')
+          while IFS= read -r branch; do
+            if [[ "$branch" != main && "$branch" != release/* ]]; then
+              continue
+            fi
+            # Assigned rather than tested in the if, so a failed request fails the step with its own
+            # error instead of reading as an unprotected branch.
+            approved_pr_rules=$(gh api "repos/${GITHUB_REPOSITORY}/rules/branches/${branch}" \
+              --jq '[.[] | select(.type == "pull_request" and .parameters.required_approving_review_count >= 1)] | length')
+            if (( approved_pr_rules > 0 )); then
+              exit 0
+            fi
+          done <<< "$branches"
+          echo "::error::Tagged commit ${GITHUB_SHA} is not on main or a release/* branch whose ruleset requires an approved pull request"
+          exit 1
+
+  build:
+    name: Build source archive
+    needs: [validate-tag]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    timeout-minutes: 15
+    env:
+      NAME: ${{ needs.validate-tag.outputs.name }}
+      MODULE: ${{ needs.validate-tag.outputs.module }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Collect assets
+        run: |
+          # Archive the module the way the Go module proxy sees it: its directory without any nested
+          # module, plus the repository's LICENSE and NOTICE. git archive of a commit is
+          # reproducible (entries in tree order, commit timestamp), and gzip -n drops the name and
+          # time from the gzip header.
+          pathspec=("$MODULE" LICENSE NOTICE)
+          while IFS= read -r gomod; do
+            dir=$(dirname "$gomod")
+            if [[ "$dir" != "$MODULE" ]]; then
+              pathspec+=(":(exclude)${dir}")
+            fi
+          done < <(git ls-tree -r --name-only "$GITHUB_SHA" -- "$MODULE" | grep -E '(^|/)go\.mod$')
+          echo "Archiving: ${pathspec[*]}"
+          mkdir -p out/assets src
+          git archive --format=tar --prefix="${NAME}/" "$GITHUB_SHA" -- "${pathspec[@]}" \
+            | gzip -n > "out/assets/${NAME}.tar.gz"
+          tar -xzf "out/assets/${NAME}.tar.gz" -C src
+      - name: Attest release assets
+        uses: cosmos/ibc/.github/actions/attest-release-assets@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        with:
+          name: ${{ env.NAME }}
+          sbom-dir: src/${{ env.NAME }}
+
+  # Checks every asset against its attestations before the image jobs push or attest anything, so
+  # no image is published for a release whose assets do not verify. The release job checks them
+  # again before signing.
+  verify:
+    name: Verify release assets
+    needs: [validate-tag, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Verify release assets
+        uses: cosmos/ibc/.github/actions/publish-draft-release@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        with:
+          name: ${{ needs.validate-tag.outputs.name }}
+          title: ${{ github.ref_name }}
+          verify-only: "true"
+
+  # Builds each platform image from the tagged commit. The source archive holds only the tagged
+  # module, not the simapp simd is built from, so unlike cosmos/ibc's CLI image the images cannot be
+  # built from the attested archive.
+  image:
+    name: Image ${{ matrix.image }} ${{ matrix.platform }}
+    needs: [validate-tag, verify]
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.validate-tag.outputs.image-builds) }}
+    env:
+      IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
+      IMAGE: ${{ matrix.image }}
+      PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build arguments
+        id: args
+        run: |
+          {
+            echo "build-args<<EOF"
+            if [[ "$IMAGE" == ibc-go-wasm-simd ]]; then
+              # The libwasmvm release to link against, as required by the 08-wasm module.
+              libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" { print $2 }' modules/light-clients/08-wasm/go.mod)
+              if [[ -z "$libwasm_version" ]]; then
+                echo "::error::No github.com/CosmWasm/wasmvm/v3 requirement in modules/light-clients/08-wasm/go.mod"
+                exit 1
+              fi
+              echo "LIBWASM_VERSION=${libwasm_version}"
+            else
+              echo "IBC_GO_VERSION=${TAG}"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # No build cache, so nothing cached by another workflow ends up in a signed image.
+      - name: Build & Push image
+        id: image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          platforms: ${{ matrix.docker_platform }}
+          build-args: ${{ steps.args.outputs.build-args }}
+          # Pushed by digest only. A platform tag could be moved before publish-manifest reads it.
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          # Disable BuildKit's unsigned attestation, so the pushed digest is the platform image
+          # itself rather than an index wrapping it.
+          provenance: false
+      - name: Test simd is runnable
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: docker run --rm "${IMAGE_NAME}@${DIGEST}"
+      # The platform image gets its provenance and SBOM; the index is signed in publish-manifest.
+      - name: Attest image
+        uses: cosmos/ibc/.github/actions/attest-image@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          digest: ${{ steps.image.outputs.digest }}
+      # publish-manifest builds the index from these digests, so it only references images
+      # attested above.
+      - name: Save image digest
+        env:
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/image-digest"
+          echo "$DIGEST" > "${RUNNER_TEMP}/image-digest/${IMAGE}-${PLATFORM}"
+      - name: Upload image digest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: image-digest-${{ env.IMAGE }}-${{ env.PLATFORM }}
+          path: ${{ runner.temp }}/image-digest/${{ env.IMAGE }}-${{ env.PLATFORM }}
+          if-no-files-found: error
+          retention-days: 1
+
+  # Wraps each image's platform images in an index, signs it, and only then tags it, so a release tag
+  # never points at an unsigned image.
+  publish-manifest:
+    name: Publish signed image ${{ matrix.image }}
+    needs: [validate-tag, image, verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.validate-tag.outputs.images) }}
+    env:
+      IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
+      IMAGE: ${{ matrix.image }}
+      IMAGE_TAG: ${{ needs.validate-tag.outputs.image-tag }}
+    steps:
+      - name: Check the release is not published with assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The platform images are pushed by digest only, so this job is the only one that moves a
+          # tag. A re-run after the release is published with its assets must not move the published
+          # image tag. A release published before its first run finished has no assets yet, so it
+          # continues and the release job attaches them. Listed rather than fetched by tag, so a
+          # failed request fails the step instead of reading as "not published".
+          published_assets=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            | jq -r --arg tag "$TAG" '.[] | select(.tag_name == $tag and (.draft | not)) | .assets | length')
+          if [[ -n "$published_assets" && "$published_assets" != 0 ]]; then
+            echo "::error::Release ${TAG} is already published with assets, so its image is not re-pushed"
+            exit 1
+          fi
+          if [[ -n "$published_assets" ]]; then
+            echo "::warning::Release ${TAG} was published before its signed assets were attached"
+          fi
+      - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4
+        with:
+          # imagetools create --metadata-file needs buildx v0.32.0 or later.
+          version: v0.38.1
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download image digests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: image-digest-${{ matrix.image }}-*
+          path: ${{ runner.temp }}/image-digest
+          merge-multiple: true
+      - name: Publish manifest
+        id: index
+        env:
+          PLATFORMS: ${{ matrix.platforms }}
+        run: |
+          metadata="${RUNNER_TEMP}/index-metadata.json"
+          sources=()
+          for platform in $PLATFORMS; do
+            digest=$(< "${RUNNER_TEMP}/image-digest/${IMAGE}-${platform}")
+            sources+=("${IMAGE_NAME}@${digest}")
+          done
+          # Pushed by digest only, so no tag points at the index until it is signed. --dry-run prints
+          # the index it would push; $(...) strips the trailing newline it adds.
+          index=$(docker buildx imagetools create --dry-run "${sources[@]}")
+          index_digest="sha256:$(printf '%s' "$index" | sha256sum | cut -d' ' -f1)"
+          docker buildx imagetools create \
+            --metadata-file "$metadata" \
+            --tag "${IMAGE_NAME}@${index_digest}" \
+            "${sources[@]}"
+          pushed=$(jq -r '."containerimage.descriptor".digest' "$metadata")
+          if [[ "$pushed" != "$index_digest" ]]; then
+            echo "::error::Pushed index ${pushed} does not match its dry run ${index_digest}"
+            exit 1
+          fi
+          docker buildx imagetools inspect "${IMAGE_NAME}@${pushed}"
+          echo "digest=${pushed}" >> "$GITHUB_OUTPUT"
+      - name: Attest and sign image
+        uses: cosmos/ibc/.github/actions/attest-image@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          digest: ${{ steps.index.outputs.digest }}
+          sbom: "false"
+          sign: "true"
+          # Also signs the platform manifests referenced by the index.
+          recursive: "true"
+      - name: Tag signed image
+        env:
+          DIGEST: ${{ steps.index.outputs.digest }}
+        run: |
+          # A single index source without annotations is pushed as is, so the release tag gets the
+          # signed digest. Checked with a dry run before the tag moves, since a re-encoded index
+          # would be unsigned.
+          index=$(docker buildx imagetools create --dry-run "${IMAGE_NAME}@${DIGEST}")
+          tagged="sha256:$(printf '%s' "$index" | sha256sum | cut -d' ' -f1)"
+          if [[ "$tagged" != "$DIGEST" ]]; then
+            echo "::error::Tagging would push ${tagged}, not the signed index ${DIGEST}"
+            exit 1
+          fi
+          docker buildx imagetools create --tag "${IMAGE_NAME}:${IMAGE_TAG}" "${IMAGE_NAME}@${DIGEST}"
+
+  # Waits for publish-manifest as well, so a draft release always comes with its signed images.
+  release:
+    name: Attach signed assets to draft release
+    needs: [validate-tag, build, publish-manifest]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    timeout-minutes: 15
+    steps:
+      - name: Publish draft release
+        uses: cosmos/ibc/.github/actions/publish-draft-release@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        with:
+          name: ${{ needs.validate-tag.outputs.name }}
+          # Existing ibc-go releases are titled with the tag.
+          title: ${{ github.ref_name }}
+          prerelease: ${{ needs.validate-tag.outputs.prerelease }}

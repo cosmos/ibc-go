@@ -100,6 +100,81 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
+## Signed release assets
+
+Pushing a release tag runs the [release workflow](./.github/workflows/release.yml). It archives the source of the tagged Go module, generates an SPDX SBOM for it, attests its build provenance, signs a `checksums.txt` over it with cosign, and attaches everything to a draft release for the tag. It also publishes the signed `simd` [container images](#container-images) built from the tagged commit.
+
+The attesting, signing and publishing steps are the [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) from [cosmos/ibc](https://github.com/cosmos/ibc), which [cosmos/ibc-contracts](https://github.com/cosmos/ibc-contracts) uses too.
+
+| Tag | Artifact | Description |
+| --- | --- | --- |
+| `vX.Y.Z` | `ibc-go-vX.Y.Z.tar.gz` | Source of the ibc-go module (the repository without its nested modules), with `LICENSE` and `NOTICE` |
+|  | `ibc-go-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
+|  | `ibc-go-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
+|  | `checksums.txt` | SHA-256 checksums of the archive, the SBOM and the attestation bundle |
+|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
+|  | `ghcr.io/cosmos/ibc-go-simd:vX.Y.Z` | `simd` container image (linux/amd64, linux/arm64), signed with cosign and carrying provenance and SBOM attestations |
+|  | `ghcr.io/cosmos/ibc-go-wasm-simd:vX.Y.Z` | `simd` container image with the `08-wasm` light client (linux/amd64, linux/arm64), signed likewise |
+| `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source of the `08-wasm` module, with `LICENSE` and `NOTICE` |
+|  | `ibc-go-08-wasm-vX.Y.Z.spdx.json`, `ibc-go-08-wasm-vX.Y.Z.intoto.jsonl`, `checksums.txt`, `checksums.txt.sigstore.json` | As above |
+|  | `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` | As above |
+
+A tag with a pre-release suffix such as `-rc.0` creates a pre-release. Other tags do not run the release workflow.
+
+### Release procedure
+
+1. Tag the release commit and push the tag (e.g. `git tag -s v11.3.0 -m v11.3.0 origin/release/v11.3.x && git push origin v11.3.0`).
+2. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release in [GitHub](https://github.com/cosmos/ibc-go/releases) with the signed assets attached. The draft is only created once the images are tagged and signed. If a job fails, re-run the failed jobs.
+3. Edit the draft and write the release notes.
+4. Publish the release.
+
+Push the tag with `git` before publishing the release. A release drafted from the GitHub UI only creates its tag when it is published, so its assets would be attached after publishing. The workflow runs from the tagged commit, so the release branch must contain `.github/workflows/release.yml`; tags on older release branches do not get signed assets.
+
+The workflow only accepts a commit that is on `main` or a `release/*` branch whose ruleset requires a pull request with at least one approval. Classic branch protection does not count. The tag ruleset is what limits who can push a release tag, and therefore who can get a commit signed.
+
+### Verifying release files
+
+Download the release files, where `<tag>` is the pushed tag:
+
+```sh
+gh release download <tag> --repo cosmos/ibc-go --dir release && cd release
+```
+
+Check the signature over `checksums.txt`, then check the files against it (on macOS, use `shasum -a 256 -c checksums.txt`):
+
+```sh
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+sha256sum -c checksums.txt
+```
+
+Check the build provenance of an archive:
+
+```sh
+gh attestation verify ibc-go-vX.Y.Z.tar.gz --repo cosmos/ibc-go \
+  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
+  --source-ref refs/tags/<tag>
+```
+
+Add `--predicate-type https://spdx.dev/Document/v2.3` to check its SBOM attestation instead. Add `--bundle ibc-go-vX.Y.Z.intoto.jsonl` to verify against the attestation bundle attached to the release rather than the GitHub attestations API.
+
+### Container images
+
+The release workflow publishes the images listed above, attests the build provenance and SBOM of each platform image, and signs them with cosign. Image tags are the git tag with every character other than letters, digits and `.` replaced by `-`. It pushes each image by digest, signs it, and only then tags it, so a release tag never points at an unsigned image. Release images are only built from tag pushes; the `main` and `branch-release-*` images published by the [docker workflow](./.github/workflows/docker.yml) are not signed. Verify a release image, where `<image>` is `ibc-go-simd` or `ibc-go-wasm-simd` and `<image-tag>` the image tag, with:
+
+```sh
+cosign verify ghcr.io/cosmos/<image>:<image-tag> \
+  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+gh attestation verify oci://ghcr.io/cosmos/<image>:<image-tag> --repo cosmos/ibc-go \
+  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
+  --source-ref refs/tags/<tag>
+```
+
+Image SBOMs are attached to the platform digests, not the tag. List them with `docker buildx imagetools inspect ghcr.io/cosmos/<image>:<image-tag>`, then pass one as `oci://ghcr.io/cosmos/<image>@<digest>` with `--predicate-type https://spdx.dev/Document/v2.3`.
+
 ## Deprecation notice
 
 Code that is marked as deprecated in a release will be removed 2 major releases afterwards. For example: deprecation notice is added in v8.3.0, then code will be deleted in v10.0.0.

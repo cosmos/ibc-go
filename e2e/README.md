@@ -180,15 +180,13 @@ environment variables is supported, but it is often more convenient to use confi
 
 ## Building and pushing images
 
-If we ever need to manually build and push an image, we can do so with the [Build Simd Image](../.github/workflows/build-simd-image-from-tag.yml) GitHub workflow.
+Pushing a release tag publishes signed `ibc-go-simd` and `ibc-go-wasm-simd` images through the [Release](../.github/workflows/release.yml) workflow (see [RELEASES.md](../RELEASES.md#container-images)). Images are not built manually for release tags.
 
-This can be triggered manually from the UI by navigating to
+The [Docker Build & Push Simapp](../.github/workflows/docker.yml) workflow builds the unsigned `ibc-go-simd` and `ibc-go-wasm-simd` images (linux/amd64, linux/arm64) for `main` and `release/v*` branches. To build them for another branch, trigger it manually from the UI by navigating to
 
-`Actions` -> `Build Simd Image` -> `Run Workflow`
+`Actions` -> `Docker Build & Push Simapp (main)` -> `Run Workflow`
 
-And providing the git tag.
-
-> There are similar workflows for other simapps in the repo.
+And selecting the branch.
 
 ## Compatibility Tests
 
