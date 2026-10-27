@@ -100,11 +100,7 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
-## Signed release assets
-
-Pushing a release tag runs the [release workflow](./.github/workflows/release.yml). It archives the source of the tagged Go module in a `.tar.gz` archive, generates an SPDX SBOM of that source, attests the build provenance and SBOM of the archive (not of the files inside it), signs a `checksums.txt` over it with cosign, and attaches everything to a draft release for the tag. It also publishes the signed `simd` [container images](#container-images) built from the tagged commit.
-
-The attesting, signing and publishing steps are the [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) from [cosmos/ibc](https://github.com/cosmos/ibc), which [cosmos/ibc-contracts](https://github.com/cosmos/ibc-contracts) uses too.
+## Release artifacts
 
 | Tag | Artifact | Description |
 | --- | --- | --- |
@@ -119,7 +115,19 @@ The attesting, signing and publishing steps are the [shared release actions](htt
 |  | `ibc-go-08-wasm-vX.Y.Z.spdx.json`, `ibc-go-08-wasm-vX.Y.Z.intoto.jsonl`, `checksums.txt`, `checksums.txt.sigstore.json` | As above |
 |  | `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` | As above |
 
+The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases) and the images are published to GHCR ([`ibc-go-simd`](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd), [`ibc-go-wasm-simd`](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-wasm-simd)).
+
+The images are also published, unsigned, as `main`, `release-v*` and `branch-release-v*` tags on pushes to `main` and `release/v*` branches.
+
+See [Signed release assets](#signed-release-assets) for how to verify the artifacts.
+
+## Signed release assets
+
+Pushing a release tag runs the [release workflow](./.github/workflows/release.yml). It archives the source of the tagged Go module in a `.tar.gz` archive, generates an SPDX SBOM of that source, attests the build provenance and SBOM of the archive (not of the files inside it), signs a `checksums.txt` over it with cosign, and attaches everything to a draft release for the tag. It also publishes the signed `simd` [container images](#container-images) built from the tagged commit.
+
 A tag with a pre-release suffix such as `-rc.0` creates a pre-release. Tags that start with neither `v` nor `modules/light-clients/08-wasm/v` do not run the release workflow. A tag that does but has another format, such as the old `modules/light-clients/08-wasm/v0.1.0+ibc-go-v7.3-wasmvm-v1.5` tags, fails it before anything is built.
+
+The attesting, signing and publishing steps are the [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) from [cosmos/ibc](https://github.com/cosmos/ibc), which [cosmos/ibc-contracts](https://github.com/cosmos/ibc-contracts) uses too; each repository only defines its tag patterns and its build. Here extra jobs build the images from the tagged commit and publish their multi-platform tags once the assets verify.
 
 ### Release procedure
 

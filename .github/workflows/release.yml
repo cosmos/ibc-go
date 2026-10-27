@@ -39,6 +39,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       name: ${{ steps.tag.outputs.name }}
+      title: ${{ steps.tag.outputs.title }}
       module: ${{ steps.tag.outputs.module }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
       image-tag: ${{ steps.tag.outputs.image-tag }}
@@ -74,6 +75,8 @@ jobs:
           fi
           {
             echo "name=${name}"
+            # Existing ibc-go releases are titled with the tag.
+            echo "title=${TAG}"
             echo "module=${module}"
             if [[ -n "$suffix" ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi
             # Image tags cannot contain `/`, so anything but letters, digits and `.` becomes `-`, as
@@ -88,7 +91,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Checked before any job pushes or attests an image, so a re-run after the release is
-          # published with its assets pushes nothing and cannot move the published image tags. A
+          # published with its assets pushes nothing and cannot move a published image tag. A
           # release published before its first run finished has no assets yet, so it continues and
           # the release job attaches them. The by-tag endpoint returns published releases only: a
           # 404 means there is none, and any other failure fails the step instead of reading as
@@ -184,7 +187,7 @@ jobs:
         uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           name: ${{ needs.validate-tag.outputs.name }}
-          title: ${{ github.ref_name }}
+          title: ${{ needs.validate-tag.outputs.title }}
           verify-only: "true"
 
   # Builds each platform image from the tagged commit. The source archive holds only the tagged
@@ -324,7 +327,7 @@ jobs:
         run: |
           metadata="${RUNNER_TEMP}/index-metadata.json"
           sources=()
-          # One file per image matrix job of this image, so a platform added in validate-tag is
+          # One file per image matrix job of this image, so a platform added to that matrix is
           # included here too.
           for file in "${RUNNER_TEMP}"/image-digest/*; do
             digest=$(< "$file")
@@ -402,6 +405,5 @@ jobs:
         uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           name: ${{ needs.validate-tag.outputs.name }}
-          # Existing ibc-go releases are titled with the tag.
-          title: ${{ github.ref_name }}
+          title: ${{ needs.validate-tag.outputs.title }}
           prerelease: ${{ needs.validate-tag.outputs.prerelease }}
