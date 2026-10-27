@@ -1,6 +1,6 @@
 module github.com/cosmos/ibc-go/e2e
 
-go 1.26.5
+go 1.26.10
 
 replace (
 	// use local ibc-go for development
