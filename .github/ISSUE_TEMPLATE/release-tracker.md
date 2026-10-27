@@ -41,11 +41,12 @@ versions of ibc-go to guarantee that no regression is introduced -->
 
 - [ ] Bump [go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
 - [ ] Change all imports starting with `github.com/cosmos/ibc-go/v{x}` to `github.com/cosmos/ibc-go/v{x+1}`.
-- [ ] Branch off main to create release branch in the form of `release/vx.y.z` and add a ruleset for it that requires a pull request with at least one approval. The release workflow only accepts a commit on a branch with such a ruleset; classic branch protection rules do not count.
-- [ ] Push the release tag and confirm the [Release](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) workflow attaches the signed assets to the draft release and publishes the signed `simd` images.
+- [ ] Branch off main to create release branch in the form of `release/vx.y.z` and add branch protection rules.
+- [ ] Add branch protection rules to new release branch.
 - [ ] Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml)
 - [ ] Upgrade ibc-go version in [interchaintest](https://github.com/strangelove-ventures/ibctest).
 - [ ] Check Swagger is up-to-date.
+- [ ] Push the release tag and confirm the [Release](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) workflow attaches the signed assets to the draft release and publishes the signed `simd` images.
 
 ## Post-release checklist
 

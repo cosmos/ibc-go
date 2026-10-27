@@ -84,13 +84,29 @@ jobs:
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
-          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          image="${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          # docker.yml publishes a multi-platform image of main, and of release branches that have its
+          # current version, annotated with the commit it was built from. An amd64-only rebuild here
+          # would replace it, so it is reused when none of the root Dockerfile's ADD and COPY sources
+          # changed since that commit.
+          revision=""
+          if manifest=$(docker buildx imagetools inspect --raw "$image" 2> /dev/null) &&
+            jq -e '[.manifests[]? | select(.platform.architecture == "arm64")] | length > 0' <<< "$manifest" > /dev/null; then
+            revision=$(jq -r '.annotations["org.opencontainers.image.revision"] // empty' <<< "$manifest")
+          fi
+          if [[ -n "$revision" ]] && git cat-file -e "${revision}^{commit}" 2> /dev/null &&
+            git diff --quiet "$revision" HEAD -- Dockerfile internal simapp testing modules LICENSE NOTICE \
+              Makefile contrib/devtools/Makefile go.mod go.sum; then
+            echo "::notice::Using ${image}, built by docker.yml from ${revision}; the ibc-go-version input only labels a rebuilt image"
+            exit 0
+          fi
+          docker build . -t "$image" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
+          docker push "$image"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          docker buildx imagetools inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   client-test:
     needs:

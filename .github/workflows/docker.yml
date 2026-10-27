@@ -2,8 +2,10 @@
 
 name: Docker Build & Push Simapp (main)
 # Build & Push builds the simapp docker images for linux/amd64 and linux/arm64 on every push to main
-# and release branches and pushes them to https://ghcr.io/cosmos/ibc-go-simd and
-# https://ghcr.io/cosmos/ibc-go-wasm-simd. Release tags get signed images from release.yml instead.
+# and release branches that changes their inputs, and pushes them, unsigned, to
+# https://ghcr.io/cosmos/ibc-go-simd and https://ghcr.io/cosmos/ibc-go-wasm-simd. Release branches cut
+# before this workflow had these images keep the single-platform ibc-go-simd image their own copy
+# builds. Release tags get signed images from release.yml instead.
 # There is deliberately no workflow_dispatch: a manual run can target a tag, and would then push an
 # unsigned image over that release's signed image tag.
 on:
@@ -17,6 +19,11 @@ on:
       - '**/go.mod'
       - '**/go.sum'
       - '**/Dockerfile'
+      # Copied into the images besides the Go sources.
+      - 'Makefile'
+      - 'contrib/devtools/Makefile'
+      - 'LICENSE'
+      - 'NOTICE'
 
 permissions: {}
 
@@ -32,10 +39,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Lists the images and platforms once, for the docker-build and merge matrices.
+  matrix:
+    name: Matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      images: ${{ steps.matrix.outputs.images }}
+      builds: ${{ steps.matrix.outputs.builds }}
+      platforms: ${{ steps.matrix.outputs.platforms }}
+    steps:
+    - name: Build matrix
+      id: matrix
+      run: |
+        # Every image is built for each of these platforms, on a native runner.
+        platforms='[
+          {"arch": "amd64", "runner": "ubuntu-24.04"},
+          {"arch": "arm64", "runner": "ubuntu-24.04-arm"}
+        ]'
+        images='[
+          {"image": "ibc-go-simd", "file": "Dockerfile"},
+          {"image": "ibc-go-wasm-simd", "file": "modules/light-clients/08-wasm/Dockerfile"}
+        ]'
+        {
+          echo "images=$(jq -c '[.[].image]' <<< "$images")"
+          # One matrix entry per image and platform: image, file, arch and runner.
+          echo "builds=$(jq -c --argjson platforms "$platforms" '[.[] as $image | $platforms[] | $image + .]' <<< "$images")"
+          echo "platforms=$(jq -c '[.[].arch]' <<< "$platforms")"
+        } >> "$GITHUB_OUTPUT"
+
   # Builds, tests and pushes each platform image by digest on a native runner. merge then tags the
   # multi-platform image.
   docker-build:
     name: Build ${{ matrix.image }} linux/${{ matrix.arch }}
+    needs: [matrix]
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     permissions:
@@ -44,17 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [ibc-go-simd, ibc-go-wasm-simd]
-        arch: [amd64, arm64]
-        include:
-          - image: ibc-go-simd
-            file: Dockerfile
-          - image: ibc-go-wasm-simd
-            file: modules/light-clients/08-wasm/Dockerfile
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
+        include: ${{ fromJSON(needs.matrix.outputs.builds) }}
     env:
       IMAGE_NAME: ${{ matrix.image }}
       ARCH: ${{ matrix.arch }}
@@ -73,8 +101,10 @@ jobs:
         {
           echo "build-args<<EOF"
           if [[ "$IMAGE_NAME" == ibc-go-wasm-simd ]]; then
-            # The libwasmvm release to link against, as required by the 08-wasm module.
-            libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" { print $2 }' modules/light-clients/08-wasm/go.mod)
+            # The libwasmvm release to link against, as required by the 08-wasm module. The first match is
+            # the require line, which go mod tidy puts before any replace directive. Same lookup as in
+            # release.yml and scripts/get-libwasm-version.py; change them together.
+            libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" && $2 ~ /^v[0-9]/ { print $2; exit }' modules/light-clients/08-wasm/go.mod)
             if [[ -z "$libwasm_version" ]]; then
               echo "::error::No github.com/CosmWasm/wasmvm/v3 requirement in modules/light-clients/08-wasm/go.mod"
               exit 1
@@ -125,30 +155,34 @@ jobs:
         DIGEST: ${{ steps.push.outputs.digest }}
       run: |
         mkdir -p "${RUNNER_TEMP}/digests"
-        touch "${RUNNER_TEMP}/digests/${DIGEST#sha256:}"
+        echo "$DIGEST" > "${RUNNER_TEMP}/digests/${ARCH}"
 
     - name: Upload digest
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       with:
         name: digests-${{ matrix.image }}-${{ matrix.arch }}
-        path: ${{ runner.temp }}/digests/*
+        path: ${{ runner.temp }}/digests/${{ matrix.arch }}
         if-no-files-found: error
         retention-days: 1
 
+  # Runs even when some platform builds failed, so a failing build of one image does not stop the
+  # other image from being tagged. An image with a missing platform fails here instead.
   merge:
     name: Push ${{ matrix.image }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    needs: [docker-build]
+    needs: [matrix, docker-build]
+    if: ${{ !cancelled() && needs.matrix.result == 'success' }}
     permissions:
       packages: write
       contents: read
     strategy:
       fail-fast: false
       matrix:
-        image: [ibc-go-simd, ibc-go-wasm-simd]
+        image: ${{ fromJSON(needs.matrix.outputs.images) }}
     env:
       IMAGE_NAME: ${{ matrix.image }}
+      PLATFORMS: ${{ needs.matrix.outputs.platforms }}
     steps:
     - name: Download digests
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -182,7 +216,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create manifest list and push
-      working-directory: ${{ runner.temp }}/digests
       env:
         TAGS: |
           ${{ steps.meta.outputs.tags }}
@@ -195,12 +228,16 @@ jobs:
           fi
         done <<< "$TAGS"
         sources=()
-        for digest in *; do
-          sources+=("${REGISTRY}/cosmos/${IMAGE_NAME}@sha256:${digest}")
-        done
-        if (( ${#sources[@]} != 2 )); then
-          echo "::error::Expected an amd64 and an arm64 image, found ${#sources[@]}"
-          exit 1
-        fi
-        docker buildx imagetools create "${tags[@]}" "${sources[@]}"
+        while IFS= read -r arch; do
+          file="${RUNNER_TEMP}/digests/${arch}"
+          if [[ ! -f "$file" ]]; then
+            echo "::error::The linux/${arch} build of ${IMAGE_NAME} did not succeed, so it is not tagged"
+            exit 1
+          fi
+          sources+=("${REGISTRY}/cosmos/${IMAGE_NAME}@$(< "$file")")
+        done < <(jq -r '.[]' <<< "$PLATFORMS")
+        # e2e-compatibility.yaml reads the revision to tell whether the image is current.
+        docker buildx imagetools create "${tags[@]}" \
+          --annotation "index:org.opencontainers.image.revision=${GITHUB_SHA}" \
+          "${sources[@]}"
         docker buildx imagetools inspect "${tags[1]}"

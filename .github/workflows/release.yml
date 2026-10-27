@@ -44,7 +44,6 @@ jobs:
       image-tag: ${{ steps.tag.outputs.image-tag }}
       images: ${{ steps.tag.outputs.images }}
       image-builds: ${{ steps.tag.outputs.image-builds }}
-      image-platforms: ${{ steps.tag.outputs.image-platforms }}
     steps:
       - name: Check tag format
         id: tag
@@ -83,37 +82,50 @@ jobs:
             echo "images=$(jq -c '[.[].image]' <<< "$images")"
             # One matrix entry per image and platform: image, file, goos, goarch and runner.
             echo "image-builds=$(jq -c --argjson platforms "$platforms" '[.[] as $image | $platforms[] | $image + .]' <<< "$images")"
-            echo "image-platforms=$(jq -r '[.[] | "\(.goos)-\(.goarch)"] | join(" ")' <<< "$platforms")"
           } >> "$GITHUB_OUTPUT"
+      - name: Check the release is not published with assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Checked before any job pushes or attests an image, so a re-run after the release is
+          # published with its assets pushes nothing and cannot move the published image tags. A
+          # release published before its first run finished has no assets yet, so it continues and
+          # the release job attaches them. The by-tag endpoint returns published releases only: a
+          # 404 means there is none, and any other failure fails the step instead of reading as
+          # "not published". Same check as in publish-manifest; change both together.
+          log="${RUNNER_TEMP}/release-lookup.log"
+          if ! published_assets=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.assets | length' 2> "$log"); then
+            if ! grep -q 'HTTP 404' "$log"; then
+              cat "$log" >&2
+              exit 1
+            fi
+            published_assets=""
+          fi
+          if [[ -n "$published_assets" && "$published_assets" != 0 ]]; then
+            echo "::error::Release ${TAG} is already published with assets, so nothing is re-published"
+            exit 1
+          fi
+          if [[ -n "$published_assets" ]]; then
+            echo "::warning::Release ${TAG} was published before its signed assets were attached"
+          fi
       # Full history without trees: enough to tell which branches contain the tagged commit.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
           fetch-depth: 0
           filter: tree:0
-      - name: Check tagged commit is on a protected main or release branch
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check tagged commit is on main or a release branch
         run: |
-          # Only sign commits that were reviewed into main or a release/* branch, i.e. a branch whose
-          # ruleset requires a pull request with at least one approval. Classic branch protection does
-          # not show up in this API. The check runs from the tagged commit, so it guards against
-          # tagging an unreviewed commit by mistake; the tag ruleset is what limits who can get a
+          # The check runs from the tagged commit, so it only guards against tagging a commit outside
+          # main or a release/* branch by mistake; the tag ruleset is what limits who can get a
           # commit signed.
           branches=$(git branch --remotes --contains "$GITHUB_SHA" --format='%(refname:lstrip=3)')
           while IFS= read -r branch; do
-            if [[ "$branch" != main && "$branch" != release/* ]]; then
-              continue
-            fi
-            # Assigned rather than tested in the if, so a failed request fails the step with its own
-            # error instead of reading as an unprotected branch.
-            approved_pr_rules=$(gh api "repos/${GITHUB_REPOSITORY}/rules/branches/${branch}" \
-              --jq '[.[] | select(.type == "pull_request" and .parameters.required_approving_review_count >= 1)] | length')
-            if (( approved_pr_rules > 0 )); then
+            if [[ "$branch" == main || "$branch" == release/* ]]; then
               exit 0
             fi
           done <<< "$branches"
-          echo "::error::Tagged commit ${GITHUB_SHA} is not on main or a release/* branch whose ruleset requires an approved pull request"
+          echo "::error::Tagged commit ${GITHUB_SHA} is not on main or a release/* branch"
           exit 1
 
   build:
@@ -152,7 +164,7 @@ jobs:
             | gzip -n > "out/assets/${NAME}.tar.gz"
           tar -xzf "out/assets/${NAME}.tar.gz" -C src
       - name: Attest release assets
-        uses: cosmos/ibc/.github/actions/attest-release-assets@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-release-assets@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           name: ${{ env.NAME }}
           sbom-dir: src/${{ env.NAME }}
@@ -169,7 +181,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Verify release assets
-        uses: cosmos/ibc/.github/actions/publish-draft-release@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           name: ${{ needs.validate-tag.outputs.name }}
           title: ${{ github.ref_name }}
@@ -207,8 +219,10 @@ jobs:
           {
             echo "build-args<<EOF"
             if [[ "$IMAGE" == ibc-go-wasm-simd ]]; then
-              # The libwasmvm release to link against, as required by the 08-wasm module.
-              libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" { print $2 }' modules/light-clients/08-wasm/go.mod)
+              # The libwasmvm release to link against, as required by the 08-wasm module. The first match is
+              # the require line, which go mod tidy puts before any replace directive. Same lookup as in
+              # docker.yml and scripts/get-libwasm-version.py; change them together.
+              libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" && $2 ~ /^v[0-9]/ { print $2; exit }' modules/light-clients/08-wasm/go.mod)
               if [[ -z "$libwasm_version" ]]; then
                 echo "::error::No github.com/CosmWasm/wasmvm/v3 requirement in modules/light-clients/08-wasm/go.mod"
                 exit 1
@@ -246,7 +260,7 @@ jobs:
         run: docker run --rm "${IMAGE_NAME}@${DIGEST}"
       # The platform image gets its provenance and SBOM; the index is signed in publish-manifest.
       - name: Attest image
-        uses: cosmos/ibc/.github/actions/attest-image@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-image@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           image: ${{ env.IMAGE_NAME }}
           digest: ${{ steps.image.outputs.digest }}
@@ -264,7 +278,8 @@ jobs:
           name: image-digest-${{ env.IMAGE }}-${{ env.PLATFORM }}
           path: ${{ runner.temp }}/image-digest/${{ env.IMAGE }}-${{ env.PLATFORM }}
           if-no-files-found: error
-          retention-days: 1
+          # Kept as long as the release assets, so "re-run failed jobs" works days later.
+          retention-days: 7
 
   # Wraps each image's platform images in an index, signs it, and only then tags it, so a release tag
   # never points at an unsigned image.
@@ -288,24 +303,6 @@ jobs:
       IMAGE: ${{ matrix.image }}
       IMAGE_TAG: ${{ needs.validate-tag.outputs.image-tag }}
     steps:
-      - name: Check the release is not published with assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # The platform images are pushed by digest only, so this job is the only one that moves a
-          # tag. A re-run after the release is published with its assets must not move the published
-          # image tag. A release published before its first run finished has no assets yet, so it
-          # continues and the release job attaches them. Listed rather than fetched by tag, so a
-          # failed request fails the step instead of reading as "not published".
-          published_assets=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
-            | jq -r --arg tag "$TAG" '.[] | select(.tag_name == $tag and (.draft | not)) | .assets | length')
-          if [[ -n "$published_assets" && "$published_assets" != 0 ]]; then
-            echo "::error::Release ${TAG} is already published with assets, so its image is not re-pushed"
-            exit 1
-          fi
-          if [[ -n "$published_assets" ]]; then
-            echo "::warning::Release ${TAG} was published before its signed assets were attached"
-          fi
       - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4
         with:
           # imagetools create --metadata-file needs buildx v0.32.0 or later.
@@ -324,13 +321,13 @@ jobs:
           merge-multiple: true
       - name: Publish manifest
         id: index
-        env:
-          PLATFORMS: ${{ needs.validate-tag.outputs.image-platforms }}
         run: |
           metadata="${RUNNER_TEMP}/index-metadata.json"
           sources=()
-          for platform in $PLATFORMS; do
-            digest=$(< "${RUNNER_TEMP}/image-digest/${IMAGE}-${platform}")
+          # One file per image matrix job of this image, so a platform added in validate-tag is
+          # included here too.
+          for file in "${RUNNER_TEMP}"/image-digest/*; do
+            digest=$(< "$file")
             sources+=("${IMAGE_NAME}@${digest}")
           done
           # Pushed by digest only, so no tag points at the index until it is signed. --dry-run prints
@@ -349,7 +346,7 @@ jobs:
           docker buildx imagetools inspect "${IMAGE_NAME}@${pushed}"
           echo "digest=${pushed}" >> "$GITHUB_OUTPUT"
       - name: Attest and sign image
-        uses: cosmos/ibc/.github/actions/attest-image@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-image@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           image: ${{ env.IMAGE_NAME }}
           digest: ${{ steps.index.outputs.digest }}
@@ -357,6 +354,25 @@ jobs:
           sign: "true"
           # Also signs the platform manifests referenced by the index.
           recursive: "true"
+      # Checked again right before the tag moves, in case the release was published while this run
+      # was building, or this job was re-run on its own after validate-tag. Same check as in
+      # validate-tag; change both together.
+      - name: Check the release is still not published with assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          log="${RUNNER_TEMP}/release-lookup.log"
+          if ! published_assets=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.assets | length' 2> "$log"); then
+            if ! grep -q 'HTTP 404' "$log"; then
+              cat "$log" >&2
+              exit 1
+            fi
+            published_assets=""
+          fi
+          if [[ -n "$published_assets" && "$published_assets" != 0 ]]; then
+            echo "::error::Release ${TAG} is already published with assets, so nothing is re-published"
+            exit 1
+          fi
       - name: Tag signed image
         env:
           DIGEST: ${{ steps.index.outputs.digest }}
@@ -383,7 +399,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Publish draft release
-        uses: cosmos/ibc/.github/actions/publish-draft-release@f55ca20c448280b67d98571500bc8520867ede6c # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
         with:
           name: ${{ needs.validate-tag.outputs.name }}
           # Existing ibc-go releases are titled with the tag.
