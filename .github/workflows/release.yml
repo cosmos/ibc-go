@@ -42,8 +42,9 @@ jobs:
       module: ${{ steps.tag.outputs.module }}
       prerelease: ${{ steps.tag.outputs.prerelease }}
       image-tag: ${{ steps.tag.outputs.image-tag }}
-      image-builds: ${{ steps.tag.outputs.image-builds }}
       images: ${{ steps.tag.outputs.images }}
+      image-builds: ${{ steps.tag.outputs.image-builds }}
+      image-platforms: ${{ steps.tag.outputs.image-platforms }}
     steps:
       - name: Check tag format
         id: tag
@@ -55,10 +56,14 @@ jobs:
           # Asset names cannot contain `/`, so they are named after the module and the version.
           version="${BASH_REMATCH[2]}"
           suffix="${BASH_REMATCH[3]}"
-          # Each image is built for the platforms listed with it. Docker on macOS runs these linux
-          # images: linux/arm64 on Apple silicon and linux/amd64 on Intel.
-          simd='{"image": "ibc-go-simd", "file": "Dockerfile", "platforms": ["linux-amd64", "linux-arm64"]}'
-          wasm_simd='{"image": "ibc-go-wasm-simd", "file": "modules/light-clients/08-wasm/Dockerfile", "platforms": ["linux-amd64", "linux-arm64"]}'
+          # Every image is built for each of these platforms, on a native runner. Docker on macOS
+          # runs them too: linux/arm64 on Apple silicon and linux/amd64 on Intel.
+          platforms='[
+            {"goos": "linux", "goarch": "amd64", "runner": "ubuntu-latest"},
+            {"goos": "linux", "goarch": "arm64", "runner": "ubuntu-24.04-arm"}
+          ]'
+          simd='{"image": "ibc-go-simd", "file": "Dockerfile"}'
+          wasm_simd='{"image": "ibc-go-wasm-simd", "file": "modules/light-clients/08-wasm/Dockerfile"}'
           if [[ -n "${BASH_REMATCH[1]}" ]]; then
             name="ibc-go-08-wasm-${version}"
             module="modules/light-clients/08-wasm"
@@ -75,8 +80,10 @@ jobs:
             # Image tags cannot contain `/`, so anything but letters, digits and `.` becomes `-`, as
             # for the images built before this workflow.
             echo "image-tag=${TAG//[^a-zA-Z0-9.]/-}"
-            echo "images=$(jq -c '[.[] | {image, platforms: (.platforms | join(" "))}]' <<< "$images")"
-            echo "image-builds=$(jq -c '[.[] | {image, file} + (.platforms[] | {platform: ., docker_platform: sub("-"; "/"), runner: (if endswith("arm64") then "ubuntu-24.04-arm" else "ubuntu-latest" end)})]' <<< "$images")"
+            echo "images=$(jq -c '[.[].image]' <<< "$images")"
+            # One matrix entry per image and platform: image, file, goos, goarch and runner.
+            echo "image-builds=$(jq -c --argjson platforms "$platforms" '[.[] as $image | $platforms[] | $image + .]' <<< "$images")"
+            echo "image-platforms=$(jq -r '[.[] | "\(.goos)-\(.goarch)"] | join(" ")' <<< "$platforms")"
           } >> "$GITHUB_OUTPUT"
       # Full history without trees: enough to tell which branches contain the tagged commit.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -172,7 +179,7 @@ jobs:
   # module, not the simapp simd is built from, so unlike cosmos/ibc's CLI image the images cannot be
   # built from the attested archive.
   image:
-    name: Image ${{ matrix.image }} ${{ matrix.platform }}
+    name: Image ${{ matrix.image }} ${{ matrix.goos }}-${{ matrix.goarch }}
     needs: [validate-tag, verify]
     runs-on: ${{ matrix.runner }}
     permissions:
@@ -189,7 +196,7 @@ jobs:
     env:
       IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
       IMAGE: ${{ matrix.image }}
-      PLATFORM: ${{ matrix.platform }}
+      PLATFORM: ${{ matrix.goos }}-${{ matrix.goarch }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -226,7 +233,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.file }}
-          platforms: ${{ matrix.docker_platform }}
+          platforms: ${{ matrix.goos }}/${{ matrix.goarch }}
           build-args: ${{ steps.args.outputs.build-args }}
           # Pushed by digest only. A platform tag could be moved before publish-manifest reads it.
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
@@ -275,7 +282,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.validate-tag.outputs.images) }}
+        image: ${{ fromJSON(needs.validate-tag.outputs.images) }}
     env:
       IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
       IMAGE: ${{ matrix.image }}
@@ -318,7 +325,7 @@ jobs:
       - name: Publish manifest
         id: index
         env:
-          PLATFORMS: ${{ matrix.platforms }}
+          PLATFORMS: ${{ needs.validate-tag.outputs.image-platforms }}
         run: |
           metadata="${RUNNER_TEMP}/index-metadata.json"
           sources=()

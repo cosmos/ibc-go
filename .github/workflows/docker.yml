@@ -4,8 +4,9 @@ name: Docker Build & Push Simapp (main)
 # Build & Push builds the simapp docker images for linux/amd64 and linux/arm64 on every push to main
 # and release branches and pushes them to https://ghcr.io/cosmos/ibc-go-simd and
 # https://ghcr.io/cosmos/ibc-go-wasm-simd. Release tags get signed images from release.yml instead.
+# There is deliberately no workflow_dispatch: a manual run can target a tag, and would then push an
+# unsigned image over that release's signed image tag.
 on:
-  workflow_dispatch:
   push:
     branches:
       - main

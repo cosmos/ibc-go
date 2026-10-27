@@ -182,11 +182,7 @@ environment variables is supported, but it is often more convenient to use confi
 
 Pushing a release tag publishes signed `ibc-go-simd` and `ibc-go-wasm-simd` images through the [Release](../.github/workflows/release.yml) workflow (see [RELEASES.md](../RELEASES.md#container-images)). Images are not built manually for release tags.
 
-The [Docker Build & Push Simapp](../.github/workflows/docker.yml) workflow builds the unsigned `ibc-go-simd` and `ibc-go-wasm-simd` images (linux/amd64, linux/arm64) for `main` and `release/v*` branches. To build them for another branch, trigger it manually from the UI by navigating to
-
-`Actions` -> `Docker Build & Push Simapp (main)` -> `Run Workflow`
-
-And selecting the branch.
+The [Docker Build & Push Simapp](../.github/workflows/docker.yml) workflow builds the unsigned `ibc-go-simd` and `ibc-go-wasm-simd` images (linux/amd64, linux/arm64) on every push to `main` and `release/v*` branches. It cannot be triggered manually, since a manual run on a release tag would replace that release's signed image.
 
 ## Compatibility Tests
 
