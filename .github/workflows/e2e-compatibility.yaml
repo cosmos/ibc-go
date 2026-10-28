@@ -98,14 +98,18 @@ jobs:
             exit 0
           fi
           # Otherwise docker.yml is the only workflow that writes this tag: a push from here could land
-          # after its multi-platform image and replace it with an amd64-only one. The image is current
-          # when none of the root Dockerfile's ADD and COPY sources changed since the commit it was
-          # built from, which docker.yml records in the index annotation.
+          # after its multi-platform image and replace it with an amd64-only one. docker.yml records the
+          # commit it built from in the index annotation. The tests pull the tag, so the image is
+          # current when that commit is this checkout or a later one on the branch (a push may land
+          # while this job runs; the branch rulesets forbid force pushes), or an earlier one with the
+          # same root Dockerfile ADD and COPY sources.
           is_current() {
             local manifest revision
             manifest=$(docker buildx imagetools inspect --raw "$image" 2> /dev/null) || return 1
             revision=$(jq -r '.annotations["org.opencontainers.image.revision"] // empty' <<< "$manifest")
-            [[ -n "$revision" ]] && git cat-file -e "${revision}^{commit}" 2> /dev/null &&
+            [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || return 1
+            git cat-file -e "${revision}^{commit}" 2> /dev/null || git fetch --quiet origin "$revision" || return 1
+            git merge-base --is-ancestor HEAD "$revision" ||
               git diff --quiet "$revision" HEAD -- Dockerfile internal simapp testing modules LICENSE NOTICE \
                 Makefile contrib/devtools/Makefile go.mod go.sum
           }
