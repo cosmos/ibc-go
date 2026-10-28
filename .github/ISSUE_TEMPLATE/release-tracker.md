@@ -46,7 +46,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml)
 - [ ] Upgrade ibc-go version in [interchaintest](https://github.com/strangelove-ventures/ibctest).
 - [ ] Check Swagger is up-to-date.
-- [ ] Push the release tag and confirm the [Release](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) workflow attaches the signed assets to the draft release and publishes the signed `simd` images.
+- [ ] Cut the release by following [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#cut-a-release).
 
 ## Post-release checklist
 

@@ -100,66 +100,59 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
-## Release artifacts
+## Cut a release
 
-| Tag | Artifact | Description |
-| --- | --- | --- |
-| `vX.Y.Z` | `ibc-go-vX.Y.Z.tar.gz` | Source of the ibc-go module (the repository without its nested modules), with `LICENSE` and `NOTICE` |
-|  | `ibc-go-vX.Y.Z.spdx.json` | SPDX SBOM of the source archive |
-|  | `ibc-go-vX.Y.Z.intoto.jsonl` | Build provenance and SBOM attestations, for verification without the attestations API with `gh attestation verify --bundle` |
-|  | `checksums.txt` | SHA-256 checksums of the archive, the SBOM and the attestation bundle |
-|  | `checksums.txt.sigstore.json` | Cosign signature over `checksums.txt` |
-|  | `ghcr.io/cosmos/ibc-go-simd:vX.Y.Z` | `simd` container image (linux/amd64, linux/arm64), signed with cosign and carrying provenance and SBOM attestations |
-|  | `ghcr.io/cosmos/ibc-go-wasm-simd:vX.Y.Z` | `simd` container image with the `08-wasm` light client (linux/amd64, linux/arm64), signed likewise |
-| `modules/light-clients/08-wasm/vX.Y.Z` | `ibc-go-08-wasm-vX.Y.Z.tar.gz` | Source of the `08-wasm` module, with `LICENSE` and `NOTICE` |
-|  | `ibc-go-08-wasm-vX.Y.Z.spdx.json`, `ibc-go-08-wasm-vX.Y.Z.intoto.jsonl`, `checksums.txt`, `checksums.txt.sigstore.json` | As above |
-|  | `ghcr.io/cosmos/ibc-go-wasm-simd:modules-light-clients-08-wasm-vX.Y.Z` | As above |
+Pushing a `vX.Y.Z` or `modules/light-clients/08-wasm/vX.Y.Z` tag runs the [release workflow](./.github/workflows/release.yml). The workflow archives the tagged Go module's source, signs it, and creates a draft [GitHub release](https://github.com/cosmos/ibc-go/releases) with the files. It also builds the `ibc-go-simd` and `ibc-go-wasm-simd` images from the tagged commit and publishes them signed. The [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) explain the SBOMs, attestations, and signatures it produces.
 
-The files are attached to the tag's [GitHub release](https://github.com/cosmos/ibc-go/releases) and the images are published to GHCR ([`ibc-go-simd`](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-simd), [`ibc-go-wasm-simd`](https://github.com/cosmos/ibc-go/pkgs/container/ibc-go-wasm-simd)).
+Other tags do not run the workflow. A tag with one of these prefixes but another format, such as the old `modules/light-clients/08-wasm/v0.1.0+ibc-go-v7.3-wasmvm-v1.5` tags, fails it before anything is built.
 
-The images are also published, unsigned, as `main`, `release-v*` and `branch-release-v*` tags on pushes to `main` and `release/v*` branches.
+1. Create the tag on a commit on `main` or a `release/*` branch. Push it with `git`:
 
-See [Signed release assets](#signed-release-assets) for how to verify the artifacts.
+   ```sh
+   git tag -s v11.3.0 -m v11.3.0 origin/release/v11.3.x
+   git push origin v11.3.0
+   ```
 
-## Signed release assets
+   Or create it in the GitHub UI while publishing a release, with the notes and **Set as a pre-release** filled in. The UI creates the tag only on publish, so the workflow attaches the signed files to the published release a few minutes later. Steps 3 and 4 are then already done.
 
-Pushing a release tag runs the [release workflow](./.github/workflows/release.yml). It archives the source of the tagged Go module in a `.tar.gz` archive, generates an SPDX SBOM of that source, attests the build provenance and SBOM of the archive (not of the files inside it), signs a `checksums.txt` over it with cosign, and attaches everything to a draft release for the tag. It also publishes the signed `simd` [container images](#container-images) built from the tagged commit.
+2. Wait for the workflow to attach the signed files. For a tag pushed with `git`, it creates a draft release only after every file is verified and the images are signed. If a job fails, re-run the failed jobs within 7 days, while the run still keeps its build artifacts. After that, re-run all jobs.
+3. Write the release notes in the draft. Leave **Set as a pre-release** as it is. The workflow sets it from the tag on every run: checked for a suffix such as `-rc.0`, unchecked otherwise.
+4. Publish the release.
 
-A tag with a pre-release suffix such as `-rc.0` creates a pre-release. Tags that start with neither `v` nor `modules/light-clients/08-wasm/v` do not run the release workflow. A tag that does but has another format, such as the old `modules/light-clients/08-wasm/v0.1.0+ibc-go-v7.3-wasmvm-v1.5` tags, fails it before anything is built.
+The workflow runs from the tagged commit. A release branch therefore needs `.github/workflows/release.yml` and the root `NOTICE` file, which the archive and the images include. Without them, a tag gets no signed files and no images, so backport both before tagging a release line's next patch release. For the same reason, the workflow's branch check only catches mistakes.
 
-The attesting, signing and publishing steps are the [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) from [cosmos/ibc](https://github.com/cosmos/ibc), which [cosmos/ibc-contracts](https://github.com/cosmos/ibc-contracts) uses too; each repository only defines its tag patterns and its build. Here extra jobs build the images from the tagged commit and publish their multi-platform tags once the assets verify.
+The tag rulesets decide who can release. They must cover `v*` and `modules/light-clients/08-wasm/v*` tags and restrict creating, updating, and deleting them. In this repository, the "Auto-imported tag create protections" ruleset restricts creating and updating them. Only the Maintain and Admin repository roles and organization admins can bypass it. The "Auto-imported tag delete protections" ruleset restricts deleting them, and only the Admin role and organization admins can bypass it.
 
-### Release procedure
+## Verify a release
 
-1. Tag the release commit and push the tag (e.g. `git tag -s v11.3.0 -m v11.3.0 origin/release/v11.3.x && git push origin v11.3.0`).
-2. Wait for the [release workflow](https://github.com/cosmos/ibc-go/actions/workflows/release.yml) to create the draft release in [GitHub](https://github.com/cosmos/ibc-go/releases) with the signed assets attached. Every asset is verified against its attestations before any image is pushed, and the draft is only created once the images are tagged and signed, so a draft always comes with signed images. If a job fails, re-run the failed jobs within 7 days, while the run's artifacts are kept; after that, re-run all jobs.
-3. Edit the draft and write the release notes.
-4. Leave `Set as a pre-release` as the workflow set it: checked for tags with a pre-release suffix such as `-rc.0`, unchecked otherwise. Every run of the release job sets it again from the tag, so a manual change does not survive a re-run.
-5. Publish the release.
+The commands below need the GitHub CLI and cosign v3 or later, the version the workflow signs with. Replace `<tag>` with the release tag, such as `v11.3.0`, and `ibc-go-vX.Y.Z` with its file name. For an `08-wasm` tag, the files are named `ibc-go-08-wasm-vX.Y.Z`.
 
-Push the tag with `git` before publishing the release. A release drafted from the GitHub UI only creates its tag when it is published, so its assets would be attached after publishing. The workflow runs from the tagged commit, so the release branch must contain `.github/workflows/release.yml` and the root `NOTICE` file, which the source archive and the images include. A tag on a release branch without them gets no signed assets and no images, so backport both before tagging a release line's next patch release.
+### Verify the files
 
-The workflow only accepts a commit that is on `main` or a `release/*` branch. The check runs from the tagged commit, so it only guards against tagging a commit outside those branches by mistake. What limits who can get a commit signed is the tag ruleset, which must cover `refs/tags/v*` and `refs/tags/modules/light-clients/08-wasm/v*` and restrict creations, updates and deletions. In this repository the "Auto-imported tag create protections" ruleset covers both and restricts creations and updates, which only the Maintain and Admin repository roles and organization admins can bypass, so only they can push a release tag. The "Auto-imported tag delete protections" ruleset restricts deletions, which only the Admin role and organization admins can bypass.
-
-### Verifying release files
-
-Download the release files, where `<tag>` is the pushed tag:
+Download the release:
 
 ```sh
-gh release download <tag> --repo cosmos/ibc-go --dir release && cd release
+gh release download <tag> --repo cosmos/ibc-go --dir release
 ```
 
-Check the signature over `checksums.txt` with cosign v3 or later, then check the files against it (on macOS, use `shasum -a 256 -c checksums.txt`):
+In the `release` directory, check the signature on `checksums.txt`:
 
 ```sh
 cosign verify-blob checksums.txt \
   --bundle checksums.txt.sigstore.json \
   --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The two `--certificate` flags accept only a signature from this repository's release workflow, run for `<tag>`.
+
+Check that every file matches `checksums.txt`, which proves it is unchanged since signing. On macOS, use `shasum -a 256 -c checksums.txt` instead.
+
+```sh
 sha256sum -c checksums.txt
 ```
 
-Check the build provenance of an archive:
+Check the build provenance of the archive. The attestation covers the `.tar.gz` file, not the files inside it, so check the archive before you extract it.
 
 ```sh
 gh attestation verify ibc-go-vX.Y.Z.tar.gz --repo cosmos/ibc-go \
@@ -167,22 +160,36 @@ gh attestation verify ibc-go-vX.Y.Z.tar.gz --repo cosmos/ibc-go \
   --source-ref refs/tags/<tag>
 ```
 
-To check its SBOM attestation instead, add `--predicate-type https://spdx.dev/Document/v<version>`, where `<version>` is the SPDX version the SBOM declares: `jq -r .spdxVersion ibc-go-vX.Y.Z.spdx.json` prints `SPDX-<version>`. Add `--bundle ibc-go-vX.Y.Z.intoto.jsonl` to verify against the attestation bundle attached to the release rather than the GitHub attestations API.
+`--signer-workflow` and `--source-ref` accept only an attestation from the release workflow, run for `<tag>`.
 
-### Container images
+Two flags change what this command checks:
 
-The release workflow publishes the images listed above, attests the build provenance and SBOM of each platform image, and signs them with cosign. Image tags are the git tag with every character other than letters, digits and `.` replaced by `-`. It pushes each image by digest, signs it, and only then tags it, so a release tag never points at an unsigned image. Release images are only built from tag pushes. The `main`, `release-v*` and `branch-release-v*` tags of both images, published by the [docker workflow](./.github/workflows/docker.yml) for branches, are not signed. Verify a release image, where `<image>` is `ibc-go-simd` or `ibc-go-wasm-simd` and `<image-tag>` the image tag, with cosign v3 or later:
+- `--predicate-type https://spdx.dev/Document/v<version>` checks the SBOM attestation instead of the build provenance. `<version>` is the SPDX version the SBOM declares. `jq -r .spdxVersion ibc-go-vX.Y.Z.spdx.json` prints it as `SPDX-<version>`.
+- `--bundle ibc-go-vX.Y.Z.intoto.jsonl` checks against the attestation file attached to the release, without GitHub's attestations API.
+
+### Verify the images
+
+Replace `<image>` with `ibc-go-simd` or `ibc-go-wasm-simd`. Replace `<image-tag>` with the git tag, with every character other than letters, digits, and `.` replaced by `-`. An `08-wasm` tag only publishes `ibc-go-wasm-simd`.
+
+Check the signature, with the same `--certificate` flags as for `checksums.txt`:
 
 ```sh
 cosign verify ghcr.io/cosmos/<image>:<image-tag> \
   --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Check the build provenance:
+
+```sh
 gh attestation verify oci://ghcr.io/cosmos/<image>:<image-tag> --repo cosmos/ibc-go \
   --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
   --source-ref refs/tags/<tag>
 ```
 
-Image SBOMs are attached to the platform digests, not the tag. List them with `docker buildx imagetools inspect ghcr.io/cosmos/<image>:<image-tag>`, then pass one as `oci://ghcr.io/cosmos/<image>@<digest>` with `--predicate-type https://spdx.dev/Document/v<version>`, using the same SPDX version as the release SBOMs.
+The image tag points at one image per platform. Each platform image is a separate build, so each has its own SBOM attestation. List the platform digests with `docker buildx imagetools inspect ghcr.io/cosmos/<image>:<image-tag>`. Then run the command above on `oci://ghcr.io/cosmos/<image>@<digest>` with the `--predicate-type` flag.
+
+The `main`, `release-v*`, and `branch-release-v*` images from the [docker workflow](./.github/workflows/docker.yml) are unsigned development builds.
 
 ## Deprecation notice
 
