@@ -19,7 +19,13 @@ on:
       - '**/go.mod'
       - '**/go.sum'
       - '**/Dockerfile'
-      # Copied into the images besides the Go sources.
+      # Every ADD and COPY source of both Dockerfiles, so an image is rebuilt whenever its inputs
+      # change. e2e-compatibility.yaml relies on this to tell from the recorded revision whether the
+      # image is current.
+      - 'internal/**'
+      - 'simapp/**'
+      - 'testing/**'
+      - 'modules/**'
       - 'Makefile'
       - 'contrib/devtools/Makefile'
       - 'LICENSE'

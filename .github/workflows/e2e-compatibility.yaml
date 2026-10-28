@@ -58,6 +58,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+      # To wait for docker.yml runs that are still building the branch image.
+      actions: read
     strategy:
       matrix:
         release-branch:
@@ -82,26 +84,44 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         if: env.RELEASE_BRANCH == matrix.release-branch
+        env:
+          BRANCH: ${{ matrix.release-branch }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
+          docker_tag="$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9\.]/-/g')"
           image="${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
-          # docker.yml publishes a multi-platform image of main, and of release branches that have its
-          # current version, annotated with the commit it was built from. An amd64-only rebuild here
-          # would replace it, so it is reused when none of the root Dockerfile's ADD and COPY sources
-          # changed since that commit.
-          revision=""
-          if manifest=$(docker buildx imagetools inspect --raw "$image" 2> /dev/null) &&
-            jq -e '[.manifests[]? | select(.platform.architecture == "arm64")] | length > 0' <<< "$manifest" > /dev/null; then
-            revision=$(jq -r '.annotations["org.opencontainers.image.revision"] // empty' <<< "$manifest")
-          fi
-          if [[ -n "$revision" ]] && git cat-file -e "${revision}^{commit}" 2> /dev/null &&
-            git diff --quiet "$revision" HEAD -- Dockerfile internal simapp testing modules LICENSE NOTICE \
-              Makefile contrib/devtools/Makefile go.mod go.sum; then
-            echo "::notice::Using ${image}, built by docker.yml from ${revision}; the ibc-go-version input only labels a rebuilt image"
+          # Release branches cut before docker.yml published multi-platform images still get an
+          # amd64-only image from their own docker.yml, so it is rebuilt here as before.
+          if ! grep -q 'org.opencontainers.image.revision' .github/workflows/docker.yml; then
+            docker build . -t "$image" --build-arg IBC_GO_VERSION="$IBC_GO_VERSION"
+            docker push "$image"
             exit 0
           fi
-          docker build . -t "$image" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
-          docker push "$image"
+          # Otherwise docker.yml is the only workflow that writes this tag: a push from here could land
+          # after its multi-platform image and replace it with an amd64-only one. The image is current
+          # when none of the root Dockerfile's ADD and COPY sources changed since the commit it was
+          # built from, which docker.yml records in the index annotation.
+          is_current() {
+            local manifest revision
+            manifest=$(docker buildx imagetools inspect --raw "$image" 2> /dev/null) || return 1
+            revision=$(jq -r '.annotations["org.opencontainers.image.revision"] // empty' <<< "$manifest")
+            [[ -n "$revision" ]] && git cat-file -e "${revision}^{commit}" 2> /dev/null &&
+              git diff --quiet "$revision" HEAD -- Dockerfile internal simapp testing modules LICENSE NOTICE \
+                Makefile contrib/devtools/Makefile go.mod go.sum
+          }
+          if ! is_current; then
+            # A docker.yml run may still be building the branch head; wait for it and check again.
+            runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow docker.yml --branch "$BRANCH" \
+              --json databaseId,status --jq '.[] | select(.status != "completed") | .databaseId')
+            for run in $runs; do
+              gh run watch "$run" --repo "$GITHUB_REPOSITORY" --exit-status > /dev/null || true
+            done
+            if ! is_current; then
+              echo "::error::${image} is not built from the current ${BRANCH}; re-run its latest docker.yml run, then this workflow"
+              exit 1
+            fi
+          fi
+          echo "::notice::Using ${image}, built by docker.yml; the ibc-go-version input only labels images of older release branches"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
