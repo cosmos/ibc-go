@@ -208,7 +208,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.validate-tag.outputs.image-builds) }}
     env:
-      IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       IMAGE: ${{ matrix.image }}
       PLATFORM: ${{ matrix.goos }}-${{ matrix.goarch }}
     steps:
@@ -295,7 +295,7 @@ jobs:
       matrix:
         image: ${{ fromJSON(needs.validate-tag.outputs.images) }}
     env:
-      IMAGE_NAME: ghcr.io/cosmos/${{ matrix.image }}
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       IMAGE: ${{ matrix.image }}
       IMAGE_TAG: ${{ needs.validate-tag.outputs.image-tag }}
     steps:
