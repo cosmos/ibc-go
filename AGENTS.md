@@ -95,6 +95,7 @@ After the final edit, run the checks for the changed surface:
   state-machine changes. Include tests and godoc for new exported behavior.
 - Use Conventional Commits. Breaking changes use `type(api)!` or
   `type(statemachine)!`; API breaking takes precedence when both apply.
+- Sign off every commit with `git commit -s`.
 - Before handoff, self-review `git diff --check` and `git diff` for accidental
   generated, dependency, or unrelated changes.
 
