@@ -167,7 +167,7 @@ jobs:
             | gzip -n > "out/assets/${NAME}.tar.gz"
           tar -xzf "out/assets/${NAME}.tar.gz" -C src
       - name: Attest release assets
-        uses: cosmos/ibc/.github/actions/attest-release-assets@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-release-assets@2afbb3363fa654d53ec1d0808732a4743b00afc3 # main
         with:
           name: ${{ env.NAME }}
           sbom-dir: src/${{ env.NAME }}
@@ -184,10 +184,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Verify release assets
-        uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/publish-draft-release@2afbb3363fa654d53ec1d0808732a4743b00afc3 # main
         with:
           name: ${{ needs.validate-tag.outputs.name }}
-          title: ${{ needs.validate-tag.outputs.title }}
           verify-only: "true"
 
   # Builds each platform image from the tagged commit. The source archive holds only the tagged
@@ -263,7 +262,7 @@ jobs:
         run: docker run --rm "${IMAGE_NAME}@${DIGEST}"
       # The platform image gets its provenance and SBOM; the index is signed in publish-manifest.
       - name: Attest image
-        uses: cosmos/ibc/.github/actions/attest-image@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-image@2afbb3363fa654d53ec1d0808732a4743b00afc3 # main
         with:
           image: ${{ env.IMAGE_NAME }}
           digest: ${{ steps.image.outputs.digest }}
@@ -288,7 +287,7 @@ jobs:
   # never points at an unsigned image.
   publish-manifest:
     name: Publish signed image ${{ matrix.image }}
-    needs: [validate-tag, image, verify]
+    needs: [validate-tag, image]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -349,7 +348,7 @@ jobs:
           docker buildx imagetools inspect "${IMAGE_NAME}@${pushed}"
           echo "digest=${pushed}" >> "$GITHUB_OUTPUT"
       - name: Attest and sign image
-        uses: cosmos/ibc/.github/actions/attest-image@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/attest-image@2afbb3363fa654d53ec1d0808732a4743b00afc3 # main
         with:
           image: ${{ env.IMAGE_NAME }}
           digest: ${{ steps.index.outputs.digest }}
@@ -391,10 +390,10 @@ jobs:
           fi
           docker buildx imagetools create --tag "${IMAGE_NAME}:${IMAGE_TAG}" "${IMAGE_NAME}@${DIGEST}"
 
-  # Waits for publish-manifest as well, so a draft release always comes with its signed images.
+  # Waits for publish-manifest, so a draft release always comes with its signed images.
   release:
     name: Attach signed assets to draft release
-    needs: [validate-tag, build, publish-manifest]
+    needs: [validate-tag, publish-manifest]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -402,7 +401,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Publish draft release
-        uses: cosmos/ibc/.github/actions/publish-draft-release@148fd135bbe602e56676592795afa957eff5e559 # cosmos/ibc#1558
+        uses: cosmos/ibc/.github/actions/publish-draft-release@2afbb3363fa654d53ec1d0808732a4743b00afc3 # main
         with:
           name: ${{ needs.validate-tag.outputs.name }}
           title: ${{ needs.validate-tag.outputs.title }}
