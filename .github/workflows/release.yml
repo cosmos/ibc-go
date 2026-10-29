@@ -221,14 +221,8 @@ jobs:
           {
             echo "build-args<<EOF"
             if [[ "$IMAGE" == ibc-go-wasm-simd ]]; then
-              # The libwasmvm release to link against, as required by the 08-wasm module. The first match is
-              # the require line, which go mod tidy puts before any replace directive. Same lookup as in
-              # docker.yml and scripts/get-libwasm-version.py; change them together.
-              libwasm_version=$(awk '$1 == "github.com/CosmWasm/wasmvm/v3" && $2 ~ /^v[0-9]/ { print $2; exit }' modules/light-clients/08-wasm/go.mod)
-              if [[ -z "$libwasm_version" ]]; then
-                echo "::error::No github.com/CosmWasm/wasmvm/v3 requirement in modules/light-clients/08-wasm/go.mod"
-                exit 1
-              fi
+              # The libwasmvm release to link against, as required by the 08-wasm module.
+              libwasm_version=$(python3 scripts/get-libwasm-version.py --get-version)
               echo "LIBWASM_VERSION=${libwasm_version}"
             else
               echo "IBC_GO_VERSION=${TAG}"
