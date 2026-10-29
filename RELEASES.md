@@ -100,6 +100,97 @@ As rule of thumb, the following changes will **NOT** be automatically accepted i
 - **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
 - **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
 
+## Cut a release
+
+Pushing a `vX.Y.Z` or `modules/light-clients/08-wasm/vX.Y.Z` tag runs the [release workflow](./.github/workflows/release.yml). The workflow archives the tagged Go module's source, signs it, and creates a draft [GitHub release](https://github.com/cosmos/ibc-go/releases) with the files. It also builds the `ibc-go-simd` and `ibc-go-wasm-simd` images from the tagged commit and publishes them signed. The [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) explain the SBOMs, attestations, and signatures it produces.
+
+Other tags do not run the workflow. A tag with one of these prefixes but another format, such as the old `modules/light-clients/08-wasm/v0.1.0+ibc-go-v7.3-wasmvm-v1.5` tags, fails it before anything is built.
+
+1. Create the tag on a commit on `main` or a `release/*` branch. Push it with `git`:
+
+   ```sh
+   git tag -s v11.3.0 -m v11.3.0 origin/release/v11.3.x
+   git push origin v11.3.0
+   ```
+
+   Or create it in the GitHub UI while publishing a release, with the notes and **Set as a pre-release** filled in. The UI creates the tag only on publish, so the release is live before its files are signed and before its images exist. The workflow attaches the signed files to the published release a few minutes later. Steps 3 and 4 are then already done.
+
+2. Wait for the workflow to attach the signed files. For a tag pushed with `git`, it creates a draft release only after every file is verified and the images are signed. If a job fails, re-run the failed jobs within 7 days, while the run still keeps its build artifacts. After that, re-run all jobs. If the release is already published with some of its files, delete them first. A full re-run stops for a published release that has files.
+3. Write the release notes in the draft. Leave **Set as a pre-release** as it is. The workflow sets it from the tag on every run: checked for a suffix such as `-rc.0`, unchecked otherwise.
+4. Publish the release.
+
+The workflow runs from the tagged commit. A release branch therefore needs `.github/workflows/release.yml` and the root `NOTICE` file, which the archive and the images include. Without them, a tag gets no signed files and no images, so backport both before tagging a release line's next patch release. For the same reason, the workflow's branch check only catches mistakes.
+
+The tag rulesets decide who can release. They must cover `v*` and `modules/light-clients/08-wasm/v*` tags and restrict creating, updating, and deleting them. In this repository, the "Auto-imported tag create protections" ruleset restricts creating and updating them. Only the Maintain and Admin repository roles and organization admins can bypass it. The "Auto-imported tag delete protections" ruleset restricts deleting them, and only the Admin role and organization admins can bypass it.
+
+## Verify a release
+
+The commands below need the GitHub CLI and cosign v3 or later, the version the workflow signs with. Replace `<tag>` with the release tag, such as `v11.3.0`, and `ibc-go-vX.Y.Z` with its file name. For an `08-wasm` tag, the files are named `ibc-go-08-wasm-vX.Y.Z`.
+
+### Verify the files
+
+Download the release:
+
+```sh
+gh release download <tag> --repo cosmos/ibc-go --dir release
+```
+
+In the `release` directory, check the signature on `checksums.txt`:
+
+```sh
+cosign verify-blob checksums.txt \
+  --bundle checksums.txt.sigstore.json \
+  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+The two `--certificate` flags accept only a signature from this repository's release workflow, run for `<tag>`.
+
+Check that every file matches `checksums.txt`, which proves it is unchanged since signing. On macOS, use `shasum -a 256 -c checksums.txt` instead.
+
+```sh
+sha256sum -c checksums.txt
+```
+
+Check the build provenance of the archive. The attestation covers the `.tar.gz` file, not the files inside it, so check the archive before you extract it.
+
+```sh
+gh attestation verify ibc-go-vX.Y.Z.tar.gz --repo cosmos/ibc-go \
+  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
+  --source-ref refs/tags/<tag>
+```
+
+`--signer-workflow` and `--source-ref` accept only an attestation from the release workflow, run for `<tag>`.
+
+Two flags change what this command checks:
+
+- `--predicate-type https://spdx.dev/Document/v<version>` checks the SBOM attestation instead of the build provenance. `<version>` is the SPDX version the SBOM declares. `jq -r .spdxVersion ibc-go-vX.Y.Z.spdx.json` prints it as `SPDX-<version>`.
+- `--bundle ibc-go-vX.Y.Z.intoto.jsonl` checks against the attestation file attached to the release, without GitHub's attestations API.
+
+### Verify the images
+
+Replace `<image>` with `ibc-go-simd` or `ibc-go-wasm-simd`. Replace `<image-tag>` with the git tag, with every character other than letters, digits, and `.` replaced by `-`. An `08-wasm` tag only publishes `ibc-go-wasm-simd`.
+
+Check the signature, with the same `--certificate` flags as for `checksums.txt`:
+
+```sh
+cosign verify ghcr.io/cosmos/<image>:<image-tag> \
+  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Check the build provenance:
+
+```sh
+gh attestation verify oci://ghcr.io/cosmos/<image>:<image-tag> --repo cosmos/ibc-go \
+  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
+  --source-ref refs/tags/<tag>
+```
+
+The image tag points at one image per platform. Each platform image is a separate build, so each has its own SBOM attestation. List the platform digests with `docker buildx imagetools inspect ghcr.io/cosmos/<image>:<image-tag>`. Then run the command above on `oci://ghcr.io/cosmos/<image>@<digest>` with the `--predicate-type` flag.
+
+The `main`, `release-v*`, and `branch-release-v*` images from the [docker workflow](./.github/workflows/docker.yml) are unsigned development builds.
+
 ## Deprecation notice
 
 Code that is marked as deprecated in a release will be removed 2 major releases afterwards. For example: deprecation notice is added in v8.3.0, then code will be deleted in v10.0.0.

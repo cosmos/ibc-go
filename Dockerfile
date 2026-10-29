@@ -32,5 +32,6 @@ ARG IBC_GO_VERSION
 LABEL "org.cosmos.ibc-go"="${IBC_GO_VERSION}"
 
 COPY --from=builder /go/build/simd /bin/simd
+COPY --chmod=644 LICENSE NOTICE /usr/share/licenses/ibc-go/
 
 ENTRYPOINT ["simd"]

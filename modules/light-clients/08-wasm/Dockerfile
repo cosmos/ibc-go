@@ -46,4 +46,5 @@ RUN go build -mod=readonly -tags "netgo ledger muslc" -ldflags '-X github.com/co
 
 FROM alpine:3.21
 COPY --from=builder /go/build/simd /bin/simd
+COPY --chmod=644 LICENSE NOTICE /usr/share/licenses/ibc-go/
 ENTRYPOINT ["simd"]

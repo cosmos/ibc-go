@@ -58,6 +58,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+      # To wait for docker.yml runs that are still building the branch image.
+      actions: read
     strategy:
       matrix:
         release-branch:
@@ -82,15 +84,53 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build image
         if: env.RELEASE_BRANCH == matrix.release-branch
+        env:
+          BRANCH: ${{ matrix.release-branch }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-          docker build . -t "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag" --build-arg IBC_GO_VERSION=${{ env.IBC_GO_VERSION }}
-          docker push "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          docker_tag="$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9\.]/-/g')"
+          image="${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          # Release branches cut before docker.yml published multi-platform images still get an
+          # amd64-only image from their own docker.yml, so it is rebuilt here as before.
+          if ! grep -q 'org.opencontainers.image.revision' .github/workflows/docker.yml; then
+            docker build . -t "$image" --build-arg IBC_GO_VERSION="$IBC_GO_VERSION"
+            docker push "$image"
+            exit 0
+          fi
+          # Otherwise docker.yml is the only workflow that writes this tag: a push from here could land
+          # after its multi-platform image and replace it with an amd64-only one. docker.yml records the
+          # commit it built from in the index annotation. The tests pull the tag, so the image is
+          # current when that commit is this checkout or a later one on the branch (a push may land
+          # while this job runs; the branch rulesets forbid force pushes), or an earlier one with the
+          # same root Dockerfile ADD and COPY sources.
+          is_current() {
+            local manifest revision
+            manifest=$(docker buildx imagetools inspect --raw "$image" 2> /dev/null) || return 1
+            revision=$(jq -r '.annotations["org.opencontainers.image.revision"] // empty' <<< "$manifest")
+            [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || return 1
+            git cat-file -e "${revision}^{commit}" 2> /dev/null || git fetch --quiet origin "$revision" || return 1
+            git merge-base --is-ancestor HEAD "$revision" ||
+              git diff --quiet "$revision" HEAD -- Dockerfile internal simapp testing modules LICENSE NOTICE \
+                Makefile contrib/devtools/Makefile go.mod go.sum
+          }
+          if ! is_current; then
+            # A docker.yml run may still be building the branch head; wait for it and check again.
+            runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow docker.yml --branch "$BRANCH" \
+              --json databaseId,status --jq '.[] | select(.status != "completed") | .databaseId')
+            for run in $runs; do
+              gh run watch "$run" --repo "$GITHUB_REPOSITORY" --exit-status > /dev/null || true
+            done
+            if ! is_current; then
+              echo "::error::${image} is not built from the current ${BRANCH}; re-run its latest docker.yml run, then this workflow"
+              exit 1
+            fi
+          fi
+          echo "::notice::Using ${image}, built by docker.yml; the ibc-go-version input only labels images of older release branches"
       - name: Display image details
         if: env.RELEASE_BRANCH == matrix.release-branch
         run: |
           docker_tag="$(echo ${{ matrix.release-branch }} | sed 's/[^a-zA-Z0-9\.]/-/g')"
-          docker inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
+          docker buildx imagetools inspect "${REGISTRY}/${ORG}/${IMAGE_NAME}:$docker_tag"
 
   client-test:
     needs:
