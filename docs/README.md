@@ -37,6 +37,8 @@ Docusaurus configuration file is located at `./docusaurus.config.js`. This file 
 
 ### Installation
 
+Requires Node.js 22.12 or later (see `engines` in `package.json`).
+
 ```bash
 npm install
 ```

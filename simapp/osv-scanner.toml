@@ -5,7 +5,6 @@
 # Edit only the root osv-scanner.toml, then copy it over the identical copies
 # next to every other manifest (simapp/, modules/light-clients/08-wasm/, e2e/,
 # docs/). They are copies rather than symlinks because Scorecard skips symlinks.
-# The Dependency Review workflow fails if a copy differs from the root file.
 #
 # Re-review each entry when the upstream dependency is upgraded.
 
