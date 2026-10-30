@@ -19,7 +19,7 @@ Other helpful commands:
 The [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go) Vulnerabilities check uses [OSV-Scanner](https://google.github.io/osv-scanner/). To reproduce it locally, scan every manifest in the repository (all `go.mod` files, `requirements.txt` and `docs/package-lock.json`) from the repository root:
 
 ```shell
-go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan source -r .
+go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan source -r --no-call-analysis=go .
 ```
 
 To check whether ibc-go code actually calls a reported Go vulnerability, enable Go call analysis, which runs [govulncheck](https://go.dev/doc/tutorial/govulncheck) while still applying `osv-scanner.toml`. Add `--all-vulns` to also list vulnerabilities that are not called:
@@ -30,9 +30,15 @@ go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan source -r --
 
 Fix vulnerabilities by bumping the dependency, then run `make tidy-all`. For the docs site, use `npm audit fix --package-lock-only` in `docs/`, or add an entry to `overrides` in `docs/package.json` when a transitive dependency pins a vulnerable version.
 
-A vulnerability with no fix, or one that does not affect ibc-go, can be ignored by adding an `[[IgnoredVulns]]` entry with an `id` and a `reason` to the root `osv-scanner.toml`. OSV-Scanner only applies that file to manifests in the same directory, so every other manifest directory has an `osv-scanner.toml` symlink to it. Edit only the root file.
+A vulnerability with no fix, or one that does not affect ibc-go, can be ignored by adding an `[[IgnoredVulns]]` entry with an `id` and a `reason` to the root `osv-scanner.toml`. OSV-Scanner and Scorecard only apply that file to manifests in the same directory, so `simapp/`, `modules/light-clients/08-wasm/`, `e2e/` and `docs/` each have an identical copy. They are copies rather than symlinks because Scorecard skips symlinks. Edit only the root file, then copy it over the others:
 
-On every pull request, the Dependency Review workflow (`.github/workflows/dependencies-review.yml`) runs the call-analysis scan above and also fails on newly introduced high-severity vulnerabilities. Both accept the advisories listed in the root `osv-scanner.toml`.
+```shell
+for d in simapp modules/light-clients/08-wasm e2e docs; do cp osv-scanner.toml "$d/"; done
+```
+
+The Dependency Review workflow fails if a copy differs from the root file.
+
+On every pull request, the Dependency Review workflow (`.github/workflows/dependencies-review.yml`) runs the first scan above, the same check Scorecard runs, and also fails on newly introduced high-severity vulnerabilities. Both accept the advisories listed in the root `osv-scanner.toml`.
 
 ## Protobuf
 

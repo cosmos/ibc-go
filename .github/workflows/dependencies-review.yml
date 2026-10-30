@@ -14,6 +14,8 @@ permissions: read-all
 
 env:
   OSV_SCANNER_VERSION: 2.7.0
+  # sha256 of osv-scanner_linux_amd64 from the release's osv-scanner_SHA256SUMS.
+  OSV_SCANNER_SHA256: 160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
 
 jobs:
   dependency-review:
@@ -42,18 +44,14 @@ jobs:
           comment-summary-in-pr: on-failure
           allow-ghsas: ${{ steps.allowlist.outputs.ghsas }}
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: |
-            go.sum
-            simapp/go.sum
-            modules/light-clients/08-wasm/go.sum
-            e2e/go.sum
-
-      # Same scanner and config (osv-scanner.toml) as the OpenSSF Scorecard check. Go call
-      # analysis limits Go findings to vulnerabilities reachable from ibc-go code.
+      # Same scanner, flags and config (osv-scanner.toml) as the OpenSSF Scorecard check.
       - name: OSV-Scanner
-        env:
-          GOTOOLCHAIN: auto
-        run: go run "github.com/google/osv-scanner/v2/cmd/osv-scanner@v${OSV_SCANNER_VERSION}" scan source -r --call-analysis=go .
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/osv-scanner" \
+            "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SCANNER_SHA256}  $RUNNER_TEMP/osv-scanner" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/osv-scanner"
+          # Scorecard counts every vulnerability, not only reachable ones; call analysis
+          # (on by default for Go) would also add minutes building every module.
+          "$RUNNER_TEMP/osv-scanner" scan source -r --no-call-analysis=go .

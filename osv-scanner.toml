@@ -1,7 +1,12 @@
 # Vulnerabilities that cannot be fixed by a dependency bump and have been
 # reviewed as not affecting ibc-go. Read by osv-scanner and OpenSSF Scorecard,
-# which only apply this file to manifests in the same directory, so every
-# other manifest directory has an osv-scanner.toml symlink to this file.
+# which only apply this file to manifests in the same directory.
+#
+# Edit only the root osv-scanner.toml, then copy it over the identical copies
+# next to every other manifest (simapp/, modules/light-clients/08-wasm/, e2e/,
+# docs/). They are copies rather than symlinks because Scorecard skips symlinks.
+# The Dependency Review workflow fails if a copy differs from the root file.
+#
 # Re-review each entry when the upstream dependency is upgraded.
 
 [[IgnoredVulns]]

@@ -42,16 +42,12 @@ done
 CONFIG="${REPO_ROOT}/osv-scanner.toml"
 [[ -f "${CONFIG}" ]] || die "'${CONFIG}' does not exist"
 
-ids="$(sed -n "s/^[[:space:]]*id[[:space:]]*=[[:space:]]*[\"']\([^\"']*\)[\"'].*/\1/p" "${CONFIG}")"
-
-# An entry the pattern above misses would silently drop out of allow-ghsas, so every
-# [[IgnoredVulns]] table must have yielded exactly one id.
-entries="$(grep -c '^[[:space:]]*\[\[IgnoredVulns\]\]' "${CONFIG}" || true)"
-found="$(printf '%s' "${ids}" | grep -c . || true)"
-[[ "${entries}" == "${found}" ]] \
-  || die "parsed ${found} ids from ${entries} [[IgnoredVulns]] entries in ${CONFIG}"
-
-ids="$(printf '%s\n' "${ids}" | sort -u)"
+# Parsed with Python's standard TOML parser (3.11+); an entry without an id is an error.
+ids="$(python3 -c '
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    print("\n".join(sorted({v["id"] for v in tomllib.load(f).get("IgnoredVulns", [])})))
+' "${CONFIG}")" || die "could not read the ids in ${CONFIG}"
 
 command -v jq >/dev/null || die "jq is required"
 
