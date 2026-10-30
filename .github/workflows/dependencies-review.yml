@@ -54,4 +54,6 @@ jobs:
       # Same scanner and config (osv-scanner.toml) as the OpenSSF Scorecard check. Go call
       # analysis limits Go findings to vulnerabilities reachable from ibc-go code.
       - name: OSV-Scanner
+        env:
+          GOTOOLCHAIN: auto
         run: go run "github.com/google/osv-scanner/v2/cmd/osv-scanner@v${OSV_SCANNER_VERSION}" scan source -r --call-analysis=go .
