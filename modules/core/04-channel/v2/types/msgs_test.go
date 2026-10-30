@@ -225,7 +225,29 @@ func (s *TypesTestSuite) TestMsgAcknowledge_ValidateBasic() {
 			name: "success, multiple payloads",
 			malleate: func() {
 				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+				msg.Acknowledgement = types.NewAcknowledgement([]byte("appAck1"), []byte("appAck2"))
 			},
+		},
+		{
+			name: "success, error acknowledgement for multiple payloads",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+				msg.Acknowledgement = types.NewAcknowledgement(types.ErrorAcknowledgement[:])
+			},
+		},
+		{
+			name: "failure: fewer app acknowledgements than payloads",
+			malleate: func() {
+				msg.Packet.Payloads = append(msg.Packet.Payloads, mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB))
+			},
+			expError: types.ErrInvalidAcknowledgement,
+		},
+		{
+			name: "failure: more app acknowledgements than payloads",
+			malleate: func() {
+				msg.Acknowledgement = types.NewAcknowledgement([]byte("appAck1"), []byte("appAck2"))
+			},
+			expError: types.ErrInvalidAcknowledgement,
 		},
 		{
 			name: "failure: invalid proof of acknowledgement",
