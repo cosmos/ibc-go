@@ -1,0 +1,53 @@
+# Vulnerabilities that cannot be fixed by a dependency bump and have been
+# reviewed as not affecting ibc-go. Read by osv-scanner and OpenSSF Scorecard,
+# which only apply this file to manifests in the same directory.
+#
+# Edit only the root osv-scanner.toml, then copy it over the identical copies
+# next to every other manifest (simapp/, modules/light-clients/08-wasm/, e2e/,
+# docs/). They are copies rather than symlinks because Scorecard skips symlinks.
+#
+# Re-review each entry when the upstream dependency is upgraded.
+
+[[IgnoredVulns]]
+id = "GO-2025-3442"
+reason = "False positive: cometbft v0.40.0 contains the BlockPool.SetPeerRange fix from v0.38.17. The advisory's second range (fixed 1.0.1) applies only to the v1 internal/blocksync package."
+
+[[IgnoredVulns]]
+id = "GO-2023-1821"
+reason = "No fix exists. Affects cosmos-sdk x/crisis, which ibc-go does not import."
+
+[[IgnoredVulns]]
+id = "GO-2023-1881"
+reason = "No fix exists. Affects cosmos-sdk x/crisis, which ibc-go does not import."
+
+[[IgnoredVulns]]
+id = "GO-2026-5932"
+reason = "No fix exists (x/crypto/openpgp is deprecated). Pulled in by cosmos-sdk crypto/armor for keyring import/export; must be removed upstream in cosmos-sdk."
+
+# Moby/Docker daemon advisories. They affect the Docker daemon, not the
+# client/API type packages e2e imports, and the docker/docker module has no
+# fixed release. Also required by interchaintest.
+[[IgnoredVulns]]
+id = "GO-2026-4883"
+reason = "Moby daemon plugin privilege validation; e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-4887"
+reason = "Moby daemon AuthZ plugin bypass; e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5617"
+reason = "Moby daemon 'docker cp' race; e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5668"
+reason = "Moby daemon 'docker cp' race; e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5746"
+reason = "Moby daemon container archive endpoint; e2e only uses the Docker client and API types."
+
+# docs/ (Docusaurus build only).
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+reason = "deepmerge (docs build only): no fixed release. Transitive via @svgr/plugin-svgo in Docusaurus."

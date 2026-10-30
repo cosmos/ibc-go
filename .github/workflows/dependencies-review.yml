@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Dependency Review
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+env:
+  OSV_SCANNER_VERSION: 2.7.0
+  # sha256 of osv-scanner_linux_amd64 from the release's osv-scanner_SHA256SUMS.
+  OSV_SCANNER_SHA256: 160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Resolve accepted advisories
+        id: allowlist
+        run: |
+          set -euo pipefail
+          ghsas="$(./scripts/osv-ignored.sh)"
+          echo "Accepted GHSAs: ${ghsas:-none}"
+          printf 'ghsas=%s\n' "$ghsas" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          base-ref: ${{ github.event.pull_request.base.sha || 'main' }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+          allow-ghsas: ${{ steps.allowlist.outputs.ghsas }}
+
+      # Same scanner, flags and config (osv-scanner.toml) as the OpenSSF Scorecard check.
+      - name: OSV-Scanner
+        run: |
+          set -euo pipefail
+          curl -fsSL -o "$RUNNER_TEMP/osv-scanner" \
+            "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SCANNER_SHA256}  $RUNNER_TEMP/osv-scanner" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/osv-scanner"
+          # Scorecard counts every vulnerability, not only reachable ones; call analysis
+          # (on by default for Go) would also add minutes building every module.
+          "$RUNNER_TEMP/osv-scanner" scan source -r --no-call-analysis=go .
