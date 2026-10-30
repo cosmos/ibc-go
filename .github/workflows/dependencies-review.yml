@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Dependency Review
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+env:
+  OSV_SCANNER_VERSION: 2.7.0
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Resolve accepted advisories
+        id: allowlist
+        run: |
+          set -euo pipefail
+          ghsas="$(./scripts/osv-ignored.sh)"
+          echo "Accepted GHSAs: ${ghsas:-none}"
+          printf 'ghsas=%s\n' "$ghsas" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          base-ref: ${{ github.event.pull_request.base.sha || 'main' }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+          allow-ghsas: ${{ steps.allowlist.outputs.ghsas }}
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            simapp/go.sum
+            modules/light-clients/08-wasm/go.sum
+            e2e/go.sum
+
+      # Same scanner and config (osv-scanner.toml) as the OpenSSF Scorecard check. Go call
+      # analysis limits Go findings to vulnerabilities reachable from ibc-go code.
+      - name: OSV-Scanner
+        run: go run "github.com/google/osv-scanner/v2/cmd/osv-scanner@v${OSV_SCANNER_VERSION}" scan source -r --call-analysis=go .
