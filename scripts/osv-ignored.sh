@@ -42,7 +42,16 @@ done
 CONFIG="${REPO_ROOT}/osv-scanner.toml"
 [[ -f "${CONFIG}" ]] || die "'${CONFIG}' does not exist"
 
-ids="$(sed -n 's/^[[:space:]]*id[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "${CONFIG}" | sort -u)"
+ids="$(sed -n "s/^[[:space:]]*id[[:space:]]*=[[:space:]]*[\"']\([^\"']*\)[\"'].*/\1/p" "${CONFIG}")"
+
+# An entry the pattern above misses would silently drop out of allow-ghsas, so every
+# [[IgnoredVulns]] table must have yielded exactly one id.
+entries="$(grep -c '^[[:space:]]*\[\[IgnoredVulns\]\]' "${CONFIG}" || true)"
+found="$(printf '%s' "${ids}" | grep -c . || true)"
+[[ "${entries}" == "${found}" ]] \
+  || die "parsed ${found} ids from ${entries} [[IgnoredVulns]] entries in ${CONFIG}"
+
+ids="$(printf '%s\n' "${ids}" | sort -u)"
 
 command -v jq >/dev/null || die "jq is required"
 
