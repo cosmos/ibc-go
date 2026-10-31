@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (core/04-channel/v2) [\#9078](https://github.com/cosmos/ibc-go/pull/9078) Use a fresh cached context for the application callbacks in `MsgRecvPacket` so the core `recv_packet` events are no longer emitted twice on success, and are no longer re-emitted as error events when an application fails.
 * (core/02-client) [\#9080](https://github.com/cosmos/ibc-go/pull/9080) Return an error from `RecoverClient` when the substitute client is of a different client type than the subject instead of panicking in the subject light client module.
 * (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
