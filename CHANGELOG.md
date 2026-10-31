@@ -64,6 +64,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+* (apps/27-gmp) [\#9077](https://github.com/cosmos/ibc-go/pull/9077) Stop validating `AccountIdentifier.Sender` as a local bech32 address in genesis validation/import; the sender is a counterparty identifier (e.g. an EVM hex address), so exported state containing ICS27 accounts could not be validated or re-imported.
 * (core/02-client) [\#9080](https://github.com/cosmos/ibc-go/pull/9080) Return an error from `RecoverClient` when the substitute client is of a different client type than the subject instead of panicking in the subject light client module.
 * (apps/pfm) [\#9006](https://github.com/cosmos/ibc-go/pull/9006) fix(apps/pfm): remove legacy params before the v3 to v4 migration
 * (apps/rate-limiting) [\#8767](https://github.com/cosmos/ibc-go/pull/8767) Fix string conflict in rate-limiting prefix iterator
