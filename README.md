@@ -61,7 +61,7 @@ The issue list of this repo is exclusively for bug reports and feature requests.
 
 ## Security
 
-To report a security vulnerability, see our [Coordinated Vulnerability Disclosure Policy](./SECURITY.md).
+To report a security vulnerability, see our [Coordinated Vulnerability Disclosure Policy](https://github.com/cosmos/ibc-go/security/policy).
 
 ## Audits
 
