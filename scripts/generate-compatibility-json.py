@@ -234,7 +234,7 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
         # if the major and minor versions match, there was a specified release line for this version.
         # do a comparison on that version to determine if the test should run.
         if semver_v.major == test_semver_version.major and semver_v.minor == test_semver_version.minor:
-            return semver_v >= test_semver_version
+            return test_semver_version >= semver_v
 
     # there was no version defined for this version's release line, but there were versions specified for other release
     # lines, we assume we should not be running the test.

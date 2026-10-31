@@ -38,3 +38,8 @@ The following annotations are supported:
 | TEST_NAME:skip          | true                 | A flag to ensure that this test is not included in the compatibility tests at all.                                                                                                                                                                                                                                  | // compatibility:TestMsgSendTx_SuccessfulSubmitGovProposal:skip:true                 |
 
 > Note: if additional control is required, the script can be modified to support additional annotations.
+
+Each version in `TEST_NAME:from_versions` is the minimum supported patch version
+for that major/minor release line. For example, `v8.7.1,v10.0.1` includes `v8.7.1`,
+`v8.7.2`, `v10.0.1`, and `v10.0.2`, but excludes `v8.7.0`, `v10.0.0`, and any
+unlisted major/minor release line.
