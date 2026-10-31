@@ -54,3 +54,11 @@ func (s *KeeperTestSuite) TestAddressWhitelist() {
 			addressPair.Sender, addressPair.Receiver)
 	}
 }
+
+func (s *KeeperTestSuite) TestEmptyAddressWhitelistPair() {
+	keeper := s.chainA.GetSimApp().RateLimitKeeper
+	ctx := s.chainA.GetContext()
+
+	keeper.SetWhitelistedAddressPair(ctx, types.WhitelistedAddressPair{})
+	s.Require().True(keeper.IsAddressPairWhitelisted(ctx, "", ""))
+}
