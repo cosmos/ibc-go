@@ -10,44 +10,40 @@
 
 [[IgnoredVulns]]
 id = "GO-2025-3442"
-reason = "False positive: cometbft v0.40.0 contains the BlockPool.SetPeerRange fix from v0.38.17. The advisory's second range (fixed 1.0.1) applies only to the v1 internal/blocksync package."
+reason = "Ignored because it is a false positive: cometbft v0.40.0 already contains the BlockPool.SetPeerRange fix from v0.38.17. It is flagged only through the advisory's v1 range (fixed in 1.0.1), which covers the v1-only internal/blocksync package; moving to cometbft v1 would leave the v0.40 line cosmos-sdk v0.55 uses."
 
 [[IgnoredVulns]]
 id = "GO-2023-1821"
-reason = "No fix exists. Affects cosmos-sdk x/crisis, which ibc-go does not import."
+reason = "Ignored because no fixed cosmos-sdk release exists. Not exploitable here: the bug is in x/crisis, which ibc-go does not import."
 
 [[IgnoredVulns]]
 id = "GO-2023-1881"
-reason = "No fix exists. Affects cosmos-sdk x/crisis, which ibc-go does not import."
+reason = "Ignored because no fixed cosmos-sdk release exists. Not exploitable here: the bug is in x/crisis, which ibc-go does not import."
 
 [[IgnoredVulns]]
 id = "GO-2026-5932"
-reason = "No fix exists (x/crypto/openpgp is deprecated). Pulled in by cosmos-sdk crypto/armor for keyring import/export; must be removed upstream in cosmos-sdk."
+reason = "Ignored because no fixed golang.org/x/crypto release exists (the openpgp package is deprecated). It reaches ibc-go only through cosmos-sdk crypto/armor (keyring key import/export) and has to be removed upstream in cosmos-sdk."
 
-# Moby/Docker daemon advisories. They affect the Docker daemon, not the
-# client/API type packages e2e imports, and the docker/docker module has no
-# fixed release. Also required by interchaintest.
 [[IgnoredVulns]]
 id = "GO-2026-4883"
-reason = "Moby daemon plugin privilege validation; e2e only uses the Docker client and API types."
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (plugin privilege validation), and e2e only uses the Docker client and API types."
 
 [[IgnoredVulns]]
 id = "GO-2026-4887"
-reason = "Moby daemon AuthZ plugin bypass; e2e only uses the Docker client and API types."
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (AuthZ plugin bypass), and e2e only uses the Docker client and API types."
 
 [[IgnoredVulns]]
 id = "GO-2026-5617"
-reason = "Moby daemon 'docker cp' race; e2e only uses the Docker client and API types."
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon ('docker cp' race), and e2e only uses the Docker client and API types."
 
 [[IgnoredVulns]]
 id = "GO-2026-5668"
-reason = "Moby daemon 'docker cp' race; e2e only uses the Docker client and API types."
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon ('docker cp' race), and e2e only uses the Docker client and API types."
 
 [[IgnoredVulns]]
 id = "GO-2026-5746"
-reason = "Moby daemon container archive endpoint; e2e only uses the Docker client and API types."
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (container archive endpoint), and e2e only uses the Docker client and API types."
 
-# docs/ (Docusaurus build only).
 [[IgnoredVulns]]
 id = "GHSA-gcqx-w48m-w2h4"
-reason = "deepmerge (docs build only): no fixed release. Transitive via @svgr/plugin-svgo in Docusaurus."
+reason = "Ignored because no fixed deepmerge release exists (4.3.1 is the latest), and the latest @svgr/plugin-svgo and Docusaurus still require it. Only affects the docs site build, not ibc-go code."
