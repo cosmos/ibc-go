@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: Dependency Review
+
+on:
+  pull_request:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Resolve accepted advisories
+        id: allowlist
+        run: |
+          set -euo pipefail
+          ghsas="$(./scripts/osv-ignored.sh)"
+          echo "Accepted GHSAs: ${ghsas:-none}"
+          printf 'ghsas=%s\n' "$ghsas" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          comment-summary-in-pr: on-failure
+          allow-ghsas: ${{ steps.allowlist.outputs.ghsas }}
