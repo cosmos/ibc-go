@@ -1,0 +1,49 @@
+# Vulnerabilities that cannot be fixed by a dependency bump and have been
+# reviewed as not affecting ibc-go. Read by osv-scanner and OpenSSF Scorecard,
+# which only apply this file to manifests in the same directory.
+#
+# Edit only the root osv-scanner.toml, then copy it over the identical copies
+# next to every other manifest (simapp/, modules/light-clients/08-wasm/, e2e/,
+# docs/). They are copies rather than symlinks because Scorecard skips symlinks.
+#
+# Re-review each entry when the upstream dependency is upgraded.
+
+[[IgnoredVulns]]
+id = "GO-2025-3442"
+reason = "Ignored because it is a false positive: cometbft v0.40.0 already contains the BlockPool.SetPeerRange fix from v0.38.17. It is flagged only through the advisory's v1 range (fixed in 1.0.1), which covers the v1-only internal/blocksync package; moving to cometbft v1 would leave the v0.40 line cosmos-sdk v0.55 uses."
+
+[[IgnoredVulns]]
+id = "GO-2023-1821"
+reason = "Ignored because no fixed cosmos-sdk release exists. Not exploitable here: the bug is in x/crisis, which ibc-go does not import."
+
+[[IgnoredVulns]]
+id = "GO-2023-1881"
+reason = "Ignored because no fixed cosmos-sdk release exists. Not exploitable here: the bug is in x/crisis, which ibc-go does not import."
+
+[[IgnoredVulns]]
+id = "GO-2026-5932"
+reason = "Ignored because no fixed golang.org/x/crypto release exists (the openpgp package is deprecated). It reaches ibc-go only through cosmos-sdk crypto/armor (keyring key import/export) and has to be removed upstream in cosmos-sdk."
+
+[[IgnoredVulns]]
+id = "GO-2026-4883"
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (plugin privilege validation), and e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-4887"
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (AuthZ plugin bypass), and e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5617"
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon ('docker cp' race), and e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5668"
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon ('docker cp' race), and e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GO-2026-5746"
+reason = "Ignored because no fixed release exists for github.com/docker/docker or github.com/moby/moby (only for the moby/moby/v2 daemon module), and interchaintest still requires both at v28.5.2. Not exploitable here: the bug is in the Docker daemon (container archive endpoint), and e2e only uses the Docker client and API types."
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+reason = "Ignored because no fixed deepmerge release exists (4.3.1 is the latest), and the latest @svgr/plugin-svgo and Docusaurus still require it. Only affects the docs site build, not ibc-go code."
