@@ -32,7 +32,7 @@ Fix vulnerabilities by bumping the dependency, then run `make tidy-all`. For the
 
 A vulnerability with no fix, or one that does not affect ibc-go, can be ignored by adding an `[[IgnoredVulns]]` entry with an `id` and a `reason` to the root `osv-scanner.toml`.
 
-On every pull request, the Dependency Review workflow (`.github/workflows/dependencies-review.yml`) runs the first scan above, the same check Scorecard runs, and also fails on newly introduced high-severity vulnerabilities. Both accept the advisories listed in the root `osv-scanner.toml`.
+On every pull request, the Dependency Review workflow (`.github/workflows/dependencies-review.yml`) fails when a pull request introduces a dependency with a known vulnerability, except the advisories listed in the root `osv-scanner.toml`. Vulnerabilities already on `main` do not fail pull requests; check them with the scans above.
 
 ## Protobuf
 

@@ -39,7 +39,7 @@ while (($# > 0)); do
   esac
 done
 
-CONFIG="${REPO_ROOT}/osv-scanner.toml"
+CONFIG="${OSV_SCANNER_CONFIG:-${REPO_ROOT}/osv-scanner.toml}"
 [[ -f "${CONFIG}" ]] || die "'${CONFIG}' does not exist"
 
 # Parsed with Python's standard TOML parser (3.11+); an entry without an id is an error.
