@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Messages
 sidebar_label: Messages
 sidebar_position: 4
@@ -30,7 +31,7 @@ This message is expected to fail if:
 - `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `Token` is invalid (denom is invalid or amount is negative)
     - `Token.Amount` is not positive.
-    - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).
+    - `Token.Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-001-coin-source-tracing.md).
 - `Sender` is empty.
 - `Receiver` is empty or contains more than 2048 bytes.
 - `Memo` contains more than 32768 bytes.

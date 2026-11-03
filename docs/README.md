@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # IBC-Go Documentation
 
 Welcome to the IBC-Go documentation! This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
@@ -200,13 +202,13 @@ In this section, we will discuss when to use each.
 Technically, there are four docs being maintained in this repo:
 
 1. Found in `docs/docs/` (this is the one displayed on the website in the "Documentation" tab)
-2. Found in `docs/architecture/` (this is the one displayed on the website in the "Architecture Decision Records" tab)
+2. Found in `docs/architecture/` (this is the one displayed on the website in the "Architecture Decision Records" tab). It holds only a pointer: the ADRs themselves are in [`cosmos/ibc/spec/adr`](https://github.com/cosmos/ibc/tree/main/spec/adr), so link to an ADR with its GitHub URL.
 3. Found in `docs/events/` (depreciated, this is not displayed on the website, but is hosted under `/events/` url)
 4. Found in `docs/params/` (depreciated, this is not displayed on the website, but is hosted under `/params/` url)
 
 When referencing a markdown file, you should use relative file paths if they are in the same docs directory from above. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/docs/02-apps/01-transfer/01-overview.md`, you should use the relative link `../02-apps/01-transfer/01-overview.md`.
 
-If the file you are referencing is in a different docs directory, you should use an absolute URL. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/architecture/adr-001-coin-source-tracing.md`, you should use the absolute URL (not absolute file path), in this case `/architecture/adr-001-coin-source-tracing`. You can find the absolute URL by looking at the slug in the frontmatter of the markdown file you want to link to. If the frontmatter slug is not set (such as in `docs/architecture/adr-001-coin-source-tracing.md`), you should use the url that docusaurus generates for it. You can find this by looking at the url of the page in the browser.
+If the file you are referencing is in a different docs directory, you should use an absolute URL. For example, if you are in `docs/docs/01-ibc` and want to link to `docs/events/events.md`, you should use the absolute URL (not absolute file path), in this case `/events/events`. You can find the absolute URL by looking at the slug in the frontmatter of the markdown file you want to link to. If the frontmatter slug is not set (such as in `docs/events/events.md`), you should use the url that docusaurus generates for it. You can find this by looking at the url of the page in the browser.
 
 Note that when referencing any file outside of the parent `docs/` directory, you should always use a hyperlink.
 
@@ -220,7 +222,7 @@ These assets should be referenced using absolute URLs. For example, if you have 
 
 #### Raw Assets
 
-If you want to link a raw file, you should link to it using `@site` + its base path. For example, if you want to link to the raw markdown file `/architecture/adr.template.md`, you should use the absolute URL `@site/architecture/adr.template.md`.
+If you want to link a raw file, you should link to it using `@site` + its base path. For example, if you want to link to the raw markdown file `/events/events.md`, you should use the absolute URL `@site/events/events.md`.
 
 ### Technical writing course
 
@@ -228,7 +230,7 @@ Google provides a free [course](https://developers.google.com/tech-writing/overv
 
 ## Versioning
 
-Versioning only applies to documentation and not the ADRs found in the `./architecture/` directory.
+Versioning only applies to documentation, not to the `./architecture/` directory.
 
 ### Terminology
 

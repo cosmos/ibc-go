@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Consensus State interface
 sidebar_label: Consensus State interface
 sidebar_position: 3
@@ -10,7 +11,7 @@ slug: /ibc/light-clients/consensus-state
 
 A `ConsensusState` is the snapshot of the counterparty chain, that an IBC client uses to verify proofs (e.g. a block). 
 
-The further development of multiple types of IBC light clients and the difficulties presented by this generalization problem (see [ADR-006](https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-006-02-client-refactor.md) for more information about this historical context) led to the design decision of each client keeping track of and set its own `ClientState` and `ConsensusState`, as well as the simplification of client `ConsensusState` updates through the generalized `ClientMessage` interface.
+The further development of multiple types of IBC light clients and the difficulties presented by this generalization problem (see [ADR-006](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-006-02-client-refactor.md) for more information about this historical context) led to the design decision of each client keeping track of and set its own `ClientState` and `ConsensusState`, as well as the simplification of client `ConsensusState` updates through the generalized `ClientMessage` interface.
 
 The below [`ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L134) interface is a generalized interface for the types of information a `ConsensusState` could contain. For a reference `ConsensusState` implementation, please see the [Tendermint light client `ConsensusState`](https://github.com/cosmos/ibc-go/blob/main/modules/light-clients/07-tendermint/consensus_state.go).
 

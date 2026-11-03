@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Governance Proposals
 sidebar_label: Governance Proposals
 sidebar_position: 6
@@ -45,7 +46,7 @@ once the proposal passes.
 
 ## How to recover an expired client with a governance proposal
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/architecture/adr-026-ibc-client-recovery-mechanisms)
+See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-026-ibc-client-recovery-mechanisms.md)
 
 > **Who is this information for?**
 > Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).

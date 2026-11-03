@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Callbacks Middleware
 
 IBC was designed with callbacks between core IBC and IBC applications. IBC apps would send a packet to core IBC, and receive a callback on every step of that packet's lifecycle. This allows IBC applications to be built on top of core IBC, and to be able to execute custom logic on packet lifecycle events (e.g. unescrow tokens for ICS-20).
@@ -6,7 +8,7 @@ This setup worked well for off-chain users interacting with IBC applications. Ho
 
 The Callbacks Middleware allows for this functionality by allowing the packets of the underlying IBC applications to register callbacks to secondary applications for lifecycle events. These callbacks are then executed by the Callbacks Middleware when the corresponding packet lifecycle event occurs.
 
-After much discussion, the design was expanded to [an ADR](/architecture/adr-008-app-caller-cbs), and the Callbacks Middleware is an implementation of that ADR.
+After much discussion, the design was expanded to [an ADR](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-008-app-caller-cbs.md), and the Callbacks Middleware is an implementation of that ADR.
 
 ## Version Matrix
 

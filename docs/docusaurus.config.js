@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
@@ -311,7 +312,28 @@ const config = {
           {
             from: ["/", "/docs"],
             to: "/v10/",
-          }
+          },
+          // The ADRs moved to cosmos/ibc spec/adr; keep their old URLs working.
+          ...[
+            "adr-001-coin-source-tracing",
+            "adr-002-go-module-versioning",
+            "adr-003-ics27-acknowledgement",
+            "adr-004-ics29-lock-fee-module",
+            "adr-005-consensus-height-events",
+            "adr-006-02-client-refactor",
+            "adr-007-solomachine-signbytes",
+            "adr-008-app-caller-cbs",
+            "adr-009-v6-ics27-msgserver",
+            "adr-010-light-clients-as-sdk-modules",
+            "adr-011-transfer-total-escrow-state-entry",
+            "adr-015-ibc-packet-receiver",
+            "adr-025-ibc-passive-channels",
+            "adr-026-ibc-client-recovery-mechanisms",
+            "adr-027-ibc-wasm",
+          ].map((slug) => ({
+            from: `/architecture/${slug}`,
+            to: `https://github.com/cosmos/ibc/blob/main/spec/adr/${slug}.md`,
+          })),
         ],
       },
     ],

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Governance Proposals
 sidebar_label: Light Client Recovery
 sidebar_position: 6
@@ -52,7 +53,7 @@ a substitute client *after* the subject has become frozen to avoid the substitut
 An active substitute client allows headers to be submitted during the voting period to prevent accidental expiry
 once the proposal passes.
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](/architecture/adr-026-ibc-client-recovery-mechanisms)
+See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-026-ibc-client-recovery-mechanisms.md)
 
 ## Preconditions
 

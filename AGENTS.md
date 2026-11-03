@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Repository instructions for coding agents
 
 This file applies to the entire repository. Add a nested `AGENTS.md` only when a
@@ -89,8 +91,8 @@ After the final edit, run the checks for the changed surface:
 
 - Do not commit, push, rebase, or open a pull request unless explicitly asked.
 - Non-minor work should link an accepted issue or specification. Architecture
-  changes without an existing specification require an ADR under
-  `docs/architecture/`.
+  changes without an existing specification require an ADR in
+  `cosmos/ibc` under `spec/adr/`.
 - Update relevant docs and the Unreleased changelog for user-visible, API, or
   state-machine changes. Include tests and godoc for new exported behavior.
 - Use Conventional Commits. Breaking changes use `type(api)!` or
