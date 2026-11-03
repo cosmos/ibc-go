@@ -8,7 +8,7 @@ slug: /roadmap/roadmap
 
 # Roadmap ibc-go
 
-*Latest update: December 21st, 2022*
+*Latest update: Dec 21, 2022*
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 <!--
 Guiding Principles:
 
@@ -72,7 +74,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Testing API
 
-## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - 2026-05-20
+## [v11.1.0](https://github.com/cosmos/ibc-go/releases/tag/v11.1.0) - May 20, 2026
 
 ### Features
 
@@ -94,7 +96,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (light-clients/attestation) [\#8947](https://github.com/cosmos/ibc-go/pull/8947) fix(light-clients/attestation): allow initial height to be zero (backport of [\#8910](https://github.com/cosmos/ibc-go/pull/8910))
 
-## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - 2026-04-10
+## [v11.0.0](https://github.com/cosmos/ibc-go/releases/tag/v11.0.0) - Apr 10, 2026
 
 ### Features
 
@@ -143,7 +145,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#8366](https://github.com/cosmos/ibc-go/pull/8366) - Replaced the deprecated `codec.ProtoMarshaler` interface with `proto.Message`.
 * (e2e) [\#8486](https://github.com/cosmos/ibc-go/pull/8486) chore: switch to cosmos/interchaintest
 
-## [v10.7.0](https://github.com/cosmos/ibc-go/releases/tag/v10.7.0) - 2026-05-20
+## [v10.7.0](https://github.com/cosmos/ibc-go/releases/tag/v10.7.0) - May 20, 2026
 
 ### Improvements
 
@@ -153,31 +155,31 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (channel/v2) [\#8954](https://github.com/cosmos/ibc-go/pull/8954) fix(channel/v2): parse binary store keys in PacketCommitments and PacketAcknowledgements queries (backport of [\#8778](https://github.com/cosmos/ibc-go/pull/8778))
 
-## [v10.6.0](https://github.com/cosmos/ibc-go/releases/tag/v10.6.0) - 2026-04-24
+## [v10.6.0](https://github.com/cosmos/ibc-go/releases/tag/v10.6.0) - Apr 24, 2026
 
 ### Bug Fixes
 
 * (apps/callbacks) [\#8916](https://github.com/cosmos/ibc-go/pull/8916) OnTimeoutPacket blocked by UnmarshalPacketData error (backport of [\#8856](https://github.com/cosmos/ibc-go/pull/8856))
 
-## [v10.5.1](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - 2026-04-09
+## [v10.5.1](https://github.com/cosmos/ibc-go/releases/tag/v10.5.1) - Apr 9, 2026
 
 ### Bug Fixes
 
 * (apps/transfer) [\#8879](https://github.com/cosmos/ibc-go/pull/8879) Use packet `sender` and `receiver` strings in unauthorized errors to avoid non-UTF8 event/simulation failures. (backport of [\#8874](https://github.com/cosmos/ibc-go/pull/8874))
 
-## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - 2025-12-18
+## [v10.5.0](https://github.com/cosmos/ibc-go/releases/tag/v10.5.0) - Dec 18, 2025
 
 ### Improvements
 
 * [\#8742](https://github.com/cosmos/ibc-go/pull/8742) Add extra validation for ProtoJSON unmarshalling in ICS-27 ICA. (backport of [\#8734](https://github.com/cosmos/ibc-go/pull/8734))
 
-## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - 2025-10-10
+## [v10.4.0](https://github.com/cosmos/ibc-go/releases/tag/v10.4.0) - Oct 10, 2025
 
 ### Improvements
 
 * [\#8615](https://github.com/cosmos/ibc-go/pull/8615) Support custom address codecs in transfer. (backport of [\#8573](https://github.com/cosmos/ibc-go/pull/8573))
 
-## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - 2025-06-06
+## [v10.3.0](https://github.com/cosmos/ibc-go/releases/tag/v10.3.0) - Jun 6, 2025
 
 ### Features
 
@@ -202,7 +204,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#8371](https://github.com/cosmos/ibc-go/pull/8371) e2e: Create only necessary number of chains for e2e suite.
 * [\#8375](https://github.com/cosmos/ibc-go/pull/8375) feat: parse IBC v2 packets from ABCI events
 
-## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - 2025-04-30
+## [v10.2.0](https://github.com/cosmos/ibc-go/releases/tag/v10.2.0) - Apr 30, 2025
 
 ### Features
 
@@ -226,7 +228,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#8287](https://github.com/cosmos/ibc-go/pull/8287) rename total_escrow REST query from `denoms` to `total_escrow`
 
-## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - 2025-03-14
+## [v10.1.0](https://github.com/cosmos/ibc-go/releases/tag/v10.1.0) - Mar 14, 2025
 
 ### Security Fixes
 
@@ -355,7 +357,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * [\#6685](https://github.com/cosmos/ibc-go/pull/6685) Configure relayers to watch only channels associated with an individual test
 * [\#6758](https://github.com/cosmos/ibc-go/pull/6758) Tokens are successfully forwarded from A to C through B
 
-## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - 2024-08-30
+## [v8.5.0](https://github.com/cosmos/ibc-go/releases/tag/v8.5.0) - Aug 30, 2024
 
 ### Dependencies
 
@@ -366,7 +368,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (core/03-connection) [\#7129](https://github.com/cosmos/ibc-go/pull/7129) Remove verification of self client and consensus state from connection handshake.
 
-## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - 2024-07-29
+## [v8.4.0](https://github.com/cosmos/ibc-go/releases/tag/v8.4.0) - Jul 29, 2024
 
 ### Improvements
 
@@ -380,7 +382,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (core/04-channel) [\#6935](https://github.com/cosmos/ibc-go/pull/6935) Check upgrade compatibility in `ChanUpgradeConfirm`.
 
-## [v8.3.2](https://github.com/cosmos/ibc-go/releases/tag/v8.3.2) - 2024-06-20
+## [v8.3.2](https://github.com/cosmos/ibc-go/releases/tag/v8.3.2) - Jun 20, 2024
 
 ### Dependencies
 
@@ -390,7 +392,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
 
-## [v8.3.1](https://github.com/cosmos/ibc-go/releases/tag/v8.3.1) - 2024-05-22
+## [v8.3.1](https://github.com/cosmos/ibc-go/releases/tag/v8.3.1) - May 22, 2024
 
 ### Improvements
 
@@ -398,7 +400,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
 * (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
-## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - 2024-05-16
+## [v8.3.0](https://github.com/cosmos/ibc-go/releases/tag/v8.3.0) - May 16, 2024
 
 ### Dependencies
 
@@ -429,7 +431,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#6167](https://github.com/cosmos/ibc-go/pull/6167) Fixed an edge case bug where migrating params for a pre-existing ica module which implemented controller functionality only could panic when migrating params for newly added host, and align controller param migration with host.
 * (app/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
-## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - 2024-04-05
+## [v8.2.0](https://github.com/cosmos/ibc-go/releases/tag/v8.2.0) - Apr 5, 2024
 
 ### Dependencies
 
@@ -439,7 +441,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (proto) [\#5987](https://github.com/cosmos/ibc-go/pull/5987) Add wasm proto files.
 
-## [v8.1.0](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0) - 2024-01-31
+## [v8.1.0](https://github.com/cosmos/ibc-go/releases/tag/v8.1.0) - Jan 31, 2024
 
 ### Dependencies
 
@@ -465,7 +467,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/27-interchain-accounts) [\#5343](https://github.com/cosmos/ibc-go/pull/5343) Add check if controller is enabled in `sendTx` before sending packet to host.
 * (apps/29-fee) [\#5441](https://github.com/cosmos/ibc-go/pull/5441) Allow setting the relayer address as payee.
 
-## [v8.0.1](https://github.com/cosmos/ibc-go/releases/tag/v8.0.1) - 2024-01-31
+## [v8.0.1](https://github.com/cosmos/ibc-go/releases/tag/v8.0.1) - Jan 31, 2024
 
 ### Dependencies
 
@@ -475,7 +477,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
 
-## [v8.0.0](https://github.com/cosmos/ibc-go/releases/tag/v8.0.0) - 2023-11-10
+## [v8.0.0](https://github.com/cosmos/ibc-go/releases/tag/v8.0.0) - Nov 10, 2023
 
 ### Dependencies
 
@@ -568,13 +570,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer, apps/29-fee) [\#4570](https://github.com/cosmos/ibc-go/pull/4570) Remove `GetSignBytes` from 29-fee and transfer msgs.
 * [\#3630](https://github.com/cosmos/ibc-go/pull/3630) Add annotation to Msg service.
 
-## [v7.8.0](https://github.com/cosmos/ibc-go/releases/tag/v7.8.0) - 2024-08-30
+## [v7.8.0](https://github.com/cosmos/ibc-go/releases/tag/v7.8.0) - Aug 30, 2024
 
 ### State Machine Breaking
 
 * (core/03-connection) [\#7128](https://github.com/cosmos/ibc-go/pull/7128) Remove verification of self client and consensus state from connection handshake.
 
-## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - 2024-07-29
+## [v7.7.0](https://github.com/cosmos/ibc-go/releases/tag/v7.7.0) - Jul 29, 2024
 
 ### Dependencies
 
@@ -586,13 +588,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - 2024-06-20
+## [v7.6.0](https://github.com/cosmos/ibc-go/releases/tag/v7.6.0) - Jun 20, 2024
 
 ### State Machine Breaking
 
 * (apps/transfer, apps/27-interchain-accounts, app/29-fee) [\#4992](https://github.com/cosmos/ibc-go/pull/4992) Set validation for length of string fields.
 
-## [v7.5.2](https://github.com/cosmos/ibc-go/releases/tag/v7.5.2) - 2024-06-20
+## [v7.5.2](https://github.com/cosmos/ibc-go/releases/tag/v7.5.2) - Jun 20, 2024
 
 ### Dependencies
 
@@ -602,7 +604,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#6436](https://github.com/cosmos/ibc-go/pull/6436) Refactor ICA host keeper instantiation method to avoid panic related to proto files.
 
-## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - 2024-05-22
+## [v7.5.1](https://github.com/cosmos/ibc-go/releases/tag/v7.5.1) - May 22, 2024
 
 ### Improvements
 
@@ -610,7 +612,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/ante) [\#6280](https://github.com/cosmos/ibc-go/pull/6280) Performance: Skip redundant proof checking in RecvPacket execution in reCheckTx within the redundant relay ante handler.
 * (core/ante) [\#6306](https://github.com/cosmos/ibc-go/pull/6306) Performance: Skip misbehaviour checks in UpdateClient flow and skip signature checks in reCheckTx mode.
 
-## [v7.5.0](https://github.com/cosmos/ibc-go/releases/tag/v7.5.0) - 2024-05-14
+## [v7.5.0](https://github.com/cosmos/ibc-go/releases/tag/v7.5.0) - May 14, 2024
 
 ### Dependencies
 
@@ -636,9 +638,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/29-fee) [\#6255](https://github.com/cosmos/ibc-go/pull/6255) Delete already refunded fees from state if some fee(s) cannot be refunded on channel closure.
 
-## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - 2024-04-05
+## [v7.4.0](https://github.com/cosmos/ibc-go/releases/tag/v7.4.0) - Apr 5, 2024
 
-## [v7.3.2](https://github.com/cosmos/ibc-go/releases/tag/v7.3.2) - 2024-01-31
+## [v7.3.2](https://github.com/cosmos/ibc-go/releases/tag/v7.3.2) - Jan 31, 2024
 
 ### Dependencies
 
@@ -652,7 +654,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/27-interchain-accounts) [\#4944](https://github.com/cosmos/ibc-go/pull/4944) Add missing proto interface registration.
 
-## [v7.3.1](https://github.com/cosmos/ibc-go/releases/tag/v7.3.1) - 2023-10-20
+## [v7.3.1](https://github.com/cosmos/ibc-go/releases/tag/v7.3.1) - Oct 20, 2023
 
 ### Dependencies
 
@@ -666,7 +668,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - 2023-08-31
+## [v7.3.0](https://github.com/cosmos/ibc-go/releases/tag/v7.3.0) - Aug 31, 2023
 
 ### Dependencies
 
@@ -689,7 +691,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
 * (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
 
-## [v7.2.3](https://github.com/cosmos/ibc-go/releases/tag/v7.2.3) - 2024-01-31
+## [v7.2.3](https://github.com/cosmos/ibc-go/releases/tag/v7.2.3) - Jan 31, 2024
 
 ### Dependencies
 
@@ -699,7 +701,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (core) [\#5541](https://github.com/cosmos/ibc-go/pull/5541) Enable emission of events on erroneous IBC application callbacks by appending a prefix to all event type and attribute keys.
 
-## [v7.2.2](https://github.com/cosmos/ibc-go/releases/tag/v7.2.2) - 2023-10-20
+## [v7.2.2](https://github.com/cosmos/ibc-go/releases/tag/v7.2.2) - Oct 20, 2023
 
 ### Dependencies
 
@@ -709,14 +711,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v7.2.1](https://github.com/cosmos/ibc-go/releases/tag/v7.2.1) - 2023-08-31
+## [v7.2.1](https://github.com/cosmos/ibc-go/releases/tag/v7.2.1) - Aug 31, 2023
 
 ### Bug Fixes
 
 * (04-channel) [\#4476](https://github.com/cosmos/ibc-go/pull/4476) Use UTC time in log messages for packet timeout error.
 * (testing) [\#4483](https://github.com/cosmos/ibc-go/pull/4483) Use the correct revision height when querying trusted validator set.
 
-## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - 2023-06-22
+## [v7.2.0](https://github.com/cosmos/ibc-go/releases/tag/v7.2.0) - Jun 22, 2023
 
 ### Dependencies
 
@@ -727,7 +729,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3907](https://github.com/cosmos/ibc-go/pull/3907) Re-implemented missing functions of `LegacyMsg` interface to fix transaction signing with ledger.
 
-## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - 2023-06-09
+## [v7.1.0](https://github.com/cosmos/ibc-go/releases/tag/v7.1.0) - Jun 9, 2023
 
 ### Dependencies
 
@@ -748,13 +750,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/04-channel) [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 * (core/04-channel) [\#3593](https://github.com/cosmos/ibc-go/pull/3593) `SendPacket` now correctly returns `ErrClientNotFound` in favour of `ErrConsensusStateNotFound`.
 
-## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - 2023-05-25
+## [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v7.0.0) - 2023-03-17
+## [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v7.0.0) - Mar 17, 2023
 
 ### Dependencies
 
@@ -853,16 +855,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (light-clients/07-tendermint) [\#3022](https://github.com/cosmos/ibc-go/pull/3022) Correctly close iterator in `07-tendermint` store.
 * (core/02-client) [\#3010](https://github.com/cosmos/ibc-go/pull/3010) Update `Paginate` to use `FilterPaginate` in `ClientStates` and `ConnectionChannels` grpc queries.
 
-## [v6.3.0](https://github.com/cosmos/ibc-go/releases/tag/v6.3.0) - 2024-04-05
+## [v6.3.0](https://github.com/cosmos/ibc-go/releases/tag/v6.3.0) - Apr 5, 2024
 
-## [v6.2.1](https://github.com/cosmos/ibc-go/releases/tag/v6.2.1) - 2023-10-20
+## [v6.2.1](https://github.com/cosmos/ibc-go/releases/tag/v6.2.1) - Oct 20, 2023
 
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v6.2.0](https://github.com/cosmos/ibc-go/releases/tag/v6.2.0) - 2023-05-31
+## [v6.2.0](https://github.com/cosmos/ibc-go/releases/tag/v6.2.0) - May 31, 2023
 
 ### Dependencies
 
@@ -881,20 +883,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v6.1.2](https://github.com/cosmos/ibc-go/releases/tag/v6.1.2) - 2023-10-20
+## [v6.1.2](https://github.com/cosmos/ibc-go/releases/tag/v6.1.2) - Oct 20, 2023
 
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v6.1.1](https://github.com/cosmos/ibc-go/releases/tag/v6.1.1) - 2023-05-25
+## [v6.1.1](https://github.com/cosmos/ibc-go/releases/tag/v6.1.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v6.1.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - 2022-12-20
+## [v6.1.0](https://github.com/cosmos/ibc-go/releases/tag/v6.1.0) - Dec 20, 2022
 
 ### Dependencies
 
@@ -904,7 +906,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/29-fee) [\#2942](https://github.com/cosmos/ibc-go/pull/2942) Check `x/bank` send enabled before escrowing fees.
 
-## [v6.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.0.0) - 2022-12-09
+## [v6.0.0](https://github.com/cosmos/ibc-go/releases/tag/v6.0.0) - Dec 9, 2022
 
 ### Dependencies
 
@@ -964,34 +966,34 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 * (modules/core/keeper) [\#2745](https://github.com/cosmos/ibc-go/pull/2745) Fix request wiring for `UpgradedConsensusState` in core query server.
 
-## [v5.4.0](https://github.com/cosmos/ibc-go/releases/tag/v5.4.0) - 2024-04-05
+## [v5.4.0](https://github.com/cosmos/ibc-go/releases/tag/v5.4.0) - Apr 5, 2024
 
-## [v5.3.2](https://github.com/cosmos/ibc-go/releases/tag/v5.3.2) - 2023-10-20
+## [v5.3.2](https://github.com/cosmos/ibc-go/releases/tag/v5.3.2) - Oct 20, 2023
 
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v5.3.1](https://github.com/cosmos/ibc-go/releases/tag/v5.3.1) - 2023-05-25
+## [v5.3.1](https://github.com/cosmos/ibc-go/releases/tag/v5.3.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v5.3.0](https://github.com/cosmos/ibc-go/releases/tag/v5.3.0) - 2023-05-04
+## [v5.3.0](https://github.com/cosmos/ibc-go/releases/tag/v5.3.0) - May 4, 2023
 
 ### Dependencies
 
 * [\#3354](https://github.com/cosmos/ibc-go/pull/3354) Bump Cosmos SDK to v0.46.12 and replace Tendermint with CometBFT v0.34.27.
 
-## [v5.2.1](https://github.com/cosmos/ibc-go/releases/tag/v5.2.1) - 2023-05-25
+## [v5.2.1](https://github.com/cosmos/ibc-go/releases/tag/v5.2.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v5.2.0](https://github.com/cosmos/ibc-go/releases/tag/v5.2.0) - 2022-12-20
+## [v5.2.0](https://github.com/cosmos/ibc-go/releases/tag/v5.2.0) - Dec 20, 2022
 
 ### Dependencies
 
@@ -1006,7 +1008,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/29-fee) [\#2786](https://github.com/cosmos/ibc-go/pull/2786) Save gas by checking key existence with `KVStore`'s `Has` method.
 
-## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - 2022-11-09
+## [v5.1.0](https://github.com/cosmos/ibc-go/releases/tag/v5.1.0) - Nov 9, 2022
 
 ### Dependencies
 
@@ -1030,13 +1032,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
-## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - 2022-10-27
+## [v5.0.1](https://github.com/cosmos/ibc-go/releases/tag/v5.0.1) - Oct 27, 2022
 
 ### Dependencies
 
 * [\#2623](https://github.com/cosmos/ibc-go/pull/2623) Bump SDK version to v0.46.3 and Tendermint version to v0.34.22.
 
-## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - 2022-09-28
+## [v5.0.0](https://github.com/cosmos/ibc-go/releases/tag/v5.0.0) - Sep 28, 2022
 
 ### Dependencies
 
@@ -1068,54 +1070,54 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (makefile) [\#1785](https://github.com/cosmos/ibc-go/pull/1785) Fetch the correct versions of protocol buffers dependencies from tendermint, cosmos-sdk, and ics23.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
-## [v4.6.0](https://github.com/cosmos/ibc-go/releases/tag/v4.6.0) - 2024-04-05
+## [v4.6.0](https://github.com/cosmos/ibc-go/releases/tag/v4.6.0) - Apr 5, 2024
 
-## [v4.5.1](https://github.com/cosmos/ibc-go/releases/tag/v4.5.1) - 2023-10-20
+## [v4.5.1](https://github.com/cosmos/ibc-go/releases/tag/v4.5.1) - Oct 20, 2023
 
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v4.5.0](https://github.com/cosmos/ibc-go/releases/tag/v4.5.0) - 2023-10-03
+## [v4.5.0](https://github.com/cosmos/ibc-go/releases/tag/v4.5.0) - Oct 3, 2023
 
 ### Dependencies
 
 * [\#4738](https://github.com/cosmos/ibc-go/pull/4738) Bump Cosmos SDK to v0.45.16.
 * [\#4782](https://github.com/cosmos/ibc-go/pull/4782) Bump ics23 to v0.9.1.
 
-## [v4.4.3](https://github.com/cosmos/ibc-go/releases/tag/v4.4.3) - 2023-10-20
+## [v4.4.3](https://github.com/cosmos/ibc-go/releases/tag/v4.4.3) - Oct 20, 2023
 
 ### Bug Fixes
 
 * (apps/transfer) [\#3045](https://github.com/cosmos/ibc-go/pull/3045) allow value with slashes in URL template for `denom_traces` and `denom_hashes` queries.
 * (apps/transfer) [\#4709](https://github.com/cosmos/ibc-go/pull/4709) Order query service RPCs to fix availability of denom traces endpoint when no args are provided.
 
-## [v4.4.2](https://github.com/cosmos/ibc-go/releases/tag/v4.4.2) - 2023-05-25
+## [v4.4.2](https://github.com/cosmos/ibc-go/releases/tag/v4.4.2) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3662](https://github.com/cosmos/ibc-go/pull/3662) Retract v4.1.2 and v4.2.1.
 
-## [v4.4.1](https://github.com/cosmos/ibc-go/releases/tag/v4.4.1) - 2023-05-25
+## [v4.4.1](https://github.com/cosmos/ibc-go/releases/tag/v4.4.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v4.4.0](https://github.com/cosmos/ibc-go/releases/tag/v4.4.0) - 2023-04-25
+## [v4.4.0](https://github.com/cosmos/ibc-go/releases/tag/v4.4.0) - Apr 25, 2023
 
 ### Dependencies
 
 * [\#3416](https://github.com/cosmos/ibc-go/pull/3416) Bump Cosmos SDK to v0.45.15 and replace Tendermint with CometBFT v0.34.27.
 
-## [v4.3.1](https://github.com/cosmos/ibc-go/releases/tag/v4.3.1) - 2023-05-25
+## [v4.3.1](https://github.com/cosmos/ibc-go/releases/tag/v4.3.1) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - 2023-01-24
+## [v4.3.0](https://github.com/cosmos/ibc-go/releases/tag/v4.3.0) - Jan 24, 2023
 
 ### Dependencies
 
@@ -1142,13 +1144,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#2772](https://github.com/cosmos/ibc-go/pull/2772) Integrated git cliff into the code base to automate generation of changelogs.
 
-## [v4.2.2](https://github.com/cosmos/ibc-go/releases/tag/v4.2.2) - 2023-05-25
+## [v4.2.2](https://github.com/cosmos/ibc-go/releases/tag/v4.2.2) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3661](https://github.com/cosmos/ibc-go/pull/3661) Revert state-machine breaking improvement from PR [#2786](https://github.com/cosmos/ibc-go/pull/2786).
 
-## [v4.2.1](https://github.com/cosmos/ibc-go/releases/tag/v4.2.1) - 2023-05-25
+## [v4.2.1](https://github.com/cosmos/ibc-go/releases/tag/v4.2.1) - May 25, 2023
 
 ### Dependencies
 
@@ -1162,7 +1164,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v4.2.0](https://github.com/cosmos/ibc-go/releases/tag/v4.2.0) - 2022-11-07
+## [v4.2.0](https://github.com/cosmos/ibc-go/releases/tag/v4.2.0) - Nov 7, 2022
 
 ### Dependencies
 
@@ -1182,13 +1184,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
-## [v4.1.3](https://github.com/cosmos/ibc-go/releases/tag/v4.1.3) - 2023-05-25
+## [v4.1.3](https://github.com/cosmos/ibc-go/releases/tag/v4.1.3) - May 25, 2023
 
 ### Bug Fixes
 
 * [\#3660](https://github.com/cosmos/ibc-go/pull/3660) Revert state-machine breaking improvement from PR [#2786](https://github.com/cosmos/ibc-go/pull/2786).
 
-## [v4.1.2](https://github.com/cosmos/ibc-go/releases/tag/v4.1.2) - 2023-05-25
+## [v4.1.2](https://github.com/cosmos/ibc-go/releases/tag/v4.1.2) - May 25, 2023
 
 ### Dependencies
 
@@ -1202,13 +1204,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#3346](https://github.com/cosmos/ibc-go/pull/3346) Properly handle ordered channels in `UnreceivedPackets` query.
 
-## [v4.1.1](https://github.com/cosmos/ibc-go/releases/tag/v4.1.1) - 2022-10-27
+## [v4.1.1](https://github.com/cosmos/ibc-go/releases/tag/v4.1.1) - Oct 27, 2022
 
 ### Dependencies
 
 * [\#2624](https://github.com/cosmos/ibc-go/pull/2624) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
-## [v4.1.0](https://github.com/cosmos/ibc-go/releases/tag/v4.1.0) - 2022-09-20
+## [v4.1.0](https://github.com/cosmos/ibc-go/releases/tag/v4.1.0) - Sep 20, 2022
 
 ### Dependencies
 
@@ -1222,13 +1224,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 
-## [v4.0.1](https://github.com/cosmos/ibc-go/releases/tag/v4.0.1) - 2022-09-15
+## [v4.0.1](https://github.com/cosmos/ibc-go/releases/tag/v4.0.1) - Sep 15, 2022
 
 ### Dependencies
 
 * [\#2287](https://github.com/cosmos/ibc-go/pull/2287) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
-## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - 2022-08-12
+## [v4.0.0](https://github.com/cosmos/ibc-go/releases/tag/v4.0.0) - Aug 12, 2022
 
 ### Dependencies
 
@@ -1285,7 +1287,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (apps/29-fee) [\#1278](https://github.com/cosmos/ibc-go/pull/1278) The URI path for the query to get all incentivized packets for a specific channel did not follow the same format as the rest of queries.
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
-## [v3.4.0](https://github.com/cosmos/ibc-go/releases/tag/v3.4.0) - 2022-11-07
+## [v3.4.0](https://github.com/cosmos/ibc-go/releases/tag/v3.4.0) - Nov 7, 2022
 
 ### Dependencies
 
@@ -1305,13 +1307,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
-## [v3.3.1](https://github.com/cosmos/ibc-go/releases/tag/v3.3.1) - 2022-10-27
+## [v3.3.1](https://github.com/cosmos/ibc-go/releases/tag/v3.3.1) - Oct 27, 2022
 
 ### Dependencies
 
 * [\#2621](https://github.com/cosmos/ibc-go/pull/2621) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
-## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - 2022-09-20
+## [v3.3.0](https://github.com/cosmos/ibc-go/releases/tag/v3.3.0) - Sep 20, 2022
 
 ### Dependencies
 
@@ -1325,13 +1327,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (27-interchain-accounts) [\#2308](https://github.com/cosmos/ibc-go/pull/2308) Nil checks have been added to ensure services are not registered for nil host or controller keepers.
 
-## [v3.2.1](https://github.com/cosmos/ibc-go/releases/tag/v3.2.1) - 2022-09-15
+## [v3.2.1](https://github.com/cosmos/ibc-go/releases/tag/v3.2.1) - Sep 15, 2022
 
 ### Dependencies
 
 * [\#2285](https://github.com/cosmos/ibc-go/pull/2285) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
-## [v3.2.0](https://github.com/cosmos/ibc-go/releases/tag/v3.2.0) - 2022-08-12
+## [v3.2.0](https://github.com/cosmos/ibc-go/releases/tag/v3.2.0) - Aug 12, 2022
 
 ### Dependencies
 
@@ -1355,7 +1357,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
-## [v3.1.1](https://github.com/cosmos/ibc-go/releases/tag/v3.1.1) - 2022-08-02
+## [v3.1.1](https://github.com/cosmos/ibc-go/releases/tag/v3.1.1) - Aug 2, 2022
 
 ### Dependencies
 
@@ -1366,7 +1368,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) - 2022-06-14
+## [v3.1.0](https://github.com/cosmos/ibc-go/releases/tag/v3.1.0) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1393,14 +1395,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/transfer) [\#1451](https://github.com/cosmos/ibc-go/pull/1451) Fixing the support for base denoms that contain slashes.
 
-## [v3.0.2](https://github.com/cosmos/ibc-go/releases/tag/v3.0.2) - 2022-08-02
+## [v3.0.2](https://github.com/cosmos/ibc-go/releases/tag/v3.0.2) - Aug 2, 2022
 
 ### Improvements
 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v3.0.1](https://github.com/cosmos/ibc-go/releases/tag/v3.0.1) - 2022-06-14
+## [v3.0.1](https://github.com/cosmos/ibc-go/releases/tag/v3.0.1) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1418,7 +1420,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
-## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - 2022-03-15
+## [v3.0.0](https://github.com/cosmos/ibc-go/releases/tag/v3.0.0) - Mar 15, 2022
 
 ### Dependencies
 
@@ -1479,7 +1481,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (client) [\#941](https://github.com/cosmos/ibc-go/pull/941) Classify client states without consensus states as expired
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
-## [v2.5.0](https://github.com/cosmos/ibc-go/releases/tag/v2.5.0) - 2022-11-07
+## [v2.5.0](https://github.com/cosmos/ibc-go/releases/tag/v2.5.0) - Nov 7, 2022
 
 ### Dependencies
 
@@ -1498,19 +1500,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (apps/transfer) [\#2679](https://github.com/cosmos/ibc-go/pull/2679) Check `x/bank` send enabled.
 
-## [v2.4.2](https://github.com/cosmos/ibc-go/releases/tag/v2.4.2) - 2022-10-27
+## [v2.4.2](https://github.com/cosmos/ibc-go/releases/tag/v2.4.2) - Oct 27, 2022
 
 ### Dependencies
 
 * [\#2622](https://github.com/cosmos/ibc-go/pull/2622) Bump SDK version to v0.45.10 and Tendermint to v0.34.22.
 
-## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - 2022-09-15
+## [v2.4.1](https://github.com/cosmos/ibc-go/releases/tag/v2.4.1) - Sep 15, 2022
 
 ### Dependencies
 
 * [\#2284](https://github.com/cosmos/ibc-go/pull/2284) Bump SDK version to v0.45.8 and Tendermint to v0.34.21.
 
-## [v2.4.0](https://github.com/cosmos/ibc-go/releases/tag/v2.4.0) - 2022-08-12
+## [v2.4.0](https://github.com/cosmos/ibc-go/releases/tag/v2.4.0) - Aug 12, 2022
 
 ### Dependencies
 
@@ -1533,7 +1535,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel)[\#1919](https://github.com/cosmos/ibc-go/pull/1919) Fixed formatting of sequence for packet "acknowledgement written" logs.
 
-## [v2.3.1](https://github.com/cosmos/ibc-go/releases/tag/v2.3.1) - 2022-08-02
+## [v2.3.1](https://github.com/cosmos/ibc-go/releases/tag/v2.3.1) - Aug 2, 2022
 
 ### Dependencies
 
@@ -1544,7 +1546,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - 2022-06-14
+## [v2.3.0](https://github.com/cosmos/ibc-go/releases/tag/v2.3.0) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1570,14 +1572,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/transfer) [\#1451](https://github.com/cosmos/ibc-go/pull/1451) Fixing the support for base denoms that contain slashes.
 
-## [v2.2.2](https://github.com/cosmos/ibc-go/releases/tag/v2.2.2) - 2022-08-02
+## [v2.2.2](https://github.com/cosmos/ibc-go/releases/tag/v2.2.2) - Aug 2, 2022
 
 ### Improvements
 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - 2022-06-14
+## [v2.2.1](https://github.com/cosmos/ibc-go/releases/tag/v2.2.1) - Jun 14, 2022
 
 ### Improvements
 
@@ -1591,20 +1593,20 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
-## [v2.2.0](https://github.com/cosmos/ibc-go/releases/tag/v2.2.0) - 2022-03-15
+## [v2.2.0](https://github.com/cosmos/ibc-go/releases/tag/v2.2.0) - Mar 15, 2022
 
 ### Dependencies
 
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
 
-## [v2.1.2](https://github.com/cosmos/ibc-go/releases/tag/v2.1.2) - 2022-08-02
+## [v2.1.2](https://github.com/cosmos/ibc-go/releases/tag/v2.1.2) - Aug 2, 2022
 
 ### Improvements
 
 * (core/02-client) [\#1570](https://github.com/cosmos/ibc-go/pull/1570) Emitting an event when handling an upgrade client proposal.
 * (core/client) [\#1740](https://github.com/cosmos/ibc-go/pull/1740) Add `cosmos_proto.implements_interface` to adhere to guidelines in [Cosmos SDK ADR 019](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-019-protobuf-state-encoding.md#safe-usage-of-any) for annotating `google.protobuf.Any` types
 
-## [v2.1.1](https://github.com/cosmos/ibc-go/releases/tag/v2.1.1) - 2022-06-14
+## [v2.1.1](https://github.com/cosmos/ibc-go/releases/tag/v2.1.1) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1621,7 +1623,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
-## [v2.1.0](https://github.com/cosmos/ibc-go/releases/tag/v2.1.0) - 2022-03-15
+## [v2.1.0](https://github.com/cosmos/ibc-go/releases/tag/v2.1.0) - Mar 15, 2022
 
 ### Dependencies
 
@@ -1642,13 +1644,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
-## [v2.0.3](https://github.com/cosmos/ibc-go/releases/tag/v2.0.3) - 2022-02-03
+## [v2.0.3](https://github.com/cosmos/ibc-go/releases/tag/v2.0.3) - Feb 3, 2022
 
 ### Improvements
 
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
-## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - 2021-12-15
+## [v2.0.2](https://github.com/cosmos/ibc-go/releases/tag/v2.0.2) - Dec 15, 2021
 
 ### Dependencies
 
@@ -1658,7 +1660,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
 
-## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - 2021-12-05
+## [v2.0.1](https://github.com/cosmos/ibc-go/releases/tag/v2.0.1) - Dec 5, 2021
 
 ### Dependencies
 
@@ -1673,7 +1675,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (02-client) [\#500](https://github.com/cosmos/ibc-go/pull/500) Fix IBC `update-client proposal` cli command to expect correct number of args.
 
-## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - 2021-11-09
+## [v2.0.0](https://github.com/cosmos/ibc-go/releases/tag/v2.0.0) - Nov 9, 2021
 
 ### Dependencies
 
@@ -1689,7 +1691,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#384](https://github.com/cosmos/ibc-go/pull/384) Added `NegotiateAppVersion` method to `IBCModule` interface supported by a gRPC query service in `05-port`. This provides routing of requests to the desired application module callback, which in turn performs application version negotiation.
 
-## [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0) - 2022-06-14
+## [v1.5.0](https://github.com/cosmos/ibc-go/releases/tag/v1.5.0) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1715,7 +1717,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 * (apps/transfer) [\#1451](https://github.com/cosmos/ibc-go/pull/1451) Fixing the support for base denoms that contain slashes.
 
-## [v1.4.1](https://github.com/cosmos/ibc-go/releases/tag/v1.4.1) - 2022-06-14
+## [v1.4.1](https://github.com/cosmos/ibc-go/releases/tag/v1.4.1) - Jun 14, 2022
 
 ### Improvements
 
@@ -1729,13 +1731,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
-## [v1.4.0](https://github.com/cosmos/ibc-go/releases/tag/v1.4.0) - 2022-03-15
+## [v1.4.0](https://github.com/cosmos/ibc-go/releases/tag/v1.4.0) - Mar 15, 2022
 
 ### Dependencies
 
 * [\#851](https://github.com/cosmos/ibc-go/pull/851) Bump SDK version to v0.45.1
 
-## [v1.3.1](https://github.com/cosmos/ibc-go/releases/tag/v1.3.1) - 2022-06-14
+## [v1.3.1](https://github.com/cosmos/ibc-go/releases/tag/v1.3.1) - Jun 14, 2022
 
 ### Dependencies
 
@@ -1753,7 +1755,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core/04-channel) [\#1130](https://github.com/cosmos/ibc-go/pull/1130) Call `packet.GetSequence()` rather than passing func in `WriteAcknowledgement` log output
 
-## [v1.3.0](https://github.com/cosmos/ibc-go/releases/tag/v1.3.0) - 2022-03-15
+## [v1.3.0](https://github.com/cosmos/ibc-go/releases/tag/v1.3.0) - Mar 15, 2022
 
 ### Dependencies
 
@@ -1774,13 +1776,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 * (transfer) [\#978](https://github.com/cosmos/ibc-go/pull/978) Support base denoms with slashes in denom validation
 * (channel) [\#995](https://github.com/cosmos/ibc-go/pull/995) Call `packet.GetSequence()` rather than passing func in `AcknowledgePacket` log output
 
-## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - 2022-02-03
+## [v1.2.6](https://github.com/cosmos/ibc-go/releases/tag/v1.2.6) - Feb 3, 2022
 
 ### Improvements
 
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
-## [v1.2.5](https://github.com/cosmos/ibc-go/releases/tag/v1.2.5) - 2021-12-15
+## [v1.2.5](https://github.com/cosmos/ibc-go/releases/tag/v1.2.5) - Dec 15, 2021
 
 ### Dependencies
 
@@ -1790,7 +1792,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
 
-## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - 2021-12-05
+## [v1.2.4](https://github.com/cosmos/ibc-go/releases/tag/v1.2.4) - Dec 5, 2021
 
 ### Dependencies
 
@@ -1800,26 +1802,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
 
-## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - 2021-11-09
+## [v1.2.3](https://github.com/cosmos/ibc-go/releases/tag/v1.2.3) - Nov 9, 2021
 
 ### Dependencies
 
 * [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
 
-## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - 2021-10-15
+## [v1.2.2](https://github.com/cosmos/ibc-go/releases/tag/v1.2.2) - Oct 15, 2021
 
 ### Dependencies
 
 * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
 
-## [v1.2.1](https://github.com/cosmos/ibc-go/releases/tag/v1.2.1) - 2021-10-04
+## [v1.2.1](https://github.com/cosmos/ibc-go/releases/tag/v1.2.1) - Oct 4, 2021
 
 ### Dependencies
 
 * [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
 
-## [v1.2.0](https://github.com/cosmos/ibc-go/releases/tag/v1.2.0) - 2021-09-10
+## [v1.2.0](https://github.com/cosmos/ibc-go/releases/tag/v1.2.0) - Sep 10, 2021
 
 ### State Machine Breaking
 
@@ -1837,13 +1839,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#386](https://github.com/cosmos/ibc-go/pull/386) Bump [tendermint](https://github.com/tendermint/tendermint) from v0.34.12 to v0.34.13.
 
-## [v1.1.6](https://github.com/cosmos/ibc-go/releases/tag/v1.1.6) - 2022-01-25
+## [v1.1.6](https://github.com/cosmos/ibc-go/releases/tag/v1.1.6) - Jan 25, 2022
 
 ### Improvements
 
 * (channel) [\#692](https://github.com/cosmos/ibc-go/pull/692) Minimize channel logging by only emitting the packet sequence, source port/channel, destination port/channel upon packet receives, acknowledgements and timeouts.
 
-## [v1.1.5](https://github.com/cosmos/ibc-go/releases/tag/v1.1.5) - 2021-12-15
+## [v1.1.5](https://github.com/cosmos/ibc-go/releases/tag/v1.1.5) - Dec 15, 2021
 
 ### Dependencies
 
@@ -1853,7 +1855,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * (modules/core) [\#603](https://github.com/cosmos/ibc-go/pull/603) Fix module name emitted as part of `OnChanOpenInit` event. Replacing `connection` module name with `channel`.
 
-## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.1.4) - 2021-12-05
+## [v1.1.4](https://github.com/cosmos/ibc-go/releases/tag/v1.1.4) - Dec 5, 2021
 
 ### Dependencies
 
@@ -1863,36 +1865,36 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * [\#583](https://github.com/cosmos/ibc-go/pull/583) Move third_party/proto/confio/proofs.proto to third_party/proto/proofs.proto to enable proto service reflection. Migrate `buf` from v1beta1 to v1.
 
-## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - 2021-11-09
+## [v1.1.3](https://github.com/cosmos/ibc-go/releases/tag/v1.1.3) - Nov 9, 2021
 
 ### Dependencies
 
 * [\#489](https://github.com/cosmos/ibc-go/pull/489) Bump Tendermint to v0.34.14
 * [\#503](https://github.com/cosmos/ibc-go/pull/503) Bump SDK version to v0.44.3
 
-## [v1.1.2](https://github.com/cosmos/ibc-go/releases/tag/v1.1.2) - 2021-10-15
+## [v1.1.2](https://github.com/cosmos/ibc-go/releases/tag/v1.1.2) - Oct 15, 2021
 
 * [\#485](https://github.com/cosmos/ibc-go/pull/485) Bump SDK version to v0.44.2
 
-## [v1.1.1](https://github.com/cosmos/ibc-go/releases/tag/v1.1.1) - 2021-10-04
+## [v1.1.1](https://github.com/cosmos/ibc-go/releases/tag/v1.1.1) - Oct 4, 2021
 
 ### Dependencies
 
 * [\#455](https://github.com/cosmos/ibc-go/pull/455) Bump SDK version to v0.44.1
 
-## [v1.1.0](https://github.com/cosmos/ibc-go/releases/tag/v1.1.0) - 2021-09-03
+## [v1.1.0](https://github.com/cosmos/ibc-go/releases/tag/v1.1.0) - Sep 3, 2021
 
 ### Dependencies
 
 * [\#367](https://github.com/cosmos/ibc-go/pull/367) Bump [cosmos-sdk](https://github.com/cosmos/cosmos-sdk) from 0.43 to 0.44.
 
-## [v1.0.1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.1) - 2021-08-25
+## [v1.0.1](https://github.com/cosmos/ibc-go/releases/tag/v1.0.1) - Aug 25, 2021
 
 ### Improvements
 
 * [\#343](https://github.com/cosmos/ibc-go/pull/343) Create helper functions for publishing of packet sent and acknowledgement sent events.
 
-## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - 2021-08-10
+## [v1.0.0](https://github.com/cosmos/ibc-go/releases/tag/v1.0.0) - Aug 10, 2021
 
 ### Bug Fixes
 

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Roadmap
 sidebar_label: Roadmap
 sidebar_position: 9
@@ -7,7 +8,7 @@ slug: /roadmap/roadmap
 
 # Roadmap ibc-go
 
-*Last update: March 31, 2022*
+*Last update: Mar 31, 2022*
 
 This document endeavours to inform the wider IBC community about plans and priorities for work on ibc-go by the team at Interchain GmbH. It is intended to broadly inform all users of ibc-go, including developers and operators of IBC, relayer, chain and wallet applications.
 

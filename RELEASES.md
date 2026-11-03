@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Releases
 
 IBC-Go follows [semantic versioning](https://semver.org), but with the following deviations:
@@ -59,7 +61,7 @@ The beginning of a new major release series is marked by the release of a new ma
 - If the next major release is made within the first 6 months, then the end of life date of the major release series is 18 months after its initial release.
 - If the next major release is made 6 months after the initial release, then the end of life date of the major release series is 12 months after the release date of the next major release.
 
-For example, if the current major release series is v1 and was released on January 1st, 2022, then v1 will be supported at least until January 1st, 2023. If v2 is published on August 1st 2022, then v1's end of life will be March 1st, 2023.
+For example, if the current major release series is v1 and was released on Jan 1, 2022, then v1 will be supported at least until Jan 1, 2023. If v2 is published on Aug 1, 2022, then v1's end of life will be Mar 1, 2023.
 
 Only the following major release series have a stable release status. All missing minor release versions have been discontinued.
 
