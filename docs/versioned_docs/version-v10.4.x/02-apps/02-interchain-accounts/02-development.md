@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: Apache-2.0
 title: Development Use Cases
 sidebar_label: Development Use Cases
 sidebar_position: 2
@@ -23,7 +24,7 @@ If you wish to consume and execute custom logic in the packet callbacks, then pl
 
 It may be desirable to allow smart contracts to control an interchain account.
 To facilitate such an action, the controller submodule may be provided an underlying application which redirects to smart contract callers.
-An improved design has been suggested in [ADR 008](https://github.com/cosmos/ibc-go/pull/1976) which performs this action via middleware.
+An improved design has been suggested in [ADR 008](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-008-app-caller-cbs.md) which performs this action via middleware.
 
 Implementers of this use case are recommended to follow the ADR 008 approach.
 The underlying application may continue to be used as a short term solution for ADR 008 and the [legacy API](./10-legacy/01-auth-modules.md) should continue to be utilized in such situations.

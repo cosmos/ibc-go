@@ -48,7 +48,7 @@ once the proposal passes.
 
 # How to recover an expired client with a governance proposal
 
-See also the relevant documentation: [ADR-026, IBC client recovery mechanisms](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-026-ibc-client-recovery-mechanisms.md)
+See also the relevant documentation: [ADR 026, IBC client recovery mechanisms](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-026-ibc-client-recovery-mechanisms.md)
 
 > **Who is this information for?**
 > Although technically anyone can submit the governance proposal to recover an expired client, often it will be **relayer operators** (at least coordinating the submission).
@@ -75,7 +75,7 @@ Check if the client is attached to the expected `chain_id`. For example, for an 
 }
 ```
 
-The client is attached to the expected Akash `chain_id`. Note that although the parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) exist to signal intent, these parameters have been deprecated and will not enforce any checks on the revival of client. See ADR-026 for more context on this deprecation.
+The client is attached to the expected Akash `chain_id`. Note that although the parameters (`allow_update_after_expiry` and `allow_update_after_misbehaviour`) exist to signal intent, these parameters have been deprecated and will not enforce any checks on the revival of client. See [ADR 026](https://github.com/cosmos/ibc/blob/main/spec/adr/adr-026-ibc-client-recovery-mechanisms.md) for more context on this deprecation.
 
 ### Step 2
 
