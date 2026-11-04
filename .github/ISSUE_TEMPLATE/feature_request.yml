@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Feature or enhancement
 description: Propose a change or new capability
 labels: ["enhancement"]
