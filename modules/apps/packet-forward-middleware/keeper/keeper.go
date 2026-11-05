@@ -164,12 +164,18 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %w", transfertypes.ModuleName, refundEscrowAddress, err)
 		}
 
-		currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, coin.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Add(coin)
-		k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+		k.escrowToken(ctx, coin)
 	}
 
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, inFlightPacket.ChannelPacket(), ack)
+}
+
+// escrowToken will update the total escrow by adding the escrowed token
+// to the current total escrow.
+func (k *Keeper) escrowToken(ctx sdk.Context, token sdk.Coin) {
+	currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, token.GetDenom())
+	newTotalEscrow := currentTotalEscrow.Add(token)
+	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
 }
 
 // unescrowToken will update the total escrow by deducting the unescrowed token
