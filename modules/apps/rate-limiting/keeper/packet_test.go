@@ -541,6 +541,65 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should not have changed")
 }
 
+func (s *KeeperTestSuite) TestCompleteReceivePacket() {
+	sequence := uint64(10)
+	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, channelOnStride, uosmo))
+	initialInflow := sdkmath.NewInt(100)
+
+	validPacketData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: "10"})
+	s.Require().NoError(err)
+
+	testCases := []struct {
+		name              string
+		packetData        []byte
+		expPendingRemains bool
+	}{
+		{
+			name:              "success: pending receive marker removed",
+			packetData:        validPacketData,
+			expPendingRemains: false,
+		},
+		{
+			name:              "success: packet data cannot be parsed, nothing to remove",
+			packetData:        []byte("invalid packet data"),
+			expPendingRemains: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			ctx := s.chainA.GetContext()
+			rateLimitKeeper := s.chainA.GetSimApp().RateLimitKeeper
+
+			rateLimitKeeper.SetRateLimit(ctx, types.RateLimit{
+				Path: &types.Path{Denom: rateLimitDenom, ChannelOrClientId: channelOnStride},
+				Flow: &types.Flow{Inflow: initialInflow},
+			})
+			s.Require().NoError(rateLimitKeeper.SetPendingReceivePacket(ctx, channelOnStride, sequence, rateLimitDenom))
+
+			packet := channeltypes.Packet{
+				Sequence:           sequence,
+				SourcePort:         transferPort,
+				SourceChannel:      channelOnHost,
+				DestinationPort:    transferPort,
+				DestinationChannel: channelOnStride,
+				Data:               tc.packetData,
+			}
+
+			s.Require().NoError(rateLimitKeeper.CompleteReceivePacket(ctx, packet))
+
+			found, err := rateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, channelOnStride, sequence, rateLimitDenom)
+			s.Require().NoError(err)
+			s.Require().Equal(tc.expPendingRemains, found)
+
+			// completing a receive never changes the recorded inflow
+			rateLimit, found := rateLimitKeeper.GetRateLimit(ctx, rateLimitDenom, channelOnStride)
+			s.Require().True(found)
+			s.Require().Equal(initialInflow, rateLimit.Flow.Inflow)
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestUndoReceivePacket() {
 	zeroAmount := sdkmath.ZeroInt()
 

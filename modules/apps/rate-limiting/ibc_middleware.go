@@ -71,15 +71,10 @@ func (im *IBCMiddleware) OnRecvPacket(ctx sdk.Context, channelVersion string, pa
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// If the acknowledgement is not async (nil), remove the pending receive packet from the store.
+	// If the acknowledgement is not async (nil), the receive is complete.
 	ack := im.app.OnRecvPacket(ctx, channelVersion, packet, relayer)
 	if ack != nil {
-		packetInfo, err := keeper.ParsePacketInfo(packet, types.PACKET_RECV)
-		if err != nil {
-			im.keeper.Logger(ctx).Error("Rate limit OnRecvPacket failed to parse packet data for pending receive cleanup", "error", err)
-			return ack
-		}
-		if err := im.keeper.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.GetSequence(), packetInfo.Denom); err != nil {
+		if err := im.keeper.CompleteReceivePacket(ctx, packet); err != nil {
 			im.keeper.Logger(ctx).Error("Rate limit OnRecvPacket failed to remove pending receive packet", "error", err)
 		}
 	}
@@ -131,19 +126,14 @@ func (im *IBCMiddleware) WriteAcknowledgement(ctx sdk.Context, packet ibcexporte
 			return types.ErrAsyncAckNil.Wrapf("cannot write nil ack for packet %s/%d", packet.GetDestChannel(), packet.GetSequence())
 		}
 
+		var err error
 		if ack.Success() {
-			packetInfo, err := keeper.ParsePacketInfo(chanPacket, types.PACKET_RECV)
-			if err != nil {
-				im.keeper.Logger(ctx).Error("Rate limit WriteAcknowledgement failed to parse packet data for pending receive cleanup", "error", err)
-				return im.keeper.WriteAcknowledgement(ctx, packet, ack)
-			}
-			if err := im.keeper.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, chanPacket.GetSequence(), packetInfo.Denom); err != nil {
-				return err
-			}
+			err = im.keeper.CompleteReceivePacket(ctx, chanPacket)
 		} else {
-			if err := im.keeper.UndoReceivePacket(ctx, chanPacket); err != nil {
-				return err
-			}
+			err = im.keeper.UndoReceivePacket(ctx, chanPacket)
+		}
+		if err != nil {
+			return err
 		}
 	}
 
