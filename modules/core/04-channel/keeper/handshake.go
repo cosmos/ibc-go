@@ -241,21 +241,7 @@ func (k *Keeper) WriteOpenAckChannel(
 	channel.Counterparty.ChannelId = counterpartyChannelID
 	k.SetChannel(ctx, portID, channelID, channel)
 
-	if channel.Ordering == types.UNORDERED {
-		// get the counterparty and set it in the client keeper v2 to support IBC v2 on this
-		// channel ID through aliasing
-		// NOTE: This should never error as the channel is set in the line above
-		counterparty, ok := k.GetV2Counterparty(ctx, portID, channelID)
-		if !ok {
-			panic("could not convert channel to v2 counterparty")
-		}
-		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
-		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-		if !ok {
-			panic("connection not set")
-		}
-		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
-	}
+	k.setV2Alias(ctx, portID, channelID, channel)
 
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.INIT, "new-state", types.OPEN)
 
@@ -326,21 +312,7 @@ func (k *Keeper) WriteOpenConfirmChannel(
 	k.SetChannel(ctx, portID, channelID, channel)
 	k.Logger(ctx).Info("channel state updated", "port-id", portID, "channel-id", channelID, "previous-state", types.TRYOPEN, "new-state", types.OPEN)
 
-	if channel.Ordering == types.UNORDERED {
-		// get the counterparty and set it in the client keeper v2 to support IBC v2 on this
-		// channel ID through aliasing
-		// NOTE: This should never error as the channel is set in the line above
-		counterparty, ok := k.GetV2Counterparty(ctx, portID, channelID)
-		if !ok {
-			panic("could not convert channel to v2 counterparty")
-		}
-		k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
-		connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-		if !ok {
-			panic("connection not set")
-		}
-		k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
-	}
+	k.setV2Alias(ctx, portID, channelID, channel)
 
 	defer telemetry.IncrCounter(1, "ibc", "channel", "open-confirm")
 
@@ -449,4 +421,26 @@ func (k *Keeper) ChanCloseConfirm(
 	emitChannelCloseConfirmEvent(ctx, portID, channelID, channel)
 
 	return nil
+}
+
+// setV2Alias registers an OPEN UNORDERED channel as an IBC v2 alias: the channel ID is
+// stored as a v2 client counterparty and mapped to the underlying client of its connection.
+// ORDERED channels cannot be used over IBC v2 and are left untouched.
+func (k *Keeper) setV2Alias(ctx sdk.Context, portID, channelID string, channel types.Channel) {
+	if channel.Ordering != types.UNORDERED {
+		return
+	}
+
+	// NOTE: This should never fail as the caller has just stored the channel as OPEN
+	counterparty, ok := k.GetV2Counterparty(ctx, portID, channelID)
+	if !ok {
+		panic("could not convert channel to v2 counterparty")
+	}
+	k.clientKeeperV2.SetClientCounterparty(ctx, channelID, counterparty)
+
+	connection, ok := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+	if !ok {
+		panic("connection not set")
+	}
+	k.channelKeeperV2.SetClientForAlias(ctx, channelID, connection.ClientId)
 }
