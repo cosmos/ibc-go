@@ -130,6 +130,11 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 
 	// Sender chain is source
 	if !denom.HasPrefix(packet.SourcePort, packet.SourceChannel) {
+		channelEscrow := k.transferKeeper.GetChannelEscrowForDenom(ctx, packet.SourceChannel, coin.Denom)
+		if channelEscrow.Amount.LT(coin.Amount) {
+			return fmt.Errorf("insufficient escrow on channel %s/%s: has %s, requested %s", packet.SourcePort, packet.SourceChannel, channelEscrow, coin)
+		}
+
 		// funds were moved to escrow account for transfer, so they need to either:
 		// - move to the other escrow account, in the case of native denom
 		// - burn
@@ -137,6 +142,9 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 			// transfer funds from escrow account for forwarded packet to escrow account going back for refund.
 			if err := k.bankKeeper.SendCoins(ctx, escrowAddress, refundEscrowAddress, newToken); err != nil {
 				return fmt.Errorf("failed to send coins from escrow account to refund escrow account: %w", err)
+			}
+			if err := k.moveEscrow(ctx, packet.SourceChannel, inFlightPacket.RefundChannelId, coin); err != nil {
+				return err
 			}
 		} else {
 			// Transfer the coins from the escrow account to the module account and burn them.
@@ -151,7 +159,9 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 				panic(fmt.Sprintf("cannot burn coins after a successful send from escrow account to module account: %v", err))
 			}
 
-			k.unescrowToken(ctx, coin)
+			if err := k.unescrowCoin(ctx, packet.SourceChannel, coin); err != nil {
+				return err
+			}
 		}
 	} else {
 		// Funds in the escrow account were burned,
@@ -164,20 +174,25 @@ func (k *Keeper) WriteAcknowledgementForForwardedPacket(ctx sdk.Context, packet 
 			return fmt.Errorf("cannot send coins from the %s module to the escrow account %s: %w", transfertypes.ModuleName, refundEscrowAddress, err)
 		}
 
-		currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, coin.GetDenom())
-		newTotalEscrow := currentTotalEscrow.Add(coin)
-		k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+		k.transferKeeper.AddToChannelEscrow(ctx, inFlightPacket.RefundChannelId, coin)
 	}
 
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, inFlightPacket.ChannelPacket(), ack)
 }
 
-// unescrowToken will update the total escrow by deducting the unescrowed token
-// from the current total escrow.
-func (k *Keeper) unescrowToken(ctx sdk.Context, token sdk.Coin) {
-	currentTotalEscrow := k.transferKeeper.GetTotalEscrowForDenom(ctx, token.GetDenom())
-	newTotalEscrow := currentTotalEscrow.Sub(token)
-	k.transferKeeper.SetTotalEscrowForDenom(ctx, newTotalEscrow)
+// unescrowCoin subtracts a coin from the channel and total escrow accounting.
+func (k *Keeper) unescrowCoin(ctx sdk.Context, channel string, coin sdk.Coin) error {
+	return k.transferKeeper.SubFromChannelEscrow(ctx, channel, coin)
+}
+
+// moveEscrow moves escrow accounting from one channel to another.
+func (k *Keeper) moveEscrow(ctx sdk.Context, sourceChannel, destinationChannel string, coin sdk.Coin) error {
+	if err := k.transferKeeper.SubFromChannelEscrow(ctx, sourceChannel, coin); err != nil {
+		return err
+	}
+
+	k.transferKeeper.AddToChannelEscrow(ctx, destinationChannel, coin)
+	return nil
 }
 
 func (k *Keeper) ForwardTransferPacket(ctx sdk.Context, inFlightPacket *types.InFlightPacket, srcPacket channeltypes.Packet, srcPacketSender, receiver string, metadata types.ForwardMetadata, token sdk.Coin, maxRetries uint8, timeoutDelta time.Duration, labels []metrics.Label) error {

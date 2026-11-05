@@ -168,6 +168,7 @@ func (s *TransferTestSuite) TestOnSendPacket() {
 			// check that module account escrow address has locked the tokens
 			chainAEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 			s.Require().Equal(originalCoin, chainAEscrowBalance)
+			s.Require().Equal(originalCoin, s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(ctx, s.pathAToB.EndpointA.ClientID, originalCoin.Denom))
 		})
 	}
 }
@@ -358,6 +359,8 @@ func (s *TransferTestSuite) TestOnAckPacket() {
 			// check that module account escrow address has no tokens
 			chainAEscrowBalance = s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 			s.Require().Equal(sdk.NewCoin(originalCoin.Denom, sdkmath.ZeroInt()), chainAEscrowBalance)
+			s.Require().True(s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(ctx, s.pathAToB.EndpointA.ClientID, originalCoin.Denom).IsZero())
+			s.Require().True(s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, originalCoin.Denom).IsZero())
 		})
 	}
 }
@@ -405,6 +408,7 @@ func (s *TransferTestSuite) TestOnTimeoutPacket() {
 			// check that module account escrow address has locked the tokens
 			chainAEscrowBalance := s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 			s.Require().Equal(originalCoin, chainAEscrowBalance)
+			s.Require().Equal(originalCoin, s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(s.chainA.GetContext(), s.pathAToB.EndpointA.ClientID, originalCoin.Denom))
 
 			ctx := s.chainA.GetContext()
 			cbs := s.chainA.App.GetIBCKeeper().ChannelKeeperV2.Router.Route(ibctesting.TransferPort)
@@ -420,6 +424,8 @@ func (s *TransferTestSuite) TestOnTimeoutPacket() {
 			// check that module account escrow address has no tokens
 			chainAEscrowBalance = s.chainA.GetSimApp().BankKeeper.GetBalance(s.chainA.GetContext(), escrowAddress, originalCoin.Denom)
 			s.Require().Equal(sdk.NewCoin(originalCoin.Denom, sdkmath.ZeroInt()), chainAEscrowBalance)
+			s.Require().True(s.chainA.GetSimApp().TransferKeeper.GetChannelEscrowForDenom(ctx, s.pathAToB.EndpointA.ClientID, originalCoin.Denom).IsZero())
+			s.Require().True(s.chainA.GetSimApp().TransferKeeper.GetTotalEscrowForDenom(ctx, originalCoin.Denom).IsZero())
 		})
 	}
 }
