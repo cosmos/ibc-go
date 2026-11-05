@@ -44,9 +44,10 @@ func (cs ClientState) Validate() error {
 	return cs.ConsensusState.ValidateBasic()
 }
 
-// verifyMembership is a generic proof verification method which verifies a proof of the existence of a value at a given CommitmentPath at the latest sequence.
+// verifySignedPath verifies the solo machine's signature over the value at a given CommitmentPath at the latest sequence.
+// A nil value proves the absence of the path (non-membership); any other value proves its existence (membership).
 // The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (cs *ClientState) verifyMembership(
+func (cs *ClientState) verifySignedPath(
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
 	proof []byte,
@@ -79,58 +80,6 @@ func (cs *ClientState) verifyMembership(
 		Diversifier: cs.ConsensusState.Diversifier,
 		Path:        key,
 		Data:        value,
-	}
-
-	signBz, err := cdc.Marshal(signBytes)
-	if err != nil {
-		return err
-	}
-
-	if err := VerifySignature(publicKey, signBz, sigData); err != nil {
-		return err
-	}
-
-	cs.Sequence++
-	cs.ConsensusState.Timestamp = timestamp
-	setClientState(clientStore, cdc, cs)
-
-	return nil
-}
-
-// verifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at the latest sequence.
-// The caller is expected to construct the full CommitmentPath from a CommitmentPrefix and a standardized path (as defined in ICS 24).
-func (cs *ClientState) verifyNonMembership(
-	clientStore storetypes.KVStore,
-	cdc codec.BinaryCodec,
-	proof []byte,
-	path exported.Path,
-) error {
-	publicKey, sigData, timestamp, sequence, err := produceVerificationArgs(cdc, cs, proof)
-	if err != nil {
-		return err
-	}
-
-	merklePath, ok := path.(commitmenttypesv2.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
-	}
-
-	if len(merklePath.GetKeyPath()) != 2 {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "path must be of length 2: %s", merklePath.GetKeyPath())
-	}
-
-	// in a multistore context: index 0 is the key for the IBC store in the multistore, index 1 is the key in the IBC store
-	key, err := merklePath.GetKey(1)
-	if err != nil {
-		return errorsmod.Wrapf(host.ErrInvalidPath, "key not found at index 1: %v", err)
-	}
-
-	signBytes := &SignBytes{
-		Sequence:    sequence,
-		Timestamp:   timestamp,
-		Diversifier: cs.ConsensusState.Diversifier,
-		Path:        key,
-		Data:        nil,
 	}
 
 	signBz, err := cdc.Marshal(signBytes)
