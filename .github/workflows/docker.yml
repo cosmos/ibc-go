@@ -133,7 +133,7 @@ jobs:
         docker run --rm "${IMAGE_NAME}:test"
 
     - name: Log in to the Container registry
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -209,7 +209,7 @@ jobs:
         echo "full_tag=${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}:branch-${SANITIZED}" >> "$GITHUB_OUTPUT"
 
     - name: Log in to the Container registry
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
