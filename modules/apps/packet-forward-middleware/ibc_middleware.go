@@ -87,13 +87,8 @@ func (im *IBCMiddleware) UnmarshalPacketData(ctx sdk.Context, portID string, cha
 
 func getDenomForThisChain(port, channel, counterpartyPort, counterpartyChannel string, denom transfertypes.Denom) string {
 	if denom.HasPrefix(counterpartyPort, counterpartyChannel) {
-		// unwind denom
+		// unwind denom; if it is now unwound back to a native denom, IBCDenom returns the base denom
 		denom.Trace = denom.Trace[1:]
-		if len(denom.Trace) == 0 {
-			// denom is now unwound back to native denom
-			return denom.Path()
-		}
-		// denom is still IBC denom
 		return denom.IBCDenom()
 	}
 	// append port and channel from this chain to denom
