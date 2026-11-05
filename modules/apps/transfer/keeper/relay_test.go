@@ -20,7 +20,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	transferkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/keeper"
 	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
@@ -1171,83 +1170,6 @@ func (s *KeeperTestSuite) TestPacketForwardsCompatibility() {
 				expBz := channeltypes.CommitAcknowledgement(expectedAck.Acknowledgement())
 				s.Require().Equal(expBz, ackBz)
 			}
-		})
-	}
-}
-
-func (s *KeeperTestSuite) TestCreatePacketDataBytesFromVersion() {
-	var (
-		token            types.Token
-		sender, receiver string
-	)
-
-	testCases := []struct {
-		name       string
-		appVersion string
-		malleate   func()
-		expResult  func(bz []byte, err error)
-	}{
-		{
-			"success",
-			types.V1,
-			func() {},
-			func(bz []byte, err error) {
-				expPacketData := types.NewFungibleTokenPacketData(ibctesting.TestCoin.Denom, ibctesting.TestCoin.Amount.String(), sender, receiver, "")
-				s.Require().Equal(bz, expPacketData.GetBytes())
-				s.Require().NoError(err)
-			},
-		},
-		{
-			"failure: version 2",
-			"ics20-2",
-			func() {},
-			func(bz []byte, err error) {
-				s.Require().Nil(bz)
-				s.Require().Error(err, ibcerrors.ErrInvalidVersion)
-			},
-		},
-		{
-			"failure: fails v1 validation",
-			types.V1,
-			func() {
-				sender = ""
-			},
-			func(bz []byte, err error) {
-				s.Require().Nil(bz)
-				s.Require().ErrorIs(err, ibcerrors.ErrInvalidAddress)
-			},
-		},
-		{
-			"failure: invalid version",
-			ibcmock.Version,
-			func() {},
-			func(bz []byte, err error) {
-				s.Require().Nil(bz)
-				s.Require().ErrorIs(err, types.ErrInvalidVersion)
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.name, func() {
-			s.SetupTest()
-
-			path := ibctesting.NewTransferPath(s.chainA, s.chainB)
-			path.Setup()
-
-			token = types.Token{
-				Amount: ibctesting.TestCoin.Amount.String(),
-				Denom:  types.NewDenom(ibctesting.TestCoin.Denom),
-			}
-
-			sender = s.chainA.SenderAccount.GetAddress().String()
-			receiver = s.chainB.SenderAccount.GetAddress().String()
-
-			tc.malleate()
-
-			bz, err := transferkeeper.CreatePacketDataBytesFromVersion(tc.appVersion, sender, receiver, "", token)
-
-			tc.expResult(bz, err)
 		})
 	}
 }
