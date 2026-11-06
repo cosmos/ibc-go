@@ -100,3 +100,47 @@ func (s *KeeperTestSuite) TestBeginBlocker() {
 		}
 	}
 }
+
+// After a halt the first block moves the epoch past all the missed hours. Each quota is
+// reset at most once, and the following blocks must not reset them again.
+func (s *KeeperTestSuite) TestBeginBlocker_AfterHalt() {
+	// channel-0: 1 hour, channel-1: 4 hours, channel-2: 24 hours
+	durations := []uint64{1, 4, 24}
+	nonZeroFlow := int64(10)
+	keeper := s.chainA.GetSimApp().RateLimitKeeper
+
+	epochStart := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	err := keeper.SetHourEpoch(s.chainA.GetContext(), types.HourEpoch{
+		EpochNumber:    100,
+		Duration:       time.Hour,
+		EpochStartTime: epochStart,
+	})
+	s.Require().NoError(err)
+	s.resetRateLimits(denom, durations, nonZeroFlow)
+
+	flows := func() map[string]int64 {
+		out := map[string]int64{}
+		for _, rateLimit := range keeper.GetAllRateLimits(s.chainA.GetContext()) {
+			s.Require().Equal(rateLimit.Flow.Inflow, rateLimit.Flow.Outflow)
+			out[rateLimit.Path.ChannelOrClientId] = rateLimit.Flow.Outflow.Int64()
+		}
+		return out
+	}
+
+	// epoch 100 ended at 01:00 and the chain was halted until 06:01: epoch 100 -> 106
+	blockTime := epochStart.Add(6*time.Hour + time.Minute)
+	keeper.BeginBlocker(s.chainA.GetContext().WithBlockTime(blockTime))
+	epoch, err := keeper.GetHourEpoch(s.chainA.GetContext())
+	s.Require().NoError(err)
+	s.Require().Equal(uint64(106), epoch.EpochNumber)
+	s.Require().Equal(epochStart.Add(6*time.Hour), epoch.EpochStartTime)
+	// the hourly quota and the 4 hour one (period ended at epoch 104) reset once, the daily one did not
+	s.Require().Equal(map[string]int64{"channel-0": 0, "channel-1": 0, "channel-2": nonZeroFlow}, flows())
+
+	// new flow in the next blocks is kept until the next hour
+	s.resetRateLimits(denom, durations, nonZeroFlow)
+	for i := 1; i <= 5; i++ {
+		keeper.BeginBlocker(s.chainA.GetContext().WithBlockTime(blockTime.Add(time.Duration(i) * 6 * time.Second)))
+		s.Require().Equal(map[string]int64{"channel-0": nonZeroFlow, "channel-1": nonZeroFlow, "channel-2": nonZeroFlow}, flows(), "block %d after the halt", i)
+	}
+}

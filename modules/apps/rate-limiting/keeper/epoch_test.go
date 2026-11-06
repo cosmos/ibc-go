@@ -34,17 +34,21 @@ func (s *KeeperTestSuite) TestCheckHourEpochStarting() {
 		EpochStartTime: epochStartTime,
 		Duration:       duration,
 	}
-	nextEpoch := types.HourEpoch{
-		EpochNumber:      initialEpoch.EpochNumber + 1, // epoch number increments
-		EpochStartTime:   epochStartTime.Add(duration), // start time increments by duration
-		EpochStartHeight: blockHeight,                  // height gets current block height
-		Duration:         duration,
+	// the epoch moves to the one the block time falls in
+	nextEpoch := func(elapsedEpochs uint64) types.HourEpoch {
+		return types.HourEpoch{
+			EpochNumber:      initialEpoch.EpochNumber + elapsedEpochs,                    // epoch number increments
+			EpochStartTime:   epochStartTime.Add(time.Duration(elapsedEpochs) * duration), // start time increments by duration
+			EpochStartHeight: blockHeight,                                                 // height gets current block height
+			Duration:         duration,
+		}
 	}
 
 	testCases := []struct {
 		name                  string
 		blockTime             time.Time
 		expectedEpochStarting bool
+		expectedElapsedEpochs uint64
 		initialEpoch          types.HourEpoch
 		err                   error
 	}{
@@ -73,6 +77,7 @@ func (s *KeeperTestSuite) TestCheckHourEpochStarting() {
 			name:                  "right after epoch boundary",
 			blockTime:             epochStartTime.Add(duration).Add(time.Second), // one second after epoch boundary
 			expectedEpochStarting: true,
+			expectedElapsedEpochs: 1,
 			initialEpoch:          initialEpoch,
 			err:                   nil,
 		},
@@ -80,13 +85,23 @@ func (s *KeeperTestSuite) TestCheckHourEpochStarting() {
 			name:                  "in middle of next epoch",
 			blockTime:             epochStartTime.Add(duration).Add(duration / 2), // halfway through next epoch
 			expectedEpochStarting: true,
+			expectedElapsedEpochs: 1,
 			initialEpoch:          initialEpoch,
 			err:                   nil,
 		},
 		{
 			name:                  "next epoch skipped",
-			blockTime:             epochStartTime.Add(duration * 10), // way after next epoch (still increments only once)
+			blockTime:             epochStartTime.Add(duration * 10), // way after next epoch: jumps to the epoch ending at the block time
 			expectedEpochStarting: true,
+			expectedElapsedEpochs: 9,
+			initialEpoch:          initialEpoch,
+			err:                   nil,
+		},
+		{
+			name:                  "several epochs skipped, block in the middle of an epoch",
+			blockTime:             epochStartTime.Add(duration*5 + duration/2),
+			expectedEpochStarting: true,
+			expectedElapsedEpochs: 5,
 			initialEpoch:          initialEpoch,
 			err:                   nil,
 		},
@@ -121,7 +136,7 @@ func (s *KeeperTestSuite) TestCheckHourEpochStarting() {
 
 			expectedEpoch := tc.initialEpoch
 			if tc.expectedEpochStarting {
-				expectedEpoch = nextEpoch
+				expectedEpoch = nextEpoch(tc.expectedElapsedEpochs)
 				s.Require().Equal(expectedEpoch.EpochNumber, actualEpochNumber, "epoch number")
 			}
 
