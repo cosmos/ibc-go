@@ -44,7 +44,7 @@ Timeout height can be set by passing in the height string in the form {revision}
 Note, relative timeout height is not supported. Relative timeout timestamp is added to the value of the user's local system clock time 
 using the {packet-timeout-timestamp} flag. If no timeout value is set then a default relative timeout value of 10 minutes is used.`),
 		Example: fmt.Sprintf("%s tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coin]", version.AppName),
-		Args:    cobra.RangeArgs(2, 4),
+		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
