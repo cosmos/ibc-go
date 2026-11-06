@@ -54,6 +54,27 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
+// TestFungibleTokenPacketDataValidateBasicAmountError checks that the error for a
+// non-positive amount reports the amount itself.
+func TestFungibleTokenPacketDataValidateBasicAmountError(t *testing.T) {
+	testCases := []struct {
+		name   string
+		amount string
+		expMsg string
+	}{
+		{"zero amount", "0", "amount must be strictly positive: got 0"},
+		{"negative amount", "-1", "amount must be strictly positive: got -1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := types.NewFungibleTokenPacketData(packetDenom, tc.amount, sender, receiver, "").ValidateBasic()
+			require.ErrorIs(t, err, types.ErrInvalidAmount)
+			require.ErrorContains(t, err, tc.expMsg)
+		})
+	}
+}
+
 func (s *TypesTestSuite) TestGetPacketSender() {
 	packetData := types.FungibleTokenPacketData{
 		Denom:    packetDenom,
