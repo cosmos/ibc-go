@@ -417,10 +417,6 @@ func (im *IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	recvResult := channeltypesv2.RecvPacketResult{
-		Status:          channeltypesv2.PacketStatus_Success,
-		Acknowledgement: ack.AppAcknowledgements[0],
-	}
 	callbackExecutor := func(cachedCtx sdk.Context) error {
 		// reconstruct a channel v1 packet from the v2 packet
 		// in order to preserve the same interface for the contract keeper
@@ -434,15 +430,12 @@ func (im *IBCMiddleware) WriteAcknowledgement(
 			TimeoutHeight:      clienttypes.Height{},
 			TimeoutTimestamp:   0,
 		}
-		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
-		var ack channeltypesv2.Acknowledgement
-		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
-			ack = channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
-		} else {
-			ack = channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
-		}
+		// The contract must observe the same acknowledgement representation regardless
+		// of whether the acknowledgement was written synchronously in OnRecvPacket or
+		// asynchronously here: the raw application acknowledgement bytes.
+		recvAck := RecvAcknowledgement(ack.AppAcknowledgements[0])
 		return im.contractKeeper.IBCReceivePacketCallback(
-			cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version,
+			cachedCtx, packetv1, recvAck, cbData.CallbackAddress, payload.Version,
 		)
 	}
 
