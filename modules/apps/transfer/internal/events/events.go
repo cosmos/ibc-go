@@ -31,15 +31,19 @@ func EmitTransferEvent(ctx sdk.Context, sender, receiver string, token types.Tok
 	})
 }
 
-// EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback
+// EmitOnRecvPacketEvent emits a fungible token packet event in the OnRecvPacket callback.
+// A nil ack is reported as unsuccessful. This happens when the event is emitted from a
+// deferred call after the receive logic panicked, before an acknowledgement was assigned.
 func EmitOnRecvPacketEvent(ctx sdk.Context, packetData types.InternalTransferRepresentation, ack ibcexported.Acknowledgement, ackErr error) {
+	ackSuccess := ack != nil && ack.Success()
+
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeySender, packetData.Sender),
 		sdk.NewAttribute(types.AttributeKeyReceiver, packetData.Receiver),
 		sdk.NewAttribute(types.AttributeKeyDenom, packetData.Token.Denom.Path()),
 		sdk.NewAttribute(types.AttributeKeyAmount, packetData.Token.Amount),
 		sdk.NewAttribute(types.AttributeKeyMemo, packetData.Memo),
-		sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(ack.Success())),
+		sdk.NewAttribute(types.AttributeKeyAckSuccess, strconv.FormatBool(ackSuccess)),
 	}
 
 	if ackErr != nil {
