@@ -232,9 +232,10 @@ def _test_should_be_run(test_name: str, version: str, file_fields: Dict) -> bool
     for v in specified_versions:
         semver_v = parse_version(v)
         # if the major and minor versions match, there was a specified release line for this version.
-        # do a comparison on that version to determine if the test should run.
+        # the annotated version is the first supported version on that line, so the test
+        # runs for this version and any later patch on the same line.
         if semver_v.major == test_semver_version.major and semver_v.minor == test_semver_version.minor:
-            return semver_v >= test_semver_version
+            return test_semver_version >= semver_v
 
     # there was no version defined for this version's release line, but there were versions specified for other release
     # lines, we assume we should not be running the test.
