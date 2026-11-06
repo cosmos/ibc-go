@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -142,6 +143,9 @@ func getForwardMetadata(forwardData map[string]any) (ForwardMetadata, error) {
 		}
 		if retriesFloat < 0 || retriesFloat > 255 {
 			return ForwardMetadata{}, errors.New("retries must be between 0 and 255")
+		}
+		if math.Trunc(retriesFloat) != retriesFloat {
+			return ForwardMetadata{}, errors.New("retries must be an integer")
 		}
 		retriesU8 := uint8(retriesFloat)
 		retries = &retriesU8
