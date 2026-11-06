@@ -10,8 +10,6 @@
    - a. [Running Compatibility Tests](#running-compatibility-tests)
    - b. [How Compatibility Tests Work](#how-compatibility-tests-work)
 6. [Troubleshooting](#troubleshooting)
-7. [Importable Workflow](#importable-workflow)
-8. [Future Improvements](#future-improvements)
 
 # Running tests
 
@@ -204,7 +202,7 @@ The compatibility tests are executed in [this workflow](../.github/workflows/e2e
 will build an image for a specified release candidate based on the release branch as an input. And run the corresponding
 jobs which are maintained under the `.github/compatibility-test-matrices` directory.
 
-> At the moment these are manually maintained, but in the future we may be able to generate these matrices dynamically. See the [future improvements](#future-improvements) section for more details.
+> At the moment these are manually maintained, but in the future we may be able to generate these matrices dynamically.
 
 See [this example](https://github.com/cosmos/ibc-go/actions/runs/11645461969) to what the output of a compatibility test run looks like.
 
