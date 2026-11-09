@@ -13,6 +13,11 @@ go 1.26.10
 require github.com/lfdt-ibc/ibc-go/v11 v11.0.0
 
 require (
+	github.com/CosmWasm/wasmvm/v3 v3.0.7 // indirect
+	github.com/shamaton/msgpack/v2 v2.4.1 // indirect
+)
+
+require (
 	cosmossdk.io/api v1.1.0 // indirect
 	cosmossdk.io/collections v1.4.0 // indirect
 	cosmossdk.io/core v1.1.0 // indirect
@@ -129,6 +134,7 @@ require (
 	github.com/koron/go-ssdp v0.0.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
 	github.com/libp2p/go-flow-metrics v0.2.0 // indirect
@@ -285,3 +291,5 @@ require (
 )
 
 replace github.com/lfdt-ibc/ibc-go/v11 => ../../../
+
+replace github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11 => ../../../modules/light-clients/08-wasm

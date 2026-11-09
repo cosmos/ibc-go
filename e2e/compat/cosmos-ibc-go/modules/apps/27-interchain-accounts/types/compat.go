@@ -8,6 +8,6 @@ import lfdt "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/
 
 type InterchainAccountPacketData = lfdt.InterchainAccountPacketData
 
-const EXECUTE_TX = lfdt.EXECUTE_TX
+const EXECUTE_TX = lfdt.EXECUTE_TX //nolint:revive // must match the name interchaintest uses
 
 var SerializeCosmosTx = lfdt.SerializeCosmosTx
