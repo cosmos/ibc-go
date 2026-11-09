@@ -1,78 +1,116 @@
-# Contributing to ibc-go
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 
-Thank you for considering making contributions to ibc-go! 🎉👍
+# Contributing to IBC
 
-## Code of conduct
+Thank you for your interest in contributing to IBC. IBC is an open standard for trust-minimized interoperability between independent ledgers, stewarded under the Linux Foundation Decentralized Trust (LFDT). Contributions come in many forms, and all of them follow the same public path.
 
-This project and everyone participating in it is governed by the Cosmos [code of conduct](https://github.com/cosmos/.github/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code
+Before participating, please read the LFDT Code of Conduct. If you use AI or LLM tooling in your contributions, see the AI sign-off rule under Developer Certificate of Origin below.
 
-## How can I contribute?
+## Ways to contribute
 
-Contributing to this repository can mean many things such as participating in discussions or proposing code changes. To ensure a smooth workflow for all contributors, the general procedure for contributing has been established:
+A contribution does not have to be code:
 
-### Reporting bugs
+- Report a bug as a GitHub issue using the bug template, with enough detail to reproduce.
+- Propose a feature or enhancement as a GitHub issue using the feature template.
+- Improve documentation, which follows the same pull request path as code and is the easiest first contribution.
+- Submit code against an accepted issue.
+- Review other contributors' pull requests, which is one of the most useful ways to build standing toward Maintainer.
 
-If you find that something is not working as expected, please open an issue using the [bug report template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/bug-report.md) and provide as much information possible: how can the bug be reproduced? What's the expected behavior? What version is affected?
+## Where to start
 
-This is also true if you plan to fix the bug yourself and submit a PR. As a general rule, we want contributing pull requests to reference an existing issue. See [Submitting pull requests](#submitting-pull-requests)
+Browse issues labeled good first issue and help wanted. Before you start work on an issue, comment on it or raise it in the community chat so a maintainer can assign it to you and you avoid duplicating effort. If you have an idea with no issue yet, open an issue using the feature template or raise it on a community call first. This step is expected, not optional, and it protects you from investing in work that overlaps or conflicts with existing plans.
 
-### Proposing improvements or new features
+## Communication
 
-New features or improvements should be written in an issue using the [new feature template](https://github.com/cosmos/ibc-go/blob/main/.github/ISSUE_TEMPLATE/feature-request.md). Please include in the issue as many details as possible: what use case(s) would this new feature or improvement enable? Why are those use cases important or helpful? what user group would benefit? The team will evaluate and engage with you in a discussion of the proposal, which could have different outcomes:
+- GitHub Discussions for open questions and community Q&A.
+- GitHub Issues for proposals, bugs, and scoped, accepted work, through the templates.
+- GitHub pull requests for ADRs, code, docs, and specs.
+- Community calls, open to all and recorded, with a public calendar, for synchronous design and roadmap.
+- Community chat on the LFDT Discord for questions and coordination.
+- The governance forum named in [MAINTAINERS.md](MAINTAINERS.md) for formal and asynchronous governance decisions.
+- Security disclosures follow the private path in [SECURITY.md](SECURITY.md) and never go through public issues.
 
-- the core ibc-go team deciding to implement this feature and adding it to their planning,
-- agreeing to support external contributors to implement it with the goal of merging it eventually in ibc-go,
-- discarding the suggestion if deemed not aligned with the objectives of ibc-go;
-- or proposing (in the case of applications or light clients) to be developed and maintained in a separate repository.
+## Contribution workflow
 
-Unless the change is a minor bug fix with minor code changes, and you want to submit a pull request, please make sure to write a Github issue for it before opening the pull request.
+Everyone, without exception, contributes changes through pull requests. This is the same path for maintainers and first-time contributors: the same review, the same CI, and no direct pushes to main.
 
-### Architecture Decision Records (ADR)
+1. Reach rough agreement on an issue or a community call that the problem is worth solving.
+2. For anything that changes architecture, a public interface, or a specification, submit an Architecture Decision Record (ADR) as a markdown pull request and have it merged under lazy consensus before implementation. Trivial changes, bug fixes, and documentation corrections skip this step.
+3. Make sure an accepted, scoped GitHub issue exists. The issue is the record of truth for status.
+4. Create a topic branch named after the issue. Contributors fork the repository and add an upstream remote. Maintainers may branch directly in the repository.
+5. Make your change, following the pull request guidelines below.
+6. Open a pull request. Mark it a draft if it is not ready. Link the issue with a closing keyword such as fixes #1234.
+7. Address review feedback, keep CI green, and a Maintainer will merge once approved.
 
-When proposing an architecture decision for the ibc-go, please create an [ADR](./docs/architecture/README.md) so further discussions can be made. We are following this process so all involved parties are in agreement before any party begins coding the proposed implementation. Please use the [ADR template](./docs/architecture/adr.template.md) to scaffold any new ADR. If you would like to see some examples of how these are written refer to ibc-go's [ADRs](./docs/architecture/). ADRs are solidified designs that will be implemented in ibc-go (and do not have a spec). They should document the architecture that will be built. Most design feedback should be gathered before the initial draft of the ADR. ADR's can/should be written for any design decisions we make which may be changed at some point in the future.
+## Lazy consensus
 
-### Participating in discussions
+Proposals and ADRs proceed under lazy consensus. Anyone can comment, and an objection blocks only if it comes from a Maintainer, which is what standing means here. The objection window is 5 working days from when the proposal or ADR pull request is opened. If no Maintainer objects in that time, a Maintainer records the outcome and it proceeds. An objection should state its reason and, where possible, a change that would resolve it. Objections that cannot be resolved go to a TSC vote.
 
-New features or improvements are sometimes also debated in [discussions](https://github.com/cosmos/ibc-go/discussions). Sharing feedback or ideas there is very helpful for us. high level discussions that may get a lot of comments on a variety of different aspects, design aspects still being considered.
+## Pull request guidelines
 
-### Submitting pull requests
+- Each pull request should address one specific issue or concern, with a scope that fits comfortably within a reviewer’s mental context. Avoid bundling unrelated fixes, features, or formatting, and split larger work into a sequence of smaller pull requests that reviewers can take in order.
+- Every pull request is squash-merged, with a Conventional Commits title as the squash commit message. Keep your branch up to date with main before merge, by rebase or merge, whichever you prefer. A merge queue is not used at launch and would only be introduced if pull request volume makes it necessary.
+- Use draft pull requests for work in progress.
+- Be responsive. A pull request that sits with unaddressed comments until it needs a full rebase is slower for everyone.
 
-Before opening a pull request, make sure there is an accompanying issue that has been assigned to you. 
-In the case of smaller changes, opening a pull request without being assigned to the issue **can** be accepted, but to avoid having to redesign or discard your work due to the change no longer being needed, asking to be assigned to the issue is the safest course of action. We welcome contributors, but we have put in place these guidelines to safeguard the time of both external and core contributors.
+## Commit messages
 
-Unless you feel confident your change will be accepted (see [Unwanted pull requests](#unwanted-pull-requests)) you should first create an issue to discuss your change with us. This lets us all discuss the design and proposed implementation of your change, which helps ensure your time is well spent and that your contribution will be accepted.
+Write commit messages in Conventional Commits form, for example fix(core): correct packet timeout handling. The history is a record people rely on to understand why a change was made and it feeds release notes.
 
-Looking for a good place to start contributing? The issue tracker is always the first place to go. Issues are triaged to categorize them:
+## Testing and CI
 
-- Check out some [`good first issue`s](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). These are issues whose scope of work should be pretty clearly specified and they are best suited for developers new to ibc-go (i.e. no deep knowledge of Cosmos SDK or ibc-go is required). For example, some of these issues may involve improving the logging, emitting new events or removing unused code.
-- Or pick up a [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) issue. These issues should be a bit more involved than the good first issues and the developer working on them would benefit from some familiarity already with the codebase. These types of issues may involve adding new (or extending the functionality of existing) gRPC endpoints, bumping the version of Cosmos SDK or Tendermint or fixing bugs.
+Include tests appropriate to the change, covering the expected path and error handling. Some changes, such as documentation, do not need tests. Where adding coverage needs a large test-suite refactor, or where end-to-end tests are tracked separately, that work can be split into its own pull request or issue, noted in the description. Passing public CI is a hard gate for merge, not a formality. If a status check fails for a reason you believe is unrelated to your change, leave a comment explaining why and a maintainer will look into it.
 
-If you would like to contribute, follow this process:
+## Developer Certificate of Origin (DCO)
 
-1. If the issue is a proposal, ensure that the proposal has been accepted.
-2. Ensure that nobody else has already begun working on this issue. If they have, make sure to contact them to collaborate.
-3. If nobody has been assigned for the issue and you would like to work on it, comment on the issue to inform the community of your intentions to begin work. Then we will be able to assign the issue to you, making it visible for others that this issue is being tackled. If you end up not creating a pull request for this issue, please comment on the issue as well, so that it can be assigned to somebody else.
-4. Follow standard GitHub best practices: fork the repo, branch from the HEAD of `main`, make some commits, and submit a PR to `main`. For core developers working within the ibc-go repo, branches must be named with the convention `{moniker}/{issue#}-branch-name` to ensure a clear ownership of branches.
-5. Feel free to submit the pull request in `Draft` mode, even if the work is not complete, as this indicates to the community you are working on something and allows them to provide comments early in the development process.
-6. When the code is complete it can be marked `Ready for Review`.
-7. Be sure to include a relevant changelog entry in the [Commit Message / Changelog Entry section of pull request description](https://github.com/cosmos/ibc-go/blob/main/.github/PULL_REQUEST_TEMPLATE.md#commit-message--changelog-entry) so that we can add changelog entry when merging the pull request. Please follow the [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/) and use one of the commit types mentioned in the [Commit messages section of the pull request guidelines](./docs/dev/pull-requests.md#commit-messages).
+All commits must be signed off to satisfy the Developer Certificate of Origin. Sign off every commit using git commit -s. The sign-off must match your commit author identity. A bot checks the sign-off is present; it does not police identity. Configure your name and email once:
 
-Please make sure to check out our [Pull request guidelines](./docs/dev/pull-requests.md) for more information.
+```
+git config user.name "FIRST_NAME LAST_NAME"
+git config user.email "you@example.com"
+```
 
-#### Unwanted pull requests
+Only a human may sign off a commit. Where AI or LLM tooling assisted, disclose it with a Co-Authored-By or Assisted-By trailer in the commit message body, naming the tool, model, and version. The human contributor still signs off and remains responsible for the change. Example:
 
-To ensure the core maintainers' time is spent well, we have certain pull requests we want to avoid:
+```
+Co-Authored-By: <model> <version> <noreply@example.com>
+Signed-off-by: Jane Contributor <jane@example.com>
+```
 
-- Any non-minor pull requests without an **assigned** issue
-- Any non-minor bug fixes without an issue (ideally, also assigned, but we are less strict on this)
-- Spelling mistakes/changes (instead, try to fix our CI so that it would be able to catch it automatically - that would be useful)
+Maintainers may decline AI-assisted contributions that do not meet these expectations, and the response can be to the person, not just the pull request. Where someone repeatedly opens low-effort or machine-generated pull requests that add no clear value, ignores this guidance, or treats the project as a venue for volume rather than genuine contribution, maintainers may close their open pull requests and decline to engage further. Persistent cases are handled as a conduct matter through the Code of Conduct responders, who may block the account from the project. This is a moderation action about effort and conduct, not about the use of AI, which remains welcome wherever a contributor stands behind what they submit.
 
-## Relevant development docs
+## Changelog
 
-- [Project structure](./docs/dev/project-structure.md)
-- [Development setup](./docs/dev/development-setup.md)
-- [Go style guide](./docs/dev/go-style-guide.md)
-- [Documentation guide](./docs/README.md)
-- [Writing tests](./testing/README.md)
-- [Pull request guidelines](./docs/dev/pull-requests.md)
-- [Release process](./docs/dev/release-management.md)
+The changelog is generated from Conventional Commit titles at release time, so a well-formed pull request title is what matters rather than a hand-written entry. CI checks the title format.
+
+## Code review
+
+All changes are code reviewed. For non-trivial changes, the reviewer should be a Maintainer familiar with the affected area, and they may pull in a second reviewer at their discretion. Merge is performed by a Maintainer, normally the one who approved. If a pull request has gone about five working days without a reviewer emerging, ask in the community chat rather than pinging individuals. Disagreements that the reviewing Maintainers cannot resolve escalate to the TSC, and only genuinely cross-cutting disputes reach the full committee.
+
+## Copyright and license
+
+Code is contributed under Apache 2.0, specifications under the Community Specification License 1.0, and documentation under CC BY 4.0, regardless of where in the repository the file lives. The SPDX header on each file records which applies.
+
+## Trivial contributions
+
+Small documentation and typo fixes from genuine contributors are welcome, since lowering the barrier for first-time contributors matters. This is balanced against low-effort or automated submissions: maintainers may batch, close, or decline trivial pull requests that appear mass-generated or add no clear value. The AI-assisted contribution rules above apply, so undisclosed or unreviewed generated output can be declined on that basis alone.
+
+## Security
+
+If you think you have found a security issue, do not open a public issue. Follow the coordinated disclosure process in [SECURITY.md](SECURITY.md).
+
+## Initial Maintainers
+
+The initial Maintainers form the initial TSC and are its voting members.
+
+Giovanni Vitali, Cosmos Labs (Chair)  
+Dennis Fang, Cosmos Labs  
+Gjermund Garaba, Cosmos Labs  
+Serdar Türkmenafşar, Cosmos Labs  
+Dmitry Shlemin, Cosmos Labs  
+Dylan Kilkenny, OpenZeppelin  
+Jun Kimura, Datachain
+
+## Governance
+
+The project is governed by a Technical Steering Committee under the Technical Charter. See [GOVERNANCE.md](GOVERNANCE.md) for the roles and how decisions are made.
