@@ -1,244 +1,35 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+
 # Releases
 
-IBC-Go follows [semantic versioning](https://semver.org), but with the following deviations:
+IBC publishes releases so adopters can plan upgrades. The release rhythm suits the component: libraries and infrastructure release regularly, while the on-chain contracts release only on deliberate, reviewed changes rather than on a schedule.
 
-- A state-machine breaking change will result in an increase of the minor version Y (x.Y.z | x > 0).
-- An API breaking change will result in an increase of the major number (X.y.z | x > 0). Please note that these changes **will be backwards compatible** (as opposed to canonical semantic versioning; read [Backwards compatibility](#backwards-compatibility) for a detailed explanation).
+IBC contains multiple independently evolving components. A new release may introduce changes to one or more components without affecting others. Release notes must clearly identify the affected components and describe the scope of changes.
 
-This is visually explained in the following decision tree:
+## Versioning
 
-<p align="center">
-  <img src="releases-decision-tree.png?raw=true" alt="Releases decision tree" width="40%" />
-</p>
+Releases follow Semantic Versioning. Breaking changes bump the major version and are called out in the changelog and release notes.
 
-When bumping the dependencies of [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) and [CometBFT](https://github.com/cometbft/cometbft) we will only treat patch releases as non state-machine breaking.
+## Cadence and branches
 
-## Backwards compatibility
+Development happens on main. Releases are cut from release tags, with a release branch per supported minor line where backports are needed. Each release has notes generated from the changelog and Conventional Commit history.
 
-[ibc-go](https://github.com/cosmos/ibc-go) and the [IBC protocol specification](https://github.com/cosmos/ibc) maintain different versions. Furthermore, ibc-go serves several different user groups (chains, IBC app developers, relayers, IBC light client developers). Each of these groups has different expectations of what *backwards compatible* means. It simply isn't possible to categorize a change as backwards or non backwards compatible for all user groups. We are primarily interested in when our API breaks and when changes are state machine breaking (thus requiring a coordinated upgrade). This is scoping the meaning of ibc-go to that of those interacting with the code (IBC app developers, relayers, IBC light client developers), not chains using IBC to communicate (that should be encapsulated by the IBC protocol specification versioning).
+## Changelog
 
-To summarize: **All our ibc-go releases allow chains to communicate successfully with any chain running any version of our code**. That is to say, we are still using IBC protocol specification v1.0 (v10 will also include support for the IBC protocol specification v2.0)
+The changelog is generated from Conventional Commit titles at release time, so a well-formed pull request title is what matters rather than a hand-written entry. CI checks the title format.
 
-## Release cycle
+## Supported versions
 
-IBC-Go follows a traditional release cycle involving an alpha, beta, and rc (release candidate) releases before finalizing a new version. As ibc-go works in a non-traditional area, we apply our own interpretation to each release type. We reserve the right to make both go API breaking changes and state machine breaking changes throughout the entire release cycle. The stable release guarantees do not go into affect until a final release is performed.
+The currently supported release lines are listed here and referenced by [SECURITY.md](SECURITY.md). Security fixes target supported lines. Different components of the monorepo may maintain their own release lines.
 
-It is never advisable to use a non-final release in production.
+| Release line | Status | Supported until |
+| --- | --- | --- |
+| [TBD] | Supported | [TBD] |
 
-### Alpha
+## Signing
 
-Alpha releases are intended to make available new features as soon as they are functional. No correctness guarantees are made and alpha releases **may** contain serious security vulnerabilities, bugs, and lack of user tooling, so long as they don't affect the core functionality.
+Release artifacts are signed with Sigstore so adopters can verify provenance.
 
-Initial users of alpha releases are expected to be advanced, patient, and capable of handling unusual errors. Very basic integration testing will be performed by the ibc-go development team before alpha releases.  
+## Software Bill of Materials
 
-An internal audit is typically performed before the alpha release allowing the development team to gauge the maturity and stability of changes included in the next release.
-
-### Beta
-
-Beta releases are intended to signal design stability. While the go API is still subject to change, the core design of the new features should not be. Developers integrating the new features should expect to handle breaking changes when upgrading to RC's.
-
-Beta releases should not be made with known bugs or security vulnerabilities. Beta releases should focus on ironing out remaining bugs and filling out the UX functionality required by a final release. Beta releases should have a clearly defined scope of the features that will be included in the release. Only highly requested feature additions should be acted upon in this phase.
-
-When the development team has determined a release is ready to enter the RC phase, a final security audit should be performed. The security audit should be limited to looking for bugs and security vulnerabilities. Code improvements may be noted, but they should not be acted upon unless highly desirable.
-
-### RC
-
-RC's are release candidates. Final releases should contain little to no changes in comparison to the latest RC. Changes included in between RC releases should be limited to:
-
-- Improved testing
-- UX additions
-- Bug fixes
-- Highly requested changes by the community
-
-A release should not be finalized until the development team and the external community have done sufficient integration tests on the targeted release.
-
-## Stable Release Policy
-
-The beginning of a new major release series is marked by the release of a new major version. A major release series is comprised of all minor and patch releases made under the same major version number. The series continues to receive bug fixes (released as minor or patch releases) until it reaches end of life. The date when a major release series reaches end of life is determined by one of the two following methods:
-
-- If the next major release is made within the first 6 months, then the end of life date of the major release series is 18 months after its initial release.
-- If the next major release is made 6 months after the initial release, then the end of life date of the major release series is 12 months after the release date of the next major release.
-
-For example, if the current major release series is v1 and was released on January 1st, 2022, then v1 will be supported at least until January 1st, 2023. If v2 is published on August 1st 2022, then v1's end of life will be March 1st, 2023.
-
-Only the following major release series have a stable release status. All missing minor release versions have been discontinued.
-
-We reserve the right to drop support for releases if they are deemed unused (for example, because the Cosmos SDK version they depend on is not used or has been deprecated). Likewise, we also reserve the right to drop support for pre v1.0 versions of modules if we deem them unnecessary to maintain (we are only looking to give support for stable major releases).
-
-### ibc-go 
-
-|Release|End of Life Date|
-|-------|----------------|
-|`v10.7.x`|Mar 10, 2027|
-|`v11.1.x`|Apr 10, 2028|
-
-### `08-wasm` light client proxy module
-
-|Release|End of Life Date|
-|-------|----------------|
-|`v10.5.x`|Mar 10, 2027|
-|`v11.1.x`|Apr 10, 2028|
-
-### What pull requests will be included in stable patch-releases?
-
-Pull requests that fix bugs and add features that fall in the following categories:
-
-- **Severe regressions**.
-- Bugs that may cause **client applications** to be **largely unusable**.
-- Bugs that may cause **state corruption or data loss**.
-- Bugs that may directly or indirectly cause a **security vulnerability**.
-- Non-breaking features that are strongly requested by the community.
-- Non-breaking CLI improvements that are strongly requested by the community.
-
-### What pull requests will NOT be automatically included in stable patch-releases?
-
-As rule of thumb, the following changes will **NOT** be automatically accepted into stable point-releases:
-
-- **State machine changes**, unless the previous behaviour would result in a consensus halt.
-- **Protobuf-breaking changes**.
-- **Client-breaking changes**, i.e. changes that prevent gRPC, HTTP and RPC clients to continue interacting with the node without any change.
-- **API-breaking changes**, i.e. changes that prevent client applications to *build without modifications* to the client application's source code.
-- **CLI-breaking changes**, i.e. changes that require usage changes for CLI users.
-
-## Cut a release
-
-Pushing a `vX.Y.Z` or `modules/light-clients/08-wasm/vX.Y.Z` tag runs the [release workflow](./.github/workflows/release.yml). The workflow archives the tagged Go module's source, signs it, and creates a draft [GitHub release](https://github.com/cosmos/ibc-go/releases) with the files. It also builds the `ibc-go-simd` and `ibc-go-wasm-simd` images from the tagged commit and publishes them signed. The [shared release actions](https://github.com/cosmos/ibc/blob/main/.github/actions/README.md) explain the SBOMs, attestations, and signatures it produces.
-
-Other tags do not run the workflow. A tag with one of these prefixes but another format, such as the old `modules/light-clients/08-wasm/v0.1.0+ibc-go-v7.3-wasmvm-v1.5` tags, fails it before anything is built.
-
-1. Create the tag on a commit on `main` or a `release/*` branch. Push it with `git`:
-
-   ```sh
-   git tag -s v11.3.0 -m v11.3.0 origin/release/v11.3.x
-   git push origin v11.3.0
-   ```
-
-   Or create it in the GitHub UI while publishing a release, with the notes and **Set as a pre-release** filled in. The UI creates the tag only on publish, so the release is live before its files are signed and before its images exist. The workflow attaches the signed files to the published release a few minutes later. Steps 3 and 4 are then already done.
-
-2. Wait for the workflow to attach the signed files. For a tag pushed with `git`, it creates a draft release only after every file is verified and the images are signed. If a job fails, re-run the failed jobs within 7 days, while the run still keeps its build artifacts. After that, re-run all jobs. If the release is already published with some of its files, delete them first. A full re-run stops for a published release that has files.
-3. Write the release notes in the draft. Leave **Set as a pre-release** as it is. The workflow sets it from the tag on every run: checked for a suffix such as `-rc.0`, unchecked otherwise.
-4. Publish the release.
-
-The workflow runs from the tagged commit. A release branch therefore needs `.github/workflows/release.yml` and the root `NOTICE` file, which the archive and the images include. Without them, a tag gets no signed files and no images, so backport both before tagging a release line's next patch release. For the same reason, the workflow's branch check only catches mistakes.
-
-The tag rulesets decide who can release. They must cover `v*` and `modules/light-clients/08-wasm/v*` tags and restrict creating, updating, and deleting them. In this repository, the "Auto-imported tag create protections" ruleset restricts creating and updating them. Only the Maintain and Admin repository roles and organization admins can bypass it. The "Auto-imported tag delete protections" ruleset restricts deleting them, and only the Admin role and organization admins can bypass it.
-
-## Verify a release
-
-The commands below need the GitHub CLI and cosign v3 or later, the version the workflow signs with. Replace `<tag>` with the release tag, such as `v11.3.0`, and `ibc-go-vX.Y.Z` with its file name. For an `08-wasm` tag, the files are named `ibc-go-08-wasm-vX.Y.Z`.
-
-### Verify the files
-
-Download the release:
-
-```sh
-gh release download <tag> --repo cosmos/ibc-go --dir release
-```
-
-In the `release` directory, check the signature on `checksums.txt`:
-
-```sh
-cosign verify-blob checksums.txt \
-  --bundle checksums.txt.sigstore.json \
-  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
-```
-
-The two `--certificate` flags accept only a signature from this repository's release workflow, run for `<tag>`.
-
-Check that every file matches `checksums.txt`, which proves it is unchanged since signing. On macOS, use `shasum -a 256 -c checksums.txt` instead.
-
-```sh
-sha256sum -c checksums.txt
-```
-
-Check the build provenance of the archive. The attestation covers the `.tar.gz` file, not the files inside it, so check the archive before you extract it.
-
-```sh
-gh attestation verify ibc-go-vX.Y.Z.tar.gz --repo cosmos/ibc-go \
-  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
-  --source-ref refs/tags/<tag>
-```
-
-`--signer-workflow` and `--source-ref` accept only an attestation from the release workflow, run for `<tag>`.
-
-Two flags change what this command checks:
-
-- `--predicate-type https://spdx.dev/Document/v<version>` checks the SBOM attestation instead of the build provenance. `<version>` is the SPDX version the SBOM declares. `jq -r .spdxVersion ibc-go-vX.Y.Z.spdx.json` prints it as `SPDX-<version>`.
-- `--bundle ibc-go-vX.Y.Z.intoto.jsonl` checks against the attestation file attached to the release, without GitHub's attestations API.
-
-### Verify the images
-
-Replace `<image>` with `ibc-go-simd` or `ibc-go-wasm-simd`. Replace `<image-tag>` with the git tag, with every character other than letters, digits, and `.` replaced by `-`. An `08-wasm` tag only publishes `ibc-go-wasm-simd`.
-
-Check the signature, with the same `--certificate` flags as for `checksums.txt`:
-
-```sh
-cosign verify ghcr.io/cosmos/<image>:<image-tag> \
-  --certificate-identity https://github.com/cosmos/ibc-go/.github/workflows/release.yml@refs/tags/<tag> \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com
-```
-
-Check the build provenance:
-
-```sh
-gh attestation verify oci://ghcr.io/cosmos/<image>:<image-tag> --repo cosmos/ibc-go \
-  --signer-workflow cosmos/ibc-go/.github/workflows/release.yml \
-  --source-ref refs/tags/<tag>
-```
-
-The image tag points at one image per platform. Each platform image is a separate build, so each has its own SBOM attestation. List the platform digests with `docker buildx imagetools inspect ghcr.io/cosmos/<image>:<image-tag>`. Then run the command above on `oci://ghcr.io/cosmos/<image>@<digest>` with the `--predicate-type` flag.
-
-The `main`, `release-v*`, and `branch-release-v*` images from the [docker workflow](./.github/workflows/docker.yml) are unsigned development builds.
-
-## Deprecation notice
-
-Code that is marked as deprecated in a release will be removed 2 major releases afterwards. For example: deprecation notice is added in v8.3.0, then code will be deleted in v10.0.0.
-
-## Version matrix
-
-### ibc-go
-
-Versions of Golang, Cosmos SDK and CometBFT used by ibc-go in the currently active releases:
-
-| Go | ibc-go | Cosmos SDK | Tendermint/CometBFT |
-|----|--------|------------|---------------------|
-| 1.23 | v10.1 | v0.50  | v0.38 |
-| 1.23 | v10.7 | v0.53  | v0.38 |
-| 1.25 | v11.1 | v0.54 | v0.39 |
-
-### Callbacks middleware
-
-Callbacks middleware has been merged into `ibc-go` since v10. There will not be separate releases for callbacks middleware.
-
-### `08-wasm` light client proxy module
-
-Versions of Golang, ibc-go, Cosmos SDK and CometBFT used by `08-wasm` module in the currently active releases:
-
-| Go | 08-wasm | ibc-go | Cosmos SDK | Tendermint/CometBFT |
-|----|-----------|--------|------------|---------------------|
-| 1.23 | v10.1 | v10.1 | v0.50 | v0.38 |
-| 1.23 | v10.5 | v10.5 | v0.53 | v0.38 |
-| 1.25 | v11.1 | v11.1 | v0.54 | v0.39 |
-
-## Graphics
-
-The decision tree above was generated with the following code:
-
-```text
-%%{init: 
-  {'theme': 'default',
-    'themeVariables': 
-    {'fontFamily': 'verdana', 'fontSize': '13px'}
-  }
-}%%
-flowchart TD
-  A(Change):::c --> B{API breaking?}
-  B:::c --> |Yes| C(Increase major version):::c
-  B:::c --> |No| D{state-machine breaking?}
-  D:::c --> |Yes| G(Increase minor version):::c
-  D:::c --> |No| H(Increase patch version):::c
-  classDef c fill:#eee,stroke:#aaa
-```
-
-using [Mermaid](https://mermaid-js.github.io)'s [live editor](https://mermaid.live).
+Each released artifact publishes a Software Bill of Materials in a standard format, either CycloneDX or SPDX, so adopters can track components and dependencies. This supports adopters who must meet the EU Cyber Resilience Act, and is built toward ahead of the Act's full application.
