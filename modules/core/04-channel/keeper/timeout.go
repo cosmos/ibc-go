@@ -10,10 +10,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // TimeoutPacket is called by a module which originally attempted to send a

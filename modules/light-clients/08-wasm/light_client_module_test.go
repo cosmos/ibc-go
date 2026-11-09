@@ -13,18 +13,18 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	internaltypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/internal/types"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
+	internaltypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/internal/types"
+	wasmtesting "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	ibcmock "github.com/lfdt-ibc/ibc-go/v11/testing/mock"
 )
 
 const (

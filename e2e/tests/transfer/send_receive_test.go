@@ -14,12 +14,12 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	paramsproposaltypes "github.com/cosmos/ibc-go/e2e/paramsproposal"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	paramsproposaltypes "github.com/lfdt-ibc/ibc-go/e2e/paramsproposal"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 // compatibility:from_version: v7.10.0

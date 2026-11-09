@@ -11,7 +11,7 @@ BINDIR ?= $(GOPATH)/bin
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./simapp
 MOCKS_DIR = $(CURDIR)/tests/mocks
-HTTPS_GIT := https://github.com/cosmos/ibc-go.git
+HTTPS_GIT := https://github.com/lfdt-ibc/ibc-go.git
 DOCKER := $(shell which docker)
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 

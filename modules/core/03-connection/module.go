@@ -5,8 +5,8 @@ package connection
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/client/cli"
-	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/client/cli"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
 )
 
 // Name returns the IBC connection ICS name.

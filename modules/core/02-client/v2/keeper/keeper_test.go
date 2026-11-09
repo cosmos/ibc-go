@@ -10,10 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	"github.com/cosmos/ibc-go/v11/testing/simapp"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/simapp"
 )
 
 const (

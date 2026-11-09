@@ -11,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ibc "github.com/cosmos/ibc-go/v11/modules/core"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	ibc "github.com/lfdt-ibc/ibc-go/v11/modules/core"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {

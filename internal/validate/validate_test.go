@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/ibc-go/v11/internal/validate"
+	"github.com/lfdt-ibc/ibc-go/v11/internal/validate"
 )
 
 func TestGRPCRequest(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 	msgv1 "cosmossdk.io/api/cosmos/msg/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 
-	"github.com/cosmos/ibc-go/e2e/testvalues"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
 )
 
 var queryReqToPath = make(map[string]string)

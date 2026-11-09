@@ -19,16 +19,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/client/cli"
-	controllerkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
-	controllertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
-	genesistypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host"
-	hostkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
-	hosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/simulation"
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/client/cli"
+	controllerkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
+	controllertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	genesistypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host"
+	hostkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
+	hosttypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/simulation"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
 )
 
 var (

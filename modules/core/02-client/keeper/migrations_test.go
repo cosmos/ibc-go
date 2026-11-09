@@ -3,9 +3,9 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/keeper"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/keeper"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 func (s *KeeperTestSuite) TestMigrateToStatelessLocalhost() {

@@ -28,13 +28,13 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	"github.com/cosmos/ibc-go/v11/testing/simapp"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/simapp"
 )
 
 var MaxAccounts = 10
@@ -85,7 +85,7 @@ type TestChain struct {
 	SenderAccounts []SenderAccount
 
 	// Short-term solution to override the logic of the standard SendMsgs function.
-	// See issue https://github.com/cosmos/ibc-go/issues/3123 for more information.
+	// See issue https://github.com/lfdt-ibc/ibc-go/issues/3123 for more information.
 	SendMsgsOverride func(msgs ...sdk.Msg) (*abci.ExecTxResult, error)
 
 	// Tracks whether the next block's finalize state has been initialized.

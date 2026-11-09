@@ -25,7 +25,7 @@ Highlighted improvements for app developers with IBC v2:
 ## Implement the `IBCModule` interface
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/module.go#L9-L53). This interface contains all of the callbacks IBC expects modules to implement. Note that for IBC v2, an application developer no longer needs to implement callbacks for the channel handshake. Note that this interface is distinct from the [porttypes.IBCModule interface][porttypes.IBCModule] used for IBC Classic. 
+interface](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/api/module.go#L9-L53). This interface contains all of the callbacks IBC expects modules to implement. Note that for IBC v2, an application developer no longer needs to implement callbacks for the channel handshake. Note that this interface is distinct from the [porttypes.IBCModule interface][porttypes.IBCModule] used for IBC Classic. 
 
 ```go
 // IBCModule implements the application interface given the keeper.
@@ -64,7 +64,7 @@ Briefly, a successful packet flow works as follows:
 
 #### Sending packets
 
-[`MsgSendPacket`](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/types/tx.pb.go#L69-L75) is sent by a user to the [channel v2 message server](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/keeper/msg_server.go), which calls `ChannelKeeperV2.SendPacket`. This validates the message, creates the packet, stores the commitment and returns the packet sequence number. The application must specify its own payload which is used by the application and sent with `MsgSendPacket`.
+[`MsgSendPacket`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/04-channel/v2/types/tx.pb.go#L69-L75) is sent by a user to the [channel v2 message server](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/04-channel/v2/keeper/msg_server.go), which calls `ChannelKeeperV2.SendPacket`. This validates the message, creates the packet, stores the commitment and returns the packet sequence number. The application must specify its own payload which is used by the application and sent with `MsgSendPacket`.
 
 An application developer needs to implement the custom logic the application executes when a packet is sent.  
 
@@ -192,7 +192,7 @@ message GenesisState {
 }
 ```
 
-You can see an example for transfer [here](https://github.com/cosmos/ibc-go/blob/main/proto/ibc/applications/transfer/v1/genesis.proto).
+You can see an example for transfer [here](https://github.com/lfdt-ibc/ibc-go/blob/main/proto/ibc/applications/transfer/v1/genesis.proto).
 
 Add port ID as a key to the module store:
 
@@ -209,7 +209,7 @@ const (
 )
 ```
 
-Note that with IBC v2, the version does not need to be added as a key (as required with IBC classic) because versioning of applications is now contained within the [packet Payload](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.go#L23-L32).
+Note that with IBC v2, the version does not need to be added as a key (as required with IBC classic) because versioning of applications is now contained within the [packet Payload](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.go#L23-L32).
 
 Add port ID to `x/<moduleName>/types/genesis.go`:
 
@@ -313,4 +313,4 @@ It is also possible to define your own custom success acknowledgement which will
 
 More information on implementing the IBC Router can be found in the [routing section](../03-apps/06-routing.md).
 
-[porttypes.IBCModule]: https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/module.go
+[porttypes.IBCModule]: https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/05-port/types/module.go

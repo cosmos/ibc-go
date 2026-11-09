@@ -13,8 +13,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
 )
 
 const (

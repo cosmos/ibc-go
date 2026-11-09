@@ -21,11 +21,11 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type TlaBalance struct {

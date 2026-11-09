@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
+	clientv2types "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	channeltypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host/v2"
 )
 
 // RegisterCounterparty will construct and execute a MsgRegisterCounterparty on the associated ep.
@@ -41,7 +41,7 @@ func (ep *Endpoint) MsgSendPacketWithSender(timeoutTimestamp uint64, payloads []
 		return channeltypesv2.Packet{}, err
 	}
 
-	// TODO: parse the packet from events instead of from the response. https://github.com/cosmos/ibc-go/issues/7459
+	// TODO: parse the packet from events instead of from the response. https://github.com/lfdt-ibc/ibc-go/issues/7459
 	// get sequence from msg response
 	var msgData sdk.TxMsgData
 	err = proto.Unmarshal(res.Data, &msgData)

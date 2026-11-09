@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func TestDefaultGenesisState(t *testing.T) {

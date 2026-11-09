@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
 )
 
 // NewPacketState creates a new PacketState instance.

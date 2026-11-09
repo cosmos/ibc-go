@@ -14,11 +14,11 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper

@@ -7,7 +7,7 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type CoordinatorTestSuite struct {

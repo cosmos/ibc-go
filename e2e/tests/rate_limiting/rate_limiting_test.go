@@ -18,13 +18,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
-	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	pfmtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	ratelimitingtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type RateLimTestSuite struct {

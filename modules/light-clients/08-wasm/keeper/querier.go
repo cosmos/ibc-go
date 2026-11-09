@@ -16,7 +16,7 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 /*

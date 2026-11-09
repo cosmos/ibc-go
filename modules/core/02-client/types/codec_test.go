@@ -10,12 +10,12 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type caseAny struct {

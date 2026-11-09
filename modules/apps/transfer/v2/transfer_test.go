@@ -9,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v11/testing/mock"
-	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	channeltypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/mock"
+	mockv2 "github.com/lfdt-ibc/ibc-go/v11/testing/mock/v2"
 )
 
 func (s *TransferTestSuite) TestTransferV2Flow() {

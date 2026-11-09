@@ -28,10 +28,10 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testsuite/sanitize"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/sanitize"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 )
 
 // BroadcastMessages broadcasts the provided messages to the given chain and signs them on behalf of the provided user.

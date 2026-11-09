@@ -15,10 +15,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 const (

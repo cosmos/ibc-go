@@ -11,12 +11,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/simapp/upgrades"
-	gmptypes "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
-	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	channelmigrationsv11 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v11"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/simapp/upgrades"
+	gmptypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
+	ratelimittypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	channelmigrationsv11 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/migrations/v11"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // registerUpgradeHandlers registers all supported upgrade handlers

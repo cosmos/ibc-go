@@ -22,11 +22,11 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	chantypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	ratelimitingtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	chantypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 // TestV10LegacyRateLimitUpgradeTestSuite upgrades a legacy v10 ibc-apps rate-limit fixture chain to the current target image.

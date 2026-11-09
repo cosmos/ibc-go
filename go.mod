@@ -1,4 +1,4 @@
-module github.com/cosmos/ibc-go/v11
+module github.com/lfdt-ibc/ibc-go/v11
 
 go 1.26.10
 

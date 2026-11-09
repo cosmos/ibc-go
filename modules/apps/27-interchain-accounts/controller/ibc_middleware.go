@@ -9,14 +9,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 var (

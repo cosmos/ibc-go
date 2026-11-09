@@ -2,7 +2,7 @@
 
 /*
 Package channel implements the ICS 04 - Channel and Packet Semantics specification
-(https://github.com/cosmos/ibc/tree/main/spec/core/ics-004-channel-and-packet-semantics). This
+(https://github.com/lfdt-ibc/ibc/tree/main/spec/core/ics-004-channel-and-packet-semantics). This
 concrete implementation defines types and methods for safely creating two
 stateful objects (channel ends) on two separate chains, each associated with a
 particular connection. A channel serves as a conduit for packets passing between a

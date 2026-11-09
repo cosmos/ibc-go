@@ -12,14 +12,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/02-client"
-	clientv7 "github.com/cosmos/ibc-go/v11/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	"github.com/cosmos/ibc-go/v11/modules/core/migrations/v7"
-	"github.com/cosmos/ibc-go/v11/modules/core/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibcclient "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client"
+	clientv7 "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/migrations/v7"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type MigrationsV7TestSuite struct {

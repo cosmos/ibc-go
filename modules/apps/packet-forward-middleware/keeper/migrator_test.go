@@ -10,14 +10,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	pfmkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4"
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
-	pfmtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	pfmkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
+	pfmtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestMigrate2to3() {

@@ -7,7 +7,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
 )
 
 // NewChannel creates a new Channel instance

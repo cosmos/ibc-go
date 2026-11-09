@@ -11,9 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/client/utils"
-	"github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/client/utils"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // GetCmdQueryConnections defines the command to query all the connection ends

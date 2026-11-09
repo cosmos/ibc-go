@@ -10,9 +10,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestQueryPacketCommitment() {
@@ -215,7 +215,7 @@ func (s *KeeperTestSuite) TestQueryPacketCommitments() {
 // query handler used strings.Split(string(key), "/") to parse the binary store
 // key, which corrupted any sequence containing 0x2F, causing ErrInvalidPacket.
 //
-// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+// Regression test for: https://github.com/lfdt-ibc/ibc-go/pull/8778
 func (s *KeeperTestSuite) TestQueryPacketCommitmentsWithSlashByteSequences() {
 	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupV2()
@@ -261,7 +261,7 @@ func (s *KeeperTestSuite) TestQueryPacketCommitmentsWithSlashByteSequences() {
 // TestQueryPacketAcknowledgementsWithSlashByteSequences verifies the same fix
 // for the PacketAcknowledgements pagination query.
 //
-// Regression test for: https://github.com/cosmos/ibc-go/pull/8778
+// Regression test for: https://github.com/lfdt-ibc/ibc-go/pull/8778
 func (s *KeeperTestSuite) TestQueryPacketAcknowledgementsWithSlashByteSequences() {
 	path := ibctesting.NewPath(s.chainA, s.chainB)
 	path.SetupV2()

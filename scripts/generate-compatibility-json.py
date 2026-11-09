@@ -19,7 +19,7 @@ SKIP = "skip"
 FIELDS = "fields"
 TEST_SUITE = "test_suite"
 TESTS = "tests"
-RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
+RELEASES_URL = "https://api.github.com/repos/lfdt-ibc/ibc-go/releases"
 # CHAIN_A should be specified if just chain-a -> chain-b tests should be run.
 CHAIN_A = "chain-a"
 # CHAIN_B should be specified if just chain-b -> chain-a tests should be run.
