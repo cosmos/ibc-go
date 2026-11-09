@@ -1,40 +1,18 @@
-<div align="left">
-  <h1>ibc-go</h1>
-</div>
+# Inter-Blockchain Communication Protocol (IBC)
 
-![banner](.github/assets/cosmos-ibc-go-github.svg)
+[![Version](https://img.shields.io/github/tag/cosmos/ibc-go.svg)](https://github.com/cosmos/ibc-go/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/github/license/cosmos/ibc-go.svg)](https://github.com/cosmos/ibc-go/blob/main/LICENSE)
+[![GoDoc](https://godoc.org/github.com/cosmos/ibc-go?status.svg)](https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc)
+[![codecov](https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn)](https://codecov.io/gh/cosmos/ibc-go)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge)](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go)
+[![Discord](https://img.shields.io/discord/669268347736686612.svg)](https://discord.com/invite/interchain)
+[![Imported by](https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg)](https://sourcegraph.com/github.com/cosmos/ibc-go?badge)
+![Tests / Code Coverage Status](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg)
+![E2E Status](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg)
 
-<div align="center">
-  <a href="https://github.com/cosmos/ibc-go/releases/latest">
-    <img alt="Version" src="https://img.shields.io/github/tag/cosmos/ibc-go.svg" />
-  </a>
-  <a href="https://github.com/cosmos/ibc-go/blob/main/LICENSE">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/cosmos/ibc-go.svg" />
-  </a>
-  <a href="https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc">
-    <img alt="GoDoc" src="https://godoc.org/github.com/cosmos/ibc-go?status.svg" />
-  </a>
-  <a href="https://goreportcard.com/report/github.com/cosmos/ibc-go">
-    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/ibc-go" />
-  </a>
-  <a href="https://codecov.io/gh/cosmos/ibc-go" > 
-    <img src="https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn"/> 
-  </a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go">
-    <img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge" />
-  </a>
-</div>
-<div align="center">
-  <a href="https://discord.com/invite/interchain">
-    <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
-  </a>
-  <a href="https://sourcegraph.com/github.com/cosmos/ibc-go?badge">
-    <img alt="Imported by" src="https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg" />
-  </a>
-    <img alt="Tests / Code Coverage Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg" />
-    <img alt="E2E Status" src="https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg" />
-  <a href="https://deepwiki.com/cosmos/ibc-go"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-</div>
+![banner](./.github/assets/cosmos-ibc-go-github.jpg)
+
+## Synopsis
 
 The [Inter-Blockchain Communication protocol (IBC)](https://ibcprotocol.dev/) is a blockchain interoperability solution that allows blockchains to talk to each other. Blockchains that speak IBC can transfer any kind of data encoded in bytes — including tokens, messages, and arbitrary application logic. IBC is secure, permissionless, and designed to connect sovereign blockchains into a single interoperable network. For information on what IBC is and how it works, please read [the docs](https://docs.cosmos.network/ibc/latest/intro).
 
