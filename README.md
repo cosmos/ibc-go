@@ -1,14 +1,14 @@
 # Inter-Blockchain Communication Protocol (IBC)
 
-[![Version](https://img.shields.io/github/tag/cosmos/ibc-go.svg)](https://github.com/cosmos/ibc-go/releases/latest)
-[![License: Apache-2.0](https://img.shields.io/github/license/cosmos/ibc-go.svg)](https://github.com/cosmos/ibc-go/blob/main/LICENSE)
-[![GoDoc](https://godoc.org/github.com/cosmos/ibc-go?status.svg)](https://pkg.go.dev/github.com/cosmos/ibc-go?tab=doc)
-[![codecov](https://codecov.io/gh/cosmos/ibc-go/graph/badge.svg?token=bvveHATeIn)](https://codecov.io/gh/cosmos/ibc-go)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cosmos/ibc-go/badge)](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go)
+[![Version](https://img.shields.io/github/tag/lfdt-ibc/ibc-go.svg)](https://github.com/lfdt-ibc/ibc-go/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/github/license/lfdt-ibc/ibc-go.svg)](https://github.com/lfdt-ibc/ibc-go/blob/main/LICENSE)
+[![GoDoc](https://godoc.org/github.com/lfdt-ibc/ibc-go?status.svg)](https://pkg.go.dev/github.com/lfdt-ibc/ibc-go?tab=doc)
+[![codecov](https://codecov.io/gh/lfdt-ibc/ibc-go/graph/badge.svg?token=bvveHATeIn)](https://codecov.io/gh/lfdt-ibc/ibc-go)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lfdt-ibc/ibc-go/badge)](https://scorecard.dev/viewer/?uri=github.com/lfdt-ibc/ibc-go)
 [![Discord](https://img.shields.io/discord/669268347736686612.svg)](https://discord.com/invite/interchain)
-[![Imported by](https://sourcegraph.com/github.com/cosmos/ibc-go/-/badge.svg)](https://sourcegraph.com/github.com/cosmos/ibc-go?badge)
-![Tests / Code Coverage Status](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg)
-![E2E Status](https://github.com/cosmos/ibc-go/workflows/Tests%20/%20E2E/badge.svg)
+[![Imported by](https://sourcegraph.com/github.com/lfdt-ibc/ibc-go/-/badge.svg)](https://sourcegraph.com/github.com/lfdt-ibc/ibc-go?badge)
+![Tests / Code Coverage Status](https://github.com/lfdt-ibc/ibc-go/workflows/Tests%20/%20Code%20Coverage/badge.svg)
+![E2E Status](https://github.com/lfdt-ibc/ibc-go/workflows/Tests%20/%20E2E/badge.svg)
 
 ![banner](./.github/assets/cosmos-ibc-go-github.jpg)
 
@@ -23,7 +23,7 @@ The IBC implementation in Golang `ibc-go` has been used in production by the maj
 
 The release lines currently supported are v10 and v11. Please note that v9 has been retracted and has been replaced by v10.
 
-Please refer to our [versioning guide](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
+Please refer to our [versioning guide](https://github.com/lfdt-ibc/ibc-go/blob/main/RELEASES.md) for more information on how to understand our release versioning.
 
 See [`RELEASES.md`](RELEASES.md#cut-a-release) for how to cut a release and how to verify its signed files and images.
 
@@ -46,11 +46,11 @@ To report a security vulnerability, see our [Coordinated Vulnerability Disclosur
 The following audits have been performed on the `ibc-go` source code:
 
 - [ICS20 Fungible Token Transfer](https://github.com/informalsystems/audits/tree/dc8b503727adcbb8e29c3d3a25a9070e0bf1ec87/IBC-GO) by Informal Systems.
-- [ICS20 Fungible Token Transfer V2](https://github.com/cosmos/ibc-go/blob/main/docs/audits/20-token-transfer/Atredis%20Partners%20-%20Interchain%20ICS20%20v2%20New%20Features%20Assessment%20-%20Report%20v1.0.pdf) by Atredis Partners.
-- [ICS27 Interchain Accounts](https://github.com/cosmos/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits and [Informal Systems](https://github.com/cosmos/ibc-go/issues/631).
-- [ICS08 Wasm Clients](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio and [Halborn](https://github.com/cosmos/ibc-go/blob/main/docs/audits/08-wasm/Halborn%20audit%20report.pdf).
-- [ICS04 Channel upgradability](https://github.com/cosmos/ibc-go/blob/main/docs/audits/04-channel-upgrades/Atredis%20Partners%20-%20Interchain%20Foundation%20IBC-Go%20Channel%20Upgrade%20Feature%20Assessment%20-%20Report%20v1.1.pdf) by Atredis Partners.
-- [IBC v2](https://github.com/cosmos/ibc-go/blob/main/docs/audits/IBC-v2/IBC-v2-April-2025-Collaborative-Audit-Report.pdf) — collaborative audit (April 2025).
+- [ICS20 Fungible Token Transfer V2](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/20-token-transfer/Atredis%20Partners%20-%20Interchain%20ICS20%20v2%20New%20Features%20Assessment%20-%20Report%20v1.0.pdf) by Atredis Partners.
+- [ICS27 Interchain Accounts](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/27-interchain-accounts/Trail%20of%20Bits%20audit%20-%20Final%20Report.pdf) by Trail of Bits and [Informal Systems](https://github.com/lfdt-ibc/ibc-go/issues/631).
+- [ICS08 Wasm Clients](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/08-wasm/Ethan%20Frey%20-%20Wasm%20Client%20Review.pdf) by Ethan Frey/Confio and [Halborn](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/08-wasm/Halborn%20audit%20report.pdf).
+- [ICS04 Channel upgradability](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/04-channel-upgrades/Atredis%20Partners%20-%20Interchain%20Foundation%20IBC-Go%20Channel%20Upgrade%20Feature%20Assessment%20-%20Report%20v1.1.pdf) by Atredis Partners.
+- [IBC v2](https://github.com/lfdt-ibc/ibc-go/blob/main/docs/audits/IBC-v2/IBC-v2-April-2025-Collaborative-Audit-Report.pdf) — collaborative audit (April 2025).
 
 ## Maintainers
 
@@ -66,52 +66,52 @@ If you're interested in contributing to ibc-go, please take a look at the [contr
 
 To help contributors understand which issues are good to pick up, we have the following two categories:
 
-- Issues with the label [`good first issue`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
-- Issues with the label [`help wanted`](https://github.com/cosmos/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
+- Issues with the label [`good first issue`](https://github.com/lfdt-ibc/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) should be pretty well defined and are best suited for developers new to ibc-go.
+- Issues with the label [`help wanted`](https://github.com/lfdt-ibc/ibc-go/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) are a bit more involved and they usually require some familiarity already with the codebase.
 
 If you are interested in working on an issue, please comment on it. We will be happy to answer any questions you may have and help you out while you work on the issue.
 
 ## Quick Navigation
 
-1. **[Core IBC Implementation](https://github.com/cosmos/ibc-go/tree/main/modules/core)**
+1. **[Core IBC Implementation](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core)**
 
-   1.1 [ICS 02 Client](https://github.com/cosmos/ibc-go/tree/main/modules/core/02-client)
+   1.1 [ICS 02 Client](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/02-client)
 
-   1.2 [ICS 03 Connection](https://github.com/cosmos/ibc-go/tree/main/modules/core/03-connection)
+   1.2 [ICS 03 Connection](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/03-connection)
 
-   1.3 [ICS 04 Channel](https://github.com/cosmos/ibc-go/tree/main/modules/core/04-channel)
+   1.3 [ICS 04 Channel](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/04-channel)
 
-   1.4 [ICS 05 Port](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port)
+   1.4 [ICS 05 Port](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/05-port)
 
-   1.5 [ICS 23 Commitment](https://github.com/cosmos/ibc-go/tree/main/modules/core/23-commitment/types)
+   1.5 [ICS 23 Commitment](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/23-commitment/types)
 
-   1.6 [ICS 24 Host](https://github.com/cosmos/ibc-go/tree/main/modules/core/24-host)
+   1.6 [ICS 24 Host](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/24-host)
 
 2. **Applications**
 
-   2.1 [ICS 20 Fungible Token Transfers](https://github.com/cosmos/ibc-go/tree/main/modules/apps/transfer)
+   2.1 [ICS 20 Fungible Token Transfers](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/apps/transfer)
 
-   2.2 [ICS 27 Interchain Accounts](https://github.com/cosmos/ibc-go/tree/main/modules/apps/27-interchain-accounts)
+   2.2 [ICS 27 Interchain Accounts](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/apps/27-interchain-accounts)
 
 3. **Middleware**
 
-    3.1 [Callbacks Middleware](https://github.com/cosmos/ibc-go/tree/main/modules/apps/callbacks)
+    3.1 [Callbacks Middleware](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/apps/callbacks)
 
 4. **Light Clients**
 
-   4.1 [ICS 07 Tendermint](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/07-tendermint)
+   4.1 [ICS 07 Tendermint](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/light-clients/07-tendermint)
 
-   4.2 [ICS 06 Solo Machine](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/06-solomachine)
+   4.2 [ICS 06 Solo Machine](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/light-clients/06-solomachine)
 
-    4.3 [ICS 09 Localhost](https://github.com/cosmos/ibc-go/tree/main/modules/light-clients/09-localhost)
+    4.3 [ICS 09 Localhost](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/light-clients/09-localhost)
 
-5. **[E2E Integration Tests](https://github.com/cosmos/ibc-go/tree/main/e2e)**
+5. **[E2E Integration Tests](https://github.com/lfdt-ibc/ibc-go/tree/main/e2e)**
 
 ## Documentation and Resources
 
 ### IBC Information
 
-- [IBC Protocol Specification and Standards](https://github.com/cosmos/ibc)
+- [IBC Protocol Specification and Standards](https://github.com/lfdt-ibc/ibc)
 - [Documentation](https://docs.cosmos.network/ibc/)
 
 ### Cosmos Stack Libraries

@@ -6,7 +6,7 @@
 
 Pre-requisites for creating a release branch for a new major version:
 
-1. Bump [Go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
+1. Bump [Go package version](https://github.com/lfdt-ibc/ibc-go/blob/main/go.mod#L3).
 2. Change all imports. For example: if the next major version is `v3`, then change all imports starting with `github.com/cosmos/ibc-go/v2` to `github.com/cosmos/ibc-go/v3`).
 
 Once the above pre-requisites are satisfied:
@@ -22,7 +22,7 @@ Once the above pre-requisites are satisfied:
 ### Post branch creation
 Post-requisites for both new major and minor release branches:
 
-1. Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml).
+1. Add backport task to [`mergify.yml`](https://github.com/lfdt-ibc/ibc-go/blob/main/.github/mergify.yml).
 2. Create label for backport (e.g.`backport-to-v3.0.x`).
 3. Add the branch to `e2e-compatibility.yaml` in the `workflow_dispatch.inputs.release-branch.options` list.
 
@@ -34,12 +34,12 @@ NOTE: Since ibc-go v10, we release sub-modules (e.g. `modules/light-clients/08-w
 
 ### 0: Before release
 
-1. Before tagging a new release, make sure to run the [compatibility e2e test suite](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
+1. Before tagging a new release, make sure to run the [compatibility e2e test suite](https://github.com/lfdt-ibc/ibc-go/actions/workflows/e2e-compatibility.yaml) for the corresponding release line.
 2. Make sure the CHANGELOG.md is updated.
 
 ### 1: Release ibc-go
 
-1. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
+1. Create a new release in [GitHub](https://github.com/lfdt-ibc/ibc-go/releases) with "Draft new release".
 2. Select the release branch (e.g. `release/v10.4.x`)
 3. Set the correct tag (e.g. `v10.4.0`)
 4. Write release notes
@@ -59,7 +59,7 @@ For each sub-module, from the release branch:
 +  github.com/cosmos/ibc-go/v10 v10.4.0
   ```
 3. Create a PR to the release branch, and after CI finishes, merge it.
-4. Create a new release in [GitHub](https://github.com/cosmos/ibc-go/releases) with "Draft new release".
+4. Create a new release in [GitHub](https://github.com/lfdt-ibc/ibc-go/releases) with "Draft new release".
 5. Select the release branch (e.g. `release/v10.4.x`)
 6. Set the correct tag (e.g. `modules/light-clients/08-wasm/v10.4.0`)
 7. Write release notes
@@ -76,7 +76,7 @@ For each sub-module, from the release branch:
   - Additionally, for the first point release of a new major or minor release branch:
     - Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](../../RELEASES.md): add the new release line and remove any release lines that might have become discontinued.
     - Update the [list of supported release lines in README.md](../../RELEASES.md#releases), if necessary.
-    - Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
+    - Update the manual [e2e `simd`](https://github.com/lfdt-ibc/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
         - Remove any tags that might not be recommended anymore. 
     - Update docs site:
         - If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)

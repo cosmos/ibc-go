@@ -14,9 +14,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
 )
 
 var _ authz.Authorization = (*TransferAuthorization)(nil)

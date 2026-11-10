@@ -29,8 +29,8 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/keeper"
-	"github.com/cosmos/ibc-go/v11/testing/simapp"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/simapp"
 )
 
 var DefaultTestingAppInit AppCreator = SetupTestingApp

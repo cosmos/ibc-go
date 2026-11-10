@@ -11,8 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 func mockErrorCustomQuerier() func(sdk.Context, json.RawMessage) ([]byte, error) {

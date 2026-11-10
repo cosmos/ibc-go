@@ -19,11 +19,11 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
 )
 
 // compatibility:from_version: v7.10.0

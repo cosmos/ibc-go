@@ -13,8 +13,8 @@ Much of the core business logic of sending and receiving tokens between chains i
 
 - IBC v2 does not establish connection between applications with a channel handshake. Channel identifiers represent Client IDs and are included in the `Payload`
     - The source and destination port must be `"transfer"`
-    - The channel IDs [must be valid client IDs](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/v2/ibc_module.go#L46-L47) of the format `{clientID}-{sequence}`, e.g. 08-wasm-007
-- The [`Payload`](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.pb.go#L146-L158) contains the [`FungibleTokenPacketData`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/packet.pb.go#L28-L39) for a token transfer. 
+    - The channel IDs [must be valid client IDs](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/apps/transfer/v2/ibc_module.go#L46-L47) of the format `{clientID}-{sequence}`, e.g. 08-wasm-007
+- The [`Payload`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/04-channel/v2/types/packet.pb.go#L146-L158) contains the [`FungibleTokenPacketData`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/apps/transfer/types/packet.pb.go#L28-L39) for a token transfer. 
 
 The code snippet shows the `Payload` struct.
 
@@ -39,7 +39,7 @@ The code snippet shows the structure of the `Payload` bytes for token transfer
 ```go
 // FungibleTokenPacketData defines a struct for the packet payload
 // See FungibleTokenPacketData spec:
-// https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
+// https://github.com/lfdt-ibc/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures
 type FungibleTokenPacketData struct {
 	// the token denomination to be transferred
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
@@ -56,7 +56,7 @@ type FungibleTokenPacketData struct {
 
 ## Base Denoms cannot contain slashes
 
-With the new [`Denom`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L81-L87) struct, the base denom, i.e. uatom, is separated from the trace - the path the token has travelled. The trace is presented as an array of [`Hop`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L136-L140)s. 
+With the new [`Denom`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L81-L87) struct, the base denom, i.e. uatom, is separated from the trace - the path the token has travelled. The trace is presented as an array of [`Hop`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/apps/transfer/types/token.pb.go#L136-L140)s. 
 
 Because IBC v2 no longer uses channels, it is no longer possible to rely on a fixed format for an identifier so using a base denom that contains a "/" is disallowed. 
 

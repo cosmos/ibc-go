@@ -14,11 +14,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/attestations"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const testClientID = "attestations-0"

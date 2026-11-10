@@ -12,14 +12,14 @@ import (
 
 	sdkaddress "github.com/cosmos/cosmos-sdk/types/address"
 
-	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
-	packetforwardkeeper "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
-	packetforwardtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
+	packetforward "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware"
+	packetforwardkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/keeper"
+	packetforwardtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	ibcmock "github.com/lfdt-ibc/ibc-go/v11/testing/mock"
 )
 
 type PFMTestSuite struct {

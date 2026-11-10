@@ -16,7 +16,7 @@ Other helpful commands:
 
 ## Vulnerability scanning
 
-The [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/cosmos/ibc-go) Vulnerabilities check uses [OSV-Scanner](https://google.github.io/osv-scanner/). To reproduce it locally, scan every manifest in the repository (all `go.mod` files, `requirements.txt` and `docs/package-lock.json`) from the repository root:
+The [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/lfdt-ibc/ibc-go) Vulnerabilities check uses [OSV-Scanner](https://google.github.io/osv-scanner/). To reproduce it locally, scan every manifest in the repository (all `go.mod` files, `requirements.txt` and `docs/package-lock.json`) from the repository root:
 
 ```shell
 go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan source -r --no-call-analysis=go .
@@ -60,7 +60,7 @@ It reads protobuf service definitions and generates a reverse-proxy server which
 - Build the `simd` test chain binary with `make build`.
 - `main` must never fail `make test`.
 - No `--force` onto `main` (except when reverting a broken commit, which should seldom happen).
-- Create a development branch either on `github.com/cosmos/ibc-go`, or your fork (using `git remote add fork`).
+- Create a development branch either on `github.com/lfdt-ibc/ibc-go`, or your fork (using `git remote add fork`).
 - Before submitting a pull request, begin `git rebase` on top of `main`.
 - Ensure you are using the pre-commit hooks by running `make setup-pre-commit`.
 

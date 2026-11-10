@@ -11,8 +11,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	coremetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	coremetrics "github.com/lfdt-ibc/ibc-go/v11/modules/core/metrics"
 )
 
 const metricNameIBC = "ibc"

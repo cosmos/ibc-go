@@ -35,7 +35,7 @@ options specified in your config file. These are primarily used for CI and are n
 
 See the extended sample config to understand all the available fields and their purposes.
 
-> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
+> Note: when running tests locally, **no images are pushed** to the `ghcr.io/lfdt-ibc/ibc-go-simd` registry.
 > The images which are used only exist locally only.
 
 These environment variables allow us to run tests with arbitrary versions (from branches or releases) of simd and the go / hermes relayer.
@@ -49,7 +49,7 @@ On PRs, E2E tests will only run once the PR is marked as ready for review. This 
 
 ## Adding a new test
 
-All tests should go under the [e2e](https://github.com/cosmos/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
+All tests should go under the [e2e](https://github.com/lfdt-ibc/ibc-go/tree/main/e2e) directory. When adding a new test, either add a new test function
 to an existing test suite ***in the same file***, or create a new test suite in a new file and add test functions there.
 New test files should follow the convention of `module_name_test.go`.
 
@@ -145,7 +145,7 @@ tests should **not** be run in parallel when:
 
 There are two main github actions for standard e2e tests.
 
-[e2e.yaml](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e.yaml) which runs when collaborators create branches.
+[e2e.yaml](https://github.com/lfdt-ibc/ibc-go/blob/main/.github/workflows/e2e.yaml) which runs when collaborators create branches.
 
 In `e2e.yaml`, the `simd` image is built and pushed to [a registry](https://github.com/orgs/cosmos/packages?repo_name=ibc-go) and every test
 that is run uses the image that was built.
@@ -155,7 +155,7 @@ In `e2e-fork.yaml`, images are not pushed to this registry, but instead remain l
 ## How Tests Are Run
 
 The tests use the `matrix` feature of Github Actions. The matrix is
-dynamically generated using [this tool](https://github.com/cosmos/ibc-go/blob/main/cmd/build_test_matrix/main.go).
+dynamically generated using [this tool](https://github.com/lfdt-ibc/ibc-go/blob/main/cmd/build_test_matrix/main.go).
 
 > Note: there is currently a limitation that all tests belonging to a test suite must be in the same file.
 > In order to support test functions spread in different files, we would either need to manually maintain a matrix
@@ -206,7 +206,7 @@ jobs which are maintained under the `.github/compatibility-test-matrices` direct
 
 > At the moment these are manually maintained, but in the future we may be able to generate these matrices dynamically. See the [future improvements](#future-improvements) section for more details.
 
-See [this example](https://github.com/cosmos/ibc-go/actions/runs/11645461969) to what the output of a compatibility test run looks like.
+See [this example](https://github.com/lfdt-ibc/ibc-go/actions/runs/11645461969) to what the output of a compatibility test run looks like.
 
 ## Troubleshooting
 

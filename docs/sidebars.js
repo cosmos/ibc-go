@@ -24,7 +24,7 @@ const sidebars = {
         {
           type: "link",
           label: "IBC Specification",
-          href: "https://github.com/cosmos/ibc",
+          href: "https://github.com/lfdt-ibc/ibc",
         },
         {
           type: "link",

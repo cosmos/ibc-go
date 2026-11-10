@@ -15,16 +15,16 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
-	ratelimitingtypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	ratelimitingv2 "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/v2"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	channelkeeperv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/keeper"
-	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/api"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	ibcmockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	ratelimitingtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	ratelimitingv2 "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/v2"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	channelkeeperv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/keeper"
+	channeltypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/api"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	ibcmockv2 "github.com/lfdt-ibc/ibc-go/v11/testing/mock/v2"
 )
 
 const rateLimitChannelValue = int64(1000)

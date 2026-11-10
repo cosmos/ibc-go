@@ -9,10 +9,10 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func TestGMPPacketData_ValidateBasic(t *testing.T) {

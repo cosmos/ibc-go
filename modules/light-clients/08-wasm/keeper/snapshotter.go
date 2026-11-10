@@ -15,7 +15,7 @@ import (
 
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 var _ snapshot.ExtensionSnapshotter = &WasmSnapshotter{}

@@ -24,12 +24,12 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	packetforwardtypes "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	chantypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	packetforwardtypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	chantypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 const (

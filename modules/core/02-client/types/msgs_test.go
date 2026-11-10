@@ -18,15 +18,15 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	ibc "github.com/cosmos/ibc-go/v11/modules/core"
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	ibc "github.com/lfdt-ibc/ibc-go/v11/modules/core"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type TypesTestSuite struct {

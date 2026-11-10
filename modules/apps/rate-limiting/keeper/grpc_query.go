@@ -13,9 +13,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	tmclient "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	tmclient "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 var _ types.QueryServer = Querier{}

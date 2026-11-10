@@ -9,9 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // prefixedStore returns a prefix.Store scoped to the given key prefix. It is used

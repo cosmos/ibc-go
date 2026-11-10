@@ -12,7 +12,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	"github.com/lfdt-ibc/ibc-go/e2e/semverutil"
 )
 
 const (

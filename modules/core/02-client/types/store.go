@@ -12,7 +12,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
 )
 
 // StoreProvider encapsulates the IBC core store service and offers convenience methods for LightClientModules.

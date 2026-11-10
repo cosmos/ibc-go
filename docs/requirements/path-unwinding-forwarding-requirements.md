@@ -1,4 +1,4 @@
-<!-- More detailed information about the requirements engineering process can be found at https://github.com/cosmos/ibc-go/wiki/Requirements-engineering -->
+<!-- More detailed information about the requirements engineering process can be found at https://github.com/lfdt-ibc/ibc-go/wiki/Requirements-engineering -->
 
 # Business requirements
 

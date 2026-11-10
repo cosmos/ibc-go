@@ -9,10 +9,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypesv1 "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypesv1 "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
 )
 
 const MaxTimeoutDelta time.Duration = 24 * time.Hour

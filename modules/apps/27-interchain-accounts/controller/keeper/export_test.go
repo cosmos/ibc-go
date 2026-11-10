@@ -9,7 +9,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
 )
 
 // GetAppMetadata is a wrapper around getAppMetadata to allow the function to be directly called in tests.

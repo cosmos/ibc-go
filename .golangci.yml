@@ -147,7 +147,7 @@ formatters:
         - prefix(cosmossdk.io)
         - prefix(github.com/cosmos/cosmos-sdk)
         - prefix(github.com/cometbft/cometbft)
-        - prefix(github.com/cosmos/ibc-go)
+        - prefix(github.com/lfdt-ibc/ibc-go)
       custom-order: true
   exclusions:
     generated: lax

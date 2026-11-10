@@ -12,8 +12,8 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
 )
 
 var _ types.MsgServer = (*msgServer)(nil)

@@ -32,7 +32,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  ORG: cosmos
+  ORG: lfdt-ibc
   IMAGE_NAME: ibc-go-simd
   RELEASE_BRANCH: ${{ inputs.release-branch || 'main' }}
   IBC_GO_VERSION: ${{ inputs.ibc-go-version || 'latest' }}

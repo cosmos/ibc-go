@@ -37,7 +37,7 @@ The objective of this module is to have allow two chains with heterogeneous cons
 ## Scope
 
 The scope of this feature is to allow any implementation written in Wasm to be compliant with the interface 
-expressed in [02-client `ClientState` interface](https://github.com/cosmos/ibc-go/blob/main/modules/core/exported/client.go#L44-L139).
+expressed in [02-client `ClientState` interface](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/exported/client.go#L44-L139).
 
 | Features               | Release |
 | ---------------------- | ------- |
@@ -57,7 +57,7 @@ The first use case that this module will enable is the connection between GRANDP
 
 ## Assumptions
 
-1. This feature expects the [02-client refactor completed](https://github.com/cosmos/ibc-go/milestone/16), which is enabled in ibc-go v7.
+1. This feature expects the [02-client refactor completed](https://github.com/lfdt-ibc/ibc-go/milestone/16), which is enabled in ibc-go v7.
 
 ## Features
 

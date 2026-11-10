@@ -10,9 +10,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 // OnChanOpenInit performs basic validation of channel initialization.

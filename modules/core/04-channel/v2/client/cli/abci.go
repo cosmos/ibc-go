@@ -9,9 +9,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
-	ibcclient "github.com/cosmos/ibc-go/v11/modules/core/client"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host/v2"
+	ibcclient "github.com/lfdt-ibc/ibc-go/v11/modules/core/client"
 )
 
 func queryNextSequenceSendABCI(clientCtx client.Context, channelID string) (*types.QueryNextSequenceSendResponse, error) {

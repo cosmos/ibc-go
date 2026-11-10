@@ -20,16 +20,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	controllertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	localhost "github.com/cosmos/ibc-go/v11/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	controllertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	localhost "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/09-localhost"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func TestInterchainAccountsLocalhostTestSuite(t *testing.T) {

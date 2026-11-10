@@ -39,8 +39,8 @@ import (
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/params"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/params"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
@@ -352,7 +352,7 @@ var tempDir = func() string {
 
 // CheckLibwasmVersion ensures that the libwasmvm version loaded at runtime matches the version
 // of the github.com/CosmWasm/wasmvm dependency in go.mod.
-// Ref: https://github.com/cosmos/ibc-go/issues/4821#issuecomment-1747240445
+// Ref: https://github.com/lfdt-ibc/ibc-go/issues/4821#issuecomment-1747240445
 func CheckLibwasmVersion(wasmExpectedVersion string) error {
 	if wasmExpectedVersion == "" {
 		return errors.New("wasmvm module not exist")
