@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4/legacy"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 )
 
 // LegacyParamsKey is the store key the upstream packetforward middleware used for

@@ -43,7 +43,7 @@ Instead of using two different approaches to invoking callbacks, IBC light clien
 Over time and as necessary, core IBC should adjust its interactions with light clients such that they are SDK modules as opposed to interfaces.
 
 One immediate decision that has already been applied is to formalize light client type registration via the inclusion of an `AppModuleBasic` within the `ModuleManager` for a chain.
-The [tendermint](https://github.com/cosmos/ibc-go/pull/2825) and [solo machine](https://github.com/cosmos/ibc-go/pull/2826) clients were refactored to include this `AppModuleBasic` implementation and core IBC will no longer include either type as registered by default.
+The [tendermint](https://github.com/lfdt-ibc/ibc-go/pull/2825) and [solo machine](https://github.com/lfdt-ibc/ibc-go/pull/2826) clients were refactored to include this `AppModuleBasic` implementation and core IBC will no longer include either type as registered by default.
 
 Longer term solutions include using internal module communication as described in [ADR 033](https://github.com/cosmos/cosmos-sdk/blob/main/docs/architecture/adr-033-protobuf-inter-module-comm.md) on the SDK.
 The following functions should become callbacks invoked via intermodule communication:

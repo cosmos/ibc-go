@@ -5,7 +5,7 @@ package errors
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 const codespace = exported.ModuleName

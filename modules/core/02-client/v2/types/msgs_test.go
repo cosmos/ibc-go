@@ -12,11 +12,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	conntypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	conntypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 var (

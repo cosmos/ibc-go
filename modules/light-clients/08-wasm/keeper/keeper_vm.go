@@ -16,7 +16,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 )
 
 // NewKeeperWithVM creates a new Keeper instance with the provided Wasm VM.

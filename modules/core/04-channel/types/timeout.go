@@ -5,7 +5,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 )
 
 // NewTimeout returns a new Timeout instance.

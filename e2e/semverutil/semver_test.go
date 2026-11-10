@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/e2e/semverutil"
+	"github.com/lfdt-ibc/ibc-go/e2e/semverutil"
 )
 
 func TestIsSupported(t *testing.T) {

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # TODO: when we are using config files for CI we can remove this.
-# ref: https://github.com/cosmos/ibc-go/issues/4697
+# ref: https://github.com/lfdt-ibc/ibc-go/issues/4697
 # if running in CI we just use env vars.
 if [[ "${CI:-}" = "true" ]]; then
   exit 0

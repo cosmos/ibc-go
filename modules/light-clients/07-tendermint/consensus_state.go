@@ -10,9 +10,9 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 var _ exported.ConsensusState = (*ConsensusState)(nil)

@@ -3,7 +3,7 @@
 name: Docker Build & Push Simapp (main)
 # Build & Push builds the simapp docker images for linux/amd64 and linux/arm64 on every push to main
 # and release branches that changes their inputs, and pushes them, unsigned, to
-# https://ghcr.io/cosmos/ibc-go-simd and https://ghcr.io/cosmos/ibc-go-wasm-simd. Release branches cut
+# https://ghcr.io/lfdt-ibc/ibc-go-simd and https://ghcr.io/lfdt-ibc/ibc-go-wasm-simd. Release branches cut
 # before this workflow had these images keep the single-platform ibc-go-simd image their own copy
 # builds. Release tags get signed images from release.yml instead.
 # There is deliberately no workflow_dispatch: a manual run can target a tag, and would then push an
@@ -148,7 +148,7 @@ jobs:
         platforms: linux/${{ matrix.arch }}
         build-args: ${{ steps.args.outputs.build-args }}
         cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
-        outputs: type=image,name=${{ env.REGISTRY }}/cosmos/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+        outputs: type=image,name=${{ env.REGISTRY }}/lfdt-ibc/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
 
     - name: Export digest
       env:
@@ -198,7 +198,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
       with:
-        images: ${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/lfdt-ibc/${{ env.IMAGE_NAME }}
 
     - name: Compute release branch tag
       id: reltag
@@ -206,7 +206,7 @@ jobs:
       run: |
         RAW="${GITHUB_REF_NAME}"
         SANITIZED="${RAW//\//-}"
-        echo "full_tag=${{ env.REGISTRY }}/cosmos/${{ env.IMAGE_NAME }}:branch-${SANITIZED}" >> "$GITHUB_OUTPUT"
+        echo "full_tag=${{ env.REGISTRY }}/lfdt-ibc/${{ env.IMAGE_NAME }}:branch-${SANITIZED}" >> "$GITHUB_OUTPUT"
 
     - name: Log in to the Container registry
       uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
@@ -234,7 +234,7 @@ jobs:
             echo "::error::The linux/${arch} build of ${IMAGE_NAME} did not succeed, so it is not tagged"
             exit 1
           fi
-          sources+=("${REGISTRY}/cosmos/${IMAGE_NAME}@$(< "$file")")
+          sources+=("${REGISTRY}/lfdt-ibc/${IMAGE_NAME}@$(< "$file")")
         done < <(jq -r '.[]' <<< "$PLATFORMS")
         # e2e-compatibility.yaml reads the revision to tell whether the image is current.
         docker buildx imagetools create "${tags[@]}" \

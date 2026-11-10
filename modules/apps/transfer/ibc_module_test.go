@@ -11,14 +11,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func (s *TransferTestSuite) TestSetICS4Wrapper() {
@@ -423,7 +423,7 @@ func (s *TransferTestSuite) TestOnAcknowledgePacket() {
 			false,
 		},
 		{
-			// See https://github.com/cosmos/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw
+			// See https://github.com/lfdt-ibc/ibc-go/security/advisories/GHSA-jg6f-48ff-5xrw
 			"non-deterministic JSON ack serialization should return an error",
 			func() {
 				// Create a valid acknowledgement using deterministic serialization.

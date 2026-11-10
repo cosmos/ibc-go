@@ -14,8 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	govtypesv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // RegisterLegacyAminoCodec registers the necessary interfaces and concrete types

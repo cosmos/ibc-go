@@ -5,8 +5,8 @@ package types_test
 import (
 	errorsmod "cosmossdk.io/errors"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 func (s *TypesTestSuite) TestIsValid() {

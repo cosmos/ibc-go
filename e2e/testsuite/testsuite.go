@@ -28,13 +28,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/e2e/internal/directories"
-	"github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/testsuite/diagnostics"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/internal/directories"
+	"github.com/lfdt-ibc/ibc-go/e2e/relayer"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/diagnostics"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 const (

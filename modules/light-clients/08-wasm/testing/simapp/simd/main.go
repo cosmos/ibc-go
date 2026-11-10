@@ -9,8 +9,8 @@ import (
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/simd/cmd"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp/simd/cmd"
 )
 
 func main() {

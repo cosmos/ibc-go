@@ -16,7 +16,7 @@ const (
 )
 
 // ICS04
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#store-paths
+// The following paths are the keys to the store as defined in https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#store-paths
 // NOTE: NextSequenceSendKey has been removed and we only use the IBC v2 key in this repo.
 // We can safely do this since the NextSequenceSendKey is not proven to counterparties, thus we can use any key format we want.
 // so long as they do not collide with other keys in the store.

@@ -52,7 +52,7 @@ No further assumptions besides the ones listed in the v1 requirements document.
 
 ## Terminology
 
-See section [Definitions](https://github.com/cosmos/ibc/blob/main/spec/app/ics-027-interchain-accounts/README.md#definitions) in ICS 27 spec.
+See section [Definitions](https://github.com/lfdt-ibc/ibc/blob/main/spec/app/ics-027-interchain-accounts/README.md#definitions) in ICS 27 spec.
 
 ## Features
 

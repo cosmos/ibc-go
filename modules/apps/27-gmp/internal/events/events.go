@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
 )
 
 // EmitSendCall emits a GMP send call event.

@@ -21,15 +21,15 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+	wasmtesting "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing/simapp"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (

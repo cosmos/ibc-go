@@ -11,10 +11,10 @@ import (
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	internaltransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/internal/types"
-	transferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	internaltransfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/internal/types"
+	transferkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/keeper"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func (s *KeeperTestSuite) TestMigratorMigrateDenomTraceToDenom() {

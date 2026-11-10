@@ -47,7 +47,7 @@ Both in-place store migrations and genesis migrations will:
 - prune all solo machine consensus states
 - prune all expired tendermint consensus states
 
-Chains must set a new connection parameter during either in place store migrations or genesis migration. The new parameter, max expected block time, is used to enforce packet processing delays on the receiving end of an IBC packet flow. Checkout the [docs](https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2) for more information.
+Chains must set a new connection parameter during either in place store migrations or genesis migration. The new parameter, max expected block time, is used to enforce packet processing delays on the receiving end of an IBC packet flow. Checkout the [docs](https://github.com/lfdt-ibc/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2) for more information.
 
 ### In-Place Store Migrations
 
@@ -59,7 +59,7 @@ Ex:
 app.UpgradeKeeper.SetUpgradeHandler("my-upgrade-proposal",
   func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
     // set max expected block time parameter. Replace the default with your expected value
-    // https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+    // https://github.com/lfdt-ibc/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
     app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
     fromVM := map[string]uint64{
@@ -87,7 +87,7 @@ import (
 
 // add in migrate cmd function
 // expectedTimePerBlock is a new connection parameter
-// https://github.com/cosmos/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
+// https://github.com/lfdt-ibc/ibc-go/blob/release/v1.0.x/docs/ibc/proto-docs.md#params-2
 newGenState, err = ibcv100.MigrateGenesis(newGenState, clientCtx, *genDoc, expectedTimePerBlock)
 if err != nil {
   return err

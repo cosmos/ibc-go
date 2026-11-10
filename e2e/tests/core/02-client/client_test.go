@@ -29,16 +29,16 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 	cmtversion "github.com/cometbft/cometbft/version"
 
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
-	paramsproposaltypes "github.com/cosmos/ibc-go/e2e/paramsproposal"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/e2e/dockerutil"
+	paramsproposaltypes "github.com/lfdt-ibc/ibc-go/e2e/paramsproposal"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	wasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (

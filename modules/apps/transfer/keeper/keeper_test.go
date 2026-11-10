@@ -19,10 +19,10 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
-	packetforward "github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware"
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	packetforward "github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type KeeperTestSuite struct {

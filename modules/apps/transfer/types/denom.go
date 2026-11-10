@@ -18,8 +18,8 @@ import (
 	cmtbytes "github.com/cometbft/cometbft/libs/bytes"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
 )
 
 // NewDenom creates a new Denom instance given the base denomination and a variable number of hops.
@@ -201,8 +201,8 @@ func ExtractDenomFromPath(fullPath string) Denom {
 
 // validateIBCDenom validates that the given denomination is either:
 //
-//   - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/cosmos/ibc-go/issues/894)
-//   - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/cosmos/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
+//   - A valid base denomination (eg: 'uatom' or 'gamm/pool/1' as in https://github.com/lfdt-ibc/ibc-go/issues/894)
+//   - A valid fungible token representation (i.e 'ibc/{hash}') per ADR 001 https://github.com/lfdt-ibc/ibc-go/blob/main/docs/architecture/adr-001-coin-source-tracing.md
 func validateIBCDenom(denom string) error {
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return err

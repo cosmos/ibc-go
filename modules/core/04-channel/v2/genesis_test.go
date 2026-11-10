@@ -5,10 +5,10 @@ package channelv2_test
 import (
 	"github.com/cosmos/gogoproto/proto"
 
-	channelv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
+	channelv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	mockv2 "github.com/lfdt-ibc/ibc-go/v11/testing/mock/v2"
 )
 
 // TestInitExportGenesis tests the import and export flow for the channel v2 keeper.

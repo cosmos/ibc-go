@@ -9,9 +9,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/api"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/api"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // Keeper defines the IBC connection keeper

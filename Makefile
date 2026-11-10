@@ -11,7 +11,7 @@ BINDIR ?= $(GOPATH)/bin
 BUILDDIR ?= $(CURDIR)/build
 SIMAPP = ./simapp
 MOCKS_DIR = $(CURDIR)/tests/mocks
-HTTPS_GIT := https://github.com/cosmos/ibc-go.git
+HTTPS_GIT := https://github.com/lfdt-ibc/ibc-go.git
 DOCKER := $(shell which docker)
 PROJECT_NAME = $(shell git remote get-url origin | xargs basename -s .git)
 
@@ -140,7 +140,7 @@ build-docker-wasm:
 	./scripts/build-wasm-simapp-docker.sh $(tag)
 
 build-docker-local:
-	docker build -t ghcr.io/cosmos/ibc-go-simd:local --build-arg IBC_GO_VERSION=local . 
+	docker build -t ghcr.io/lfdt-ibc/ibc-go-simd:local --build-arg IBC_GO_VERSION=local . 
 
 .PHONY: build-docker-wasm
 

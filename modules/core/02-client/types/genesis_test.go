@@ -8,13 +8,13 @@ import (
 
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	client "github.com/cosmos/ibc-go/v11/modules/core/02-client"
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	client "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (

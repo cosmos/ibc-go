@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 // Migrate clears legacy pending packet markers. The old markers were keyed by
