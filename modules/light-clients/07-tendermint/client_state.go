@@ -216,12 +216,11 @@ func (cs ClientState) verifyMembership(
 	path exported.Path,
 	value []byte,
 ) error {
-	merkleProof, merklePath, consensusState, err := cs.produceVerificationArgs(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
-	if err != nil {
-		return err
-	}
-
-	return merkleProof.VerifyMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath, value)
+	return cs.verifyProof(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path,
+		func(merkleProof commitmenttypes.MerkleProof, root exported.Root, merklePath commitmenttypesv2.MerklePath) error {
+			return merkleProof.VerifyMembership(cs.ProofSpecs, root, merklePath, value)
+		},
+	)
 }
 
 // verifyNonMembership is a generic proof verification method which verifies the absence of a given CommitmentPath at a specified height.
@@ -237,17 +236,16 @@ func (cs ClientState) verifyNonMembership(
 	proof []byte,
 	path exported.Path,
 ) error {
-	merkleProof, merklePath, consensusState, err := cs.produceVerificationArgs(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path)
-	if err != nil {
-		return err
-	}
-
-	return merkleProof.VerifyNonMembership(cs.ProofSpecs, consensusState.GetRoot(), merklePath)
+	return cs.verifyProof(ctx, clientStore, cdc, height, delayTimePeriod, delayBlockPeriod, proof, path,
+		func(merkleProof commitmenttypes.MerkleProof, root exported.Root, merklePath commitmenttypesv2.MerklePath) error {
+			return merkleProof.VerifyNonMembership(cs.ProofSpecs, root, merklePath)
+		},
+	)
 }
 
-// produceVerificationArgs performs the checks shared by membership and non-membership verification
-// and returns the decoded proof, the merkle path and the consensus state at the proof height.
-func (cs ClientState) produceVerificationArgs(
+// verifyProof performs the checks shared by membership and non-membership verification and then
+// calls verify with the decoded proof, the consensus state root at the proof height and the merkle path.
+func (cs ClientState) verifyProof(
 	ctx sdk.Context,
 	clientStore storetypes.KVStore,
 	cdc codec.BinaryCodec,
@@ -256,34 +254,35 @@ func (cs ClientState) produceVerificationArgs(
 	delayBlockPeriod uint64,
 	proof []byte,
 	path exported.Path,
-) (commitmenttypes.MerkleProof, commitmenttypesv2.MerklePath, *ConsensusState, error) {
+	verify func(merkleProof commitmenttypes.MerkleProof, root exported.Root, merklePath commitmenttypesv2.MerklePath) error,
+) error {
 	if cs.LatestHeight.LT(height) {
-		return commitmenttypes.MerkleProof{}, commitmenttypesv2.MerklePath{}, nil, errorsmod.Wrapf(
+		return errorsmod.Wrapf(
 			ibcerrors.ErrInvalidHeight,
 			"client state height < proof height (%d < %d), please ensure the client has been updated", cs.LatestHeight, height,
 		)
 	}
 
 	if err := verifyDelayPeriodPassed(ctx, clientStore, height, delayTimePeriod, delayBlockPeriod); err != nil {
-		return commitmenttypes.MerkleProof{}, commitmenttypesv2.MerklePath{}, nil, err
+		return err
 	}
 
 	var merkleProof commitmenttypes.MerkleProof
 	if err := cdc.Unmarshal(proof, &merkleProof); err != nil {
-		return commitmenttypes.MerkleProof{}, commitmenttypesv2.MerklePath{}, nil, errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
+		return errorsmod.Wrap(commitmenttypes.ErrInvalidProof, "failed to unmarshal proof into ICS 23 commitment merkle proof")
 	}
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return commitmenttypes.MerkleProof{}, commitmenttypesv2.MerklePath{}, nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
+		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	consensusState, found := GetConsensusState(clientStore, cdc, height)
 	if !found {
-		return commitmenttypes.MerkleProof{}, commitmenttypesv2.MerklePath{}, nil, errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
+		return errorsmod.Wrap(clienttypes.ErrConsensusStateNotFound, "please ensure the proof was constructed against a height that exists on the client")
 	}
 
-	return merkleProof, merklePath, consensusState, nil
+	return verify(merkleProof, consensusState.GetRoot(), merklePath)
 }
 
 // verifyDelayPeriodPassed will ensure that at least delayTimePeriod amount of time and delayBlockPeriod number of blocks have passed
