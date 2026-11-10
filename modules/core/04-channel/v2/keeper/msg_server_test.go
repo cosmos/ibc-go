@@ -13,7 +13,9 @@ import (
 	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
 	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
+	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
 	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	coretypes "github.com/cosmos/ibc-go/v11/modules/core/types"
 	ibctesting "github.com/cosmos/ibc-go/v11/testing"
 	mockv1 "github.com/cosmos/ibc-go/v11/testing/mock"
 	mockv2 "github.com/cosmos/ibc-go/v11/testing/mock/v2"
@@ -706,6 +708,48 @@ func (s *KeeperTestSuite) TestMsgTimeout() {
 			} else {
 				ibctesting.RequireErrorIsOrContains(s.T(), err, tc.expError, "expected error %q, got %q instead", tc.expError, err)
 			}
+		})
+	}
+}
+
+// TestMsgRecvPacketEventsNotDuplicated ensures that the core packet receipt
+// events are emitted exactly once, and are not re-emitted as error events
+// when an application callback fails.
+func (s *KeeperTestSuite) TestMsgRecvPacketEventsNotDuplicated() {
+	testCases := []struct {
+		name    string
+		payload types.Payload
+	}{
+		{"success", mockv2.NewMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
+		{"application failure", mockv2.NewErrorMockPayload(mockv2.ModuleNameA, mockv2.ModuleNameB)},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			path := ibctesting.NewPath(s.chainA, s.chainB)
+			path.SetupV2()
+
+			packet, err := path.EndpointA.MsgSendPacket(s.chainA.GetTimeoutTimestampSecs(), tc.payload)
+			s.Require().NoError(err)
+
+			packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+			proof, proofHeight := path.EndpointA.QueryProof(packetKey)
+			msg := types.NewMsgRecvPacket(packet, proof, proofHeight, s.chainB.SenderAccount.GetAddress().String())
+
+			ctx := s.chainB.GetContext()
+			_, err = s.chainB.App.GetIBCKeeper().ChannelKeeperV2.RecvPacket(ctx, msg)
+			s.Require().NoError(err)
+
+			eventCounts := make(map[string]int)
+			for _, event := range ctx.EventManager().Events() {
+				eventCounts[event.Type]++
+			}
+
+			s.Require().Equal(1, eventCounts[types.EventTypeRecvPacket])
+			s.Require().Equal(1, eventCounts[types.EventTypeWriteAck])
+			s.Require().Zero(eventCounts[coretypes.ErrorAttributeKeyPrefix+types.EventTypeRecvPacket])
 		})
 	}
 }
