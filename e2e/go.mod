@@ -6,8 +6,6 @@ replace (
 	// use Cosmos geth fork (interchaintest/evm uses trie/utils from this fork)
 	github.com/ethereum/go-ethereum => github.com/cosmos/go-ethereum v1.16.2-cosmos-1.0.20260126204437-32ededcf907f
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	// use local ibc-go for development
-	github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11 => ../modules/light-clients/08-wasm
 	github.com/lfdt-ibc/ibc-go/v11 => ../
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
@@ -20,10 +18,9 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.55.0
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/interchaintest/v11 v11.0.0-20260805134452-6ecd341bf76a
+	github.com/cosmos/interchaintest/v11 v11.0.0-20261110145912-88ccd80e7b63
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.8
-	github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
 	github.com/lfdt-ibc/ibc-go/v11 v11.0.0
 	github.com/moby/moby v28.5.2+incompatible
 	github.com/pelletier/go-toml v1.9.5
@@ -56,7 +53,6 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/CosmWasm/wasmvm/v3 v3.0.7 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.35.0 // indirect
@@ -115,7 +111,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.8 // indirect
-	github.com/cosmos/ibc-go/v11 v11.0.0 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v1.0.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.5.0 // indirect
@@ -283,7 +278,6 @@ require (
 	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
-	github.com/shamaton/msgpack/v2 v2.4.1 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shirou/gopsutil/v4 v4.26.6 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect

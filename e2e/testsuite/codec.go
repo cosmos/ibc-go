@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/gogoproto/jsonpb"
 	"github.com/cosmos/gogoproto/proto"
+	wasmtypes "github.com/cosmos/interchaintest/v11/chain/cosmos/08-wasm-types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,7 +24,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	proposaltypes "github.com/lfdt-ibc/ibc-go/e2e/paramsproposal"
-	wasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 	gmptypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
 	icacontrollertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
@@ -76,6 +76,8 @@ func codecAndEncodingConfig() (*codec.ProtoCodec, testutil.TestEncodingConfig) {
 	channeltypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	connectiontypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	ibctmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	// interchaintest's copy of the 08-wasm types is used instead of the 08-wasm module: both register the
+	// same proto names, and only the first registration (by package init order) gets a type URL.
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	attestationstypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	channeltypesv2.RegisterInterfaces(cfg.InterfaceRegistry)
