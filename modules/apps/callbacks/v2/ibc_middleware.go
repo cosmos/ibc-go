@@ -198,18 +198,7 @@ func (im *IBCMiddleware) OnRecvPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		// reconstruct a channel v1 packet from the v2 packet
-		// in order to preserve the same interface for the contract keeper
-		packetv1 := channeltypes.Packet{
-			Sequence:           sequence,
-			SourcePort:         payload.SourcePort,
-			SourceChannel:      sourceClient,
-			DestinationPort:    payload.DestinationPort,
-			DestinationChannel: destinationClient,
-			Data:               payload.Value,
-			TimeoutHeight:      clienttypes.Height{},
-			TimeoutTimestamp:   0,
-		}
+		packetv1 := toV1Packet(sequence, sourceClient, destinationClient, payload)
 		// wrap the individual acknowledgement into the RecvAcknowledgement since it implements the exported.Acknowledgement interface
 		// since we return early on failure, we are guaranteed that the ack is a successful acknowledgement
 		ack := RecvAcknowledgement(recvResult.Acknowledgement)
@@ -271,18 +260,7 @@ func (im *IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		// reconstruct a channel v1 packet from the v2 packet
-		// in order to preserve the same interface for the contract keeper
-		packetv1 := channeltypes.Packet{
-			Sequence:           sequence,
-			SourcePort:         payload.SourcePort,
-			SourceChannel:      sourceClient,
-			DestinationPort:    payload.DestinationPort,
-			DestinationChannel: destinationClient,
-			Data:               payload.Value,
-			TimeoutHeight:      clienttypes.Height{},
-			TimeoutTimestamp:   0,
-		}
+		packetv1 := toV1Packet(sequence, sourceClient, destinationClient, payload)
 		// NOTE: The callback is receiving the acknowledgement that the application received for its particular payload.
 		// In the case of a successful acknowledgement, this will be the acknowledgement sent by the counterparty application for the given payload
 		// In the case of an error acknowledgement, this will be the sentinel error acknowledgement bytes defined by IBC v2 protocol.
@@ -342,18 +320,7 @@ func (im *IBCMiddleware) OnTimeoutPacket(
 	}
 
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		// reconstruct a channel v1 packet from the v2 packet
-		// in order to preserve the same interface for the contract keeper
-		packetv1 := channeltypes.Packet{
-			Sequence:           sequence,
-			SourcePort:         payload.SourcePort,
-			SourceChannel:      sourceClient,
-			DestinationPort:    payload.DestinationPort,
-			DestinationChannel: destinationClient,
-			Data:               payload.Value,
-			TimeoutHeight:      clienttypes.Height{},
-			TimeoutTimestamp:   0,
-		}
+		packetv1 := toV1Packet(sequence, sourceClient, destinationClient, payload)
 		return im.contractKeeper.IBCOnTimeoutPacketCallback(
 			cachedCtx, packetv1, relayer, cbData.CallbackAddress, cbData.SenderAddress, payload.Version,
 		)
@@ -417,32 +384,12 @@ func (im *IBCMiddleware) WriteAcknowledgement(
 		return err
 	}
 
-	recvResult := channeltypesv2.RecvPacketResult{
-		Status:          channeltypesv2.PacketStatus_Success,
-		Acknowledgement: ack.AppAcknowledgements[0],
-	}
+	// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
+	payloadAck := channeltypesv2.NewAcknowledgement(ack.AppAcknowledgements[0])
 	callbackExecutor := func(cachedCtx sdk.Context) error {
-		// reconstruct a channel v1 packet from the v2 packet
-		// in order to preserve the same interface for the contract keeper
-		packetv1 := channeltypes.Packet{
-			Sequence:           sequence,
-			SourcePort:         payload.SourcePort,
-			SourceChannel:      packet.SourceClient,
-			DestinationPort:    payload.DestinationPort,
-			DestinationChannel: packet.DestinationClient,
-			Data:               payload.Value,
-			TimeoutHeight:      clienttypes.Height{},
-			TimeoutTimestamp:   0,
-		}
-		// wrap the individual acknowledgement into the channeltypesv2.Acknowledgement since it implements the exported.Acknowledgement interface
-		var ack channeltypesv2.Acknowledgement
-		if recvResult.Status == channeltypesv2.PacketStatus_Failure {
-			ack = channeltypesv2.NewAcknowledgement(channeltypesv2.ErrorAcknowledgement[:])
-		} else {
-			ack = channeltypesv2.NewAcknowledgement(recvResult.Acknowledgement)
-		}
+		packetv1 := toV1Packet(sequence, packet.SourceClient, packet.DestinationClient, payload)
 		return im.contractKeeper.IBCReceivePacketCallback(
-			cachedCtx, packetv1, ack, cbData.CallbackAddress, payload.Version,
+			cachedCtx, packetv1, payloadAck, cbData.CallbackAddress, payload.Version,
 		)
 	}
 
@@ -454,4 +401,17 @@ func (im *IBCMiddleware) WriteAcknowledgement(
 	)
 
 	return nil
+}
+
+// toV1Packet reconstructs a channel v1 packet from a v2 packet payload
+// in order to preserve the same interface for the contract keeper.
+func toV1Packet(sequence uint64, sourceClient, destinationClient string, payload channeltypesv2.Payload) channeltypes.Packet {
+	return channeltypes.Packet{
+		Sequence:           sequence,
+		SourcePort:         payload.SourcePort,
+		SourceChannel:      sourceClient,
+		DestinationPort:    payload.DestinationPort,
+		DestinationChannel: destinationClient,
+		Data:               payload.Value,
+	}
 }
