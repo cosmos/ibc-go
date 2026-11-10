@@ -35,6 +35,8 @@ The `transfer` command allows users to execute cross-chain token transfers from 
 simd tx ibc-transfer transfer [src-port] [src-channel] [receiver] [coins] [flags]
 ```
 
+All four positional arguments are required. Omitting the receiver or coin returns a usage error before transaction generation.
+
 The `coins` parameter accepts the amount and denomination (e.g. `100uatom`) of the tokens to be transferred.
 
 The additional flags that can be used with the command are:
