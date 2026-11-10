@@ -69,10 +69,6 @@ func local_request_Query_AllRateLimits_0(ctx context.Context, marshaler runtime.
 
 }
 
-var (
-	filter_Query_RateLimit_0 = &utilities.DoubleArray{Encoding: map[string]int{"channel_or_client_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
-
 func request_Query_RateLimit_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryRateLimitRequest
 	var metadata runtime.ServerMetadata
@@ -95,11 +91,15 @@ func request_Query_RateLimit_0(ctx context.Context, marshaler runtime.Marshaler,
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_or_client_id", err)
 	}
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	val, ok = pathParams["denom"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_RateLimit_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Denom, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom", err)
 	}
 
 	msg, err := client.RateLimit(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -129,11 +129,15 @@ func local_request_Query_RateLimit_0(ctx context.Context, marshaler runtime.Mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "channel_or_client_id", err)
 	}
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	val, ok = pathParams["denom"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "denom")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_RateLimit_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Denom, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "denom", err)
 	}
 
 	msg, err := server.RateLimit(ctx, &protoReq)
@@ -668,11 +672,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_AllRateLimits_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"ibc", "apps", "rate-limiting", "v1", "ratelimits"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RateLimit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "apps", "rate-limiting", "v1", "ratelimit", "channel_or_client_id", "by_denom"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RateLimit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6, 2, 7, 3, 0, 4, 1, 5, 8}, []string{"ibc", "apps", "rate-limiting", "v1", "clients", "channel_or_client_id", "ratelimits", "denoms", "denom"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RateLimitsByChainID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"ibc", "apps", "rate-limiting", "v1", "ratelimit", "ratelimits", "chain_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RateLimitsByChainID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "apps", "rate-limiting", "v1", "chains", "chain_id", "ratelimits"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_RateLimitsByChannelOrClientID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"ibc", "apps", "rate-limiting", "v1", "ratelimit", "ratelimits", "channel_or_client_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_RateLimitsByChannelOrClientID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"ibc", "apps", "rate-limiting", "v1", "clients", "channel_or_client_id", "ratelimits"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_AllBlacklistedDenoms_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 5}, []string{"ibc", "apps", "rate-limiting", "v1", "ratelimit", "blacklisted_denoms"}, "", runtime.AssumeColonVerbOpt(false)))
 
