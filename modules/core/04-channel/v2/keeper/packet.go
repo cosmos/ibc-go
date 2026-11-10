@@ -55,7 +55,6 @@ func (k *Keeper) sendPacket(
 		return 0, "", errorsmod.Wrapf(types.ErrInvalidPacket, "constructed packet failed basic validation: %v", err)
 	}
 
-	// Before we do client keeper level checks, we first get underlying base clientID
 	clientID := k.baseClientID(ctx, packet.SourceClient)
 
 	// check that the client of counterparty chain is still active
@@ -109,7 +108,7 @@ func (k *Keeper) recvPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	counterparty, err := k.getPacketCounterparty(ctx, packet.DestinationClient, packet.SourceClient, "source")
+	counterparty, err := k.getPacketCounterparty(ctx, packet.DestinationClient, packet.SourceClient)
 	if err != nil {
 		return err
 	}
@@ -134,7 +133,6 @@ func (k *Keeper) recvPacket(
 
 	commitment := types.CommitPacket(packet)
 
-	// Before we do client keeper level checks, we first get underlying base clientID
 	clientID := k.baseClientID(ctx, packet.DestinationClient)
 
 	if err := k.ClientKeeper.VerifyMembership(
@@ -179,7 +177,7 @@ func (k *Keeper) writeAcknowledgement(
 		}
 	}
 
-	if _, err := k.getPacketCounterparty(ctx, packet.DestinationClient, packet.SourceClient, "source"); err != nil {
+	if _, err := k.getPacketCounterparty(ctx, packet.DestinationClient, packet.SourceClient); err != nil {
 		return err
 	}
 
@@ -229,7 +227,7 @@ func (k *Keeper) WriteAcknowledgement(ctx sdk.Context, clientID string, sequence
 }
 
 func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowledgement types.Acknowledgement, proof []byte, proofHeight exported.Height) error {
-	counterparty, err := k.getPacketCounterparty(ctx, packet.SourceClient, packet.DestinationClient, "destination")
+	counterparty, err := k.getPacketCounterparty(ctx, packet.SourceClient, packet.DestinationClient)
 	if err != nil {
 		return err
 	}
@@ -253,7 +251,6 @@ func (k *Keeper) acknowledgePacket(ctx sdk.Context, packet types.Packet, acknowl
 	path := hostv2.PacketAcknowledgementKey(packet.DestinationClient, packet.Sequence)
 	merklePath := types.BuildMerklePath(counterparty.MerklePrefix, path)
 
-	// Before we do client keeper level checks, we first get underlying base clientID
 	clientID := k.baseClientID(ctx, packet.SourceClient)
 
 	if err := k.ClientKeeper.VerifyMembership(
@@ -290,12 +287,11 @@ func (k *Keeper) timeoutPacket(
 	proof []byte,
 	proofHeight exported.Height,
 ) error {
-	counterparty, err := k.getPacketCounterparty(ctx, packet.SourceClient, packet.DestinationClient, "destination")
+	counterparty, err := k.getPacketCounterparty(ctx, packet.SourceClient, packet.DestinationClient)
 	if err != nil {
 		return err
 	}
 
-	// Before we do client keeper level checks, we first get underlying base clientID
 	clientID := k.baseClientID(ctx, packet.SourceClient)
 
 	// check that timeout timestamp has passed on the other end
@@ -363,17 +359,16 @@ func (k *Keeper) getCounterparty(ctx sdk.Context, clientID string) (clientv2type
 	return counterparty, nil
 }
 
-// getPacketCounterparty returns the counterparty registered for the packet's local client
-// and checks that it is the packet's remote client. remoteSide names the packet end that
-// remoteClient belongs to ("source" or "destination").
-func (k *Keeper) getPacketCounterparty(ctx sdk.Context, localClient, remoteClient, remoteSide string) (clientv2types.CounterpartyInfo, error) {
-	counterparty, err := k.getCounterparty(ctx, localClient)
+// getPacketCounterparty returns the counterparty registered for ownClient, this chain's end
+// of the packet, and checks that it is counterpartyClient, the packet's other end.
+func (k *Keeper) getPacketCounterparty(ctx sdk.Context, ownClient, counterpartyClient string) (clientv2types.CounterpartyInfo, error) {
+	counterparty, err := k.getCounterparty(ctx, ownClient)
 	if err != nil {
 		return clientv2types.CounterpartyInfo{}, err
 	}
 
-	if counterparty.ClientId != remoteClient {
-		return clientv2types.CounterpartyInfo{}, errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet %s id (%s)", counterparty.ClientId, remoteSide, remoteClient)
+	if counterparty.ClientId != counterpartyClient {
+		return clientv2types.CounterpartyInfo{}, errorsmod.Wrapf(clientv2types.ErrInvalidCounterparty, "counterparty id (%s) does not match packet counterparty client id (%s)", counterparty.ClientId, counterpartyClient)
 	}
 	return counterparty, nil
 }
