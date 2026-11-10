@@ -31,7 +31,6 @@ import (
 	"github.com/lfdt-ibc/ibc-go/e2e/relayer"
 	"github.com/lfdt-ibc/ibc-go/e2e/semverutil"
 	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 	ibctypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/types"
@@ -65,6 +64,10 @@ const (
 	// this ensures that chain containers are not deleted after a test suite is run if other tests
 	// depend on those chains.
 	KeepContainersEnv = "KEEP_CONTAINERS"
+
+	// WasmClientType is the 08-wasm light client type. It is defined here so that e2e does not import
+	// the 08-wasm module, whose proto types clash with interchaintest's copy in chain/cosmos/08-wasm-types.
+	WasmClientType = "08-wasm"
 
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
@@ -1054,7 +1057,7 @@ func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
 	}
 
-	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, wasmtypes.Wasm)
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, WasmClientType)
 	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)

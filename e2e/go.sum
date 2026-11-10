@@ -24,8 +24,6 @@ cloud.google.com/go/trace v1.16.0 h1:GmQovzFc5F0CNfl0VLgL64aoTtu7xsM0YajW2GlG9+E
 cloud.google.com/go/trace v1.16.0/go.mod h1:r+bdAn16dKLSV1G2D5v3e58IlQlizfxWrUfjx7kM7X0=
 cosmossdk.io/api v1.1.0 h1:/IcKzMGxzr+Xog95+TXEOMXxBulGs2M3jSa4jmEiK7s=
 cosmossdk.io/api v1.1.0/go.mod h1:dIaFSbi5qspoEPRx7uc9VlHZKH3QIPsYvspJbyCyKww=
-cosmossdk.io/client/v2 v2.11.0 h1:k3hg9liNjrLv5P/PEle8wcihSwQ/ALCr1fja2sp5His=
-cosmossdk.io/client/v2 v2.11.0/go.mod h1:wJNFx9sSqSDE3QeXIU6DRZDagqdv98j6O7hmjnfGa2I=
 cosmossdk.io/collections v1.4.0 h1:b373bkxCxKiRbapxZ42TRmcKJEnBVBebdQVk9I5IkkE=
 cosmossdk.io/collections v1.4.0/go.mod h1:gxbieVY3tjbvWlkm3yOXf7sGyDrVi12haZH+sek6whw=
 cosmossdk.io/core v1.1.0 h1:iJ7j2DjNsFzg4/z4ImNQYzy2D4LfMCsaQ8Lrz1KCmxk=
@@ -57,8 +55,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CosmWasm/wasmvm/v3 v3.0.7 h1:jNndgpVJ1EFAY61oy6GhmZCSCWbd+rp1LlkTftHPW+A=
-github.com/CosmWasm/wasmvm/v3 v3.0.7/go.mod h1:oknpb1bFERvvKcY7vHRp1F/Y/z66xVrsl7n9uWkOAlM=
 github.com/DataDog/datadog-go v4.8.3+incompatible h1:fNGaYSuObuQb5nzeTQqowRAd9bpDIRRV4/gUtIBjh8Q=
 github.com/DataDog/datadog-go v4.8.3+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.7 h1:ybO8RBeh29qrxIhCA9E8gKY6xfONU9T6G6aP9DTKfLE=
@@ -76,8 +72,6 @@ github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERo
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 h1:TngWCqHvy9oXAN6lEVMRuU21PR1EtLVZJmdB18Gu3Rw=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5/go.mod h1:lmUJ/7eu/Q8D7ML55dXQrVaamCz2vxCfdQBasLZfHKk=
-github.com/OffchainLabs/prysm/v6 v6.1.4 h1:gwLBbGaYsEh9zpZL337uVjXPX3F86UNJ7KIiFiPsY7c=
-github.com/OffchainLabs/prysm/v6 v6.1.4/go.mod h1:VbMsULGbZkgM4kwbKxb/ywhhR/EtebwGPIAszIU59Ws=
 github.com/RoaringBitmap/roaring/v2 v2.24.0 h1:zQkkBZtG3WRP4j+P3A5DO221SvL1Br88TJkhyqEQRZo=
 github.com/RoaringBitmap/roaring/v2 v2.24.0/go.mod h1:SfT3of9nYh3vis1dIbCj4Yw6KQGujTN+f345nrN/0JA=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
@@ -260,8 +254,6 @@ github.com/cosmos/gogoproto v1.7.2 h1:5G25McIraOC0mRFv9TVO139Uh3OklV2hczr13KKVHC
 github.com/cosmos/gogoproto v1.7.2/go.mod h1:8S7w53P1Y1cHwND64o0BnArT6RmdgIvsBuco6uTllsk=
 github.com/cosmos/iavl v1.2.8 h1:55F96BGUJ7KT7h+Ky/cEqS+pEvhFqsU4O8Th3F0N1js=
 github.com/cosmos/iavl v1.2.8/go.mod h1:FRHN4tO+6crf0p2zsqye+nAbsMgiwdkxpWm18DyP6+Y=
-github.com/cosmos/ibc-go/v11 v11.0.0 h1:9EIehi88hNP1cCU83NC+J8UXNn+05YZt9eqmnzCQLSg=
-github.com/cosmos/ibc-go/v11 v11.0.0/go.mod h1:iWlzLuCu+ctVbQwoVf5z51HE5e/NE8/pwnLVVDmP++4=
 github.com/cosmos/ics23/go v0.11.0 h1:jk5skjT0TqX5e5QJbEnwXIS2yI2vnmLOgpQPeM5RtnU=
 github.com/cosmos/ics23/go v0.11.0/go.mod h1:A8OjxPE67hHST4Icw94hOxxFEJMBG031xIGF/JHNIY0=
 github.com/cosmos/interchaintest/v11 v11.0.0-20261110145912-88ccd80e7b63 h1:nm1t/jkLyP5+TRf0bP6pGAjV57SCNVm65D8BGX3JBr8=
@@ -552,8 +544,6 @@ github.com/hashicorp/yamux v0.1.2 h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8
 github.com/hashicorp/yamux v0.1.2/go.mod h1:C+zze2n6e/7wshOZep2A70/aQU6QBRWJO/G6FT1wIns=
 github.com/hdevalence/ed25519consensus v0.2.0 h1:37ICyZqdyj0lAZ8P4D1d1id3HqbbG1N3iBb1Tb4rdcU=
 github.com/hdevalence/ed25519consensus v0.2.0/go.mod h1:w3BHWjwJbFU29IRHL1Iqkw3sus+7FctEyM4RqDxYNzo=
-github.com/herumi/bls-eth-go-binary v1.31.0 h1:9eeW3EA4epCb7FIHt2luENpAW69MvKGL5jieHlBiP+w=
-github.com/herumi/bls-eth-go-binary v1.31.0/go.mod h1:luAnRm3OsMQeokhGzpYmc0ZKwawY7o87PUEP11Z7r7U=
 github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4 h1:X4egAf/gcS1zATw6wn4Ej8vjuVGxeHdan+bRb2ebyv4=
 github.com/holiman/billy v0.0.0-20240216141850-2abb0c79d3c4/go.mod h1:5GuXa7vkL8u9FkFuWdVvfR5ix8hRB7DbOAaYULamFpc=
 github.com/holiman/bloomfilter/v2 v2.0.3 h1:73e0e/V0tCydx14a0SCYS/EWCxgwLZ18CZcZKVu0fao=
@@ -722,8 +712,6 @@ github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJ
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
-github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 h1:RWengNIwukTxcDr9M+97sNutRR1RKhG96O6jWumTTnw=
-github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826/go.mod h1:TaXosZuwdSHYgviHp1DAtfrULt5eUgsSMsZf+YrPgl8=
 github.com/morikuni/aec v1.0.0 h1:nP9CBfwrvYnBRgY6qfDQkygYDmYwOilePFkwzv4dU8A=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
 github.com/mr-tron/base58 v1.1.2/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
@@ -913,12 +901,6 @@ github.com/prometheus/procfs v0.1.3/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4O
 github.com/prometheus/procfs v0.3.0/go.mod h1:lV6e/gmhEcM9IjHGsFOCxxuZ+z1YqCvr4OA4YeYWdaU=
 github.com/prometheus/procfs v0.21.1 h1:GljZCt+zSTS+NZq88cyQ1LjZ+RCHp3uVuabBWA5+OJI=
 github.com/prometheus/procfs v0.21.1/go.mod h1:aB55Cww9pdSJVHk0hUf0inxWyyjPogFIjmHKYgMKmtY=
-github.com/prysmaticlabs/fastssz v0.0.0-20251103153600-259302269bfc h1:ASmh3y4ALne2OoabF5pPL8OcIpBko8gFMg5018MxkBI=
-github.com/prysmaticlabs/fastssz v0.0.0-20251103153600-259302269bfc/go.mod h1:h2OlIZD/M6wFvV3YMZbW16lFgh3Rsye00G44J2cwLyU=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20240328144219-a1caa50c3a1e h1:ATgOe+abbzfx9kCPeXIW4fiWyDdxlwHw07j8UGhdTd4=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20240328144219-a1caa50c3a1e/go.mod h1:wmuf/mdK4VMD+jA9ThwcUKjg3a2XWM9cVfFYjDyY4j4=
-github.com/prysmaticlabs/gohashtree v0.0.5-beta h1:ct41mg7HyIZd7uoSM/ud23f+3DxQG9tlMlQG+BVX23c=
-github.com/prysmaticlabs/gohashtree v0.0.5-beta/go.mod h1:HRuvtXLZ4WkaB1MItToVH2e8ZwKwZPY5/Rcby+CvvLY=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0 h1:APacT+iIaNF6fd8AGEiN3bT/Jtkd2jz4v4TzM7MFjy0=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0/go.mod h1:3IOHRbJIc+L6YKMwfDtJAM9Vj9k0YY4muhuyUYk5tbk=
 github.com/quic-go/qpack v0.6.0 h1:g7W+BMYynC1LbYLSqRt8PBg5Tgwxn214ZZR34VIOjz8=
@@ -959,8 +941,6 @@ github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0
 github.com/sasha-s/go-deadlock v0.3.9 h1:fiaT9rB7g5sr5ddNZvlwheclN9IP86eFW9WgqlEQV+w=
 github.com/sasha-s/go-deadlock v0.3.9/go.mod h1:KuZj51ZFmx42q/mPaYbRk0P1xcwe697zsJKE03vD4/Y=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
-github.com/shamaton/msgpack/v2 v2.4.1 h1:JtJ141QoQ3NqgPDsjq2v9VXlaON8SiQOwEaoNLEK/MQ=
-github.com/shamaton/msgpack/v2 v2.4.1/go.mod h1:6khjYnkx73f7VQU7wjcFS9DFjs+59naVWJv1TB7qdOI=
 github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKlUeu/erjjvaPEYiI=
 github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/shirou/gopsutil/v4 v4.26.6 h1:Mzr/npDtQC/xpeEuQKHZt8Zo9CmPvhTj8nkR8w5TLDs=
@@ -1027,8 +1007,6 @@ github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2l
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
 github.com/test-go/testify v1.1.4 h1:Tf9lntrKUMHiXQ07qBScBTSA0dhYQlu83hswqelv1iE=
 github.com/test-go/testify v1.1.4/go.mod h1:rH7cfJo/47vWGdi4GPj16x3/t1xGOj2YxzmNQzk2ghU=
-github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e h1:cR8/SYRgyQCt5cNCMniB/ZScMkhI9nk8U5C7SbISXjo=
-github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e/go.mod h1:Tu4lItkATkonrYuvtVjG0/rhy15qrNGNTjPdaphtZ/8=
 github.com/tidwall/btree v1.8.1 h1:27ehoXvm5AG/g+1VxLS1SD3vRhp/H7LuEfwNvddEdmA=
 github.com/tidwall/btree v1.8.1/go.mod h1:jBbTdUWhSZClZWoDg54VnvV7/54modSOzDN7VXftj1A=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
