@@ -413,7 +413,5 @@ func toV1Packet(sequence uint64, sourceClient, destinationClient string, payload
 		DestinationPort:    payload.DestinationPort,
 		DestinationChannel: destinationClient,
 		Data:               payload.Value,
-		TimeoutHeight:      clienttypes.Height{},
-		TimeoutTimestamp:   0,
 	}
 }
