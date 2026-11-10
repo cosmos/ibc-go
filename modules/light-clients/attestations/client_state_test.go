@@ -232,15 +232,13 @@ func (s *AttestationsTestSuite) TestVerifyMembershipDuplicatePaths() {
 
 			clientID := testClientID
 			ctx := s.chainA.GetContext()
-			s.initializeClient(ctx, clientID, 100, uint64(time.Second.Nanoseconds()))
+			height := uint64(100)
+			s.initializeClient(ctx, clientID, height, uint64(time.Second.Nanoseconds()))
 
-			newHeight := uint64(200)
-			s.updateClientState(ctx, clientID, newHeight, uint64(2*time.Second.Nanoseconds()))
-
-			packetAttestation := s.createPacketAttestation(newHeight, tc.packets)
+			packetAttestation := s.createPacketAttestation(height, tc.packets)
 			proofBz := s.marshalProof(s.createAttestationProof(packetAttestation, []int{0, 1, 2}, attestations.AttestationTypePacket))
 
-			err := s.lightClientModule.VerifyMembership(ctx, clientID, clienttypes.NewHeight(0, newHeight), 0, 0, proofBz, commitmenttypesv2.NewMerklePath(pathToVerify), value)
+			err := s.lightClientModule.VerifyMembership(ctx, clientID, clienttypes.NewHeight(0, height), 0, 0, proofBz, commitmenttypesv2.NewMerklePath(pathToVerify), value)
 			if tc.expErr != nil {
 				s.Require().ErrorIs(err, tc.expErr)
 			} else {
