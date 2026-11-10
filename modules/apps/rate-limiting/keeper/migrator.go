@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/migrations/v2"
+	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/migrations/v3"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -24,4 +25,11 @@ func NewMigrator(k *Keeper) Migrator {
 // reset because the legacy markers do not include denoms.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	return v2.Migrate(ctx, m.keeper.storeService)
+}
+
+// Migrate2to3 re-keys rate limits to the channel-first, length-prefixed key
+// layout so that rate limits are unambiguous and range scannable per channel or
+// client.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	return v3.Migrate(ctx, m.keeper.storeService, m.keeper.cdc)
 }
