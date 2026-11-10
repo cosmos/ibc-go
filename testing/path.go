@@ -74,55 +74,44 @@ func (path *Path) RelayPacket(packet channeltypes.Packet) error {
 // - The acknowledgement written on the receiving chain.
 // - An error if a relay step fails or the packet commitment does not exist on either endpoint.
 func (path *Path) RelayPacketWithResults(packet channeltypes.Packet) (*abci.ExecTxResult, []byte, error) {
-	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
-		// packet found, relay from A to B
-		if err := path.EndpointB.UpdateClient(); err != nil {
-			return nil, nil, err
-		}
-
-		res, err := path.EndpointB.RecvPacketWithResult(packet)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		ack, err := ParseAckFromEvents(res.Events)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if err := path.EndpointA.AcknowledgePacket(packet, ack); err != nil {
-			return nil, nil, err
-		}
-
-		return res, ack, nil
+	if hasPacketCommitment(path.EndpointA, packet) {
+		return relayPacket(path.EndpointA, path.EndpointB, packet)
 	}
 
-	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
-		// packet found, relay B to A
-		if err := path.EndpointA.UpdateClient(); err != nil {
-			return nil, nil, err
-		}
-
-		res, err := path.EndpointA.RecvPacketWithResult(packet)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		ack, err := ParseAckFromEvents(res.Events)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if err := path.EndpointB.AcknowledgePacket(packet, ack); err != nil {
-			return nil, nil, err
-		}
-
-		return res, ack, nil
+	if hasPacketCommitment(path.EndpointB, packet) {
+		return relayPacket(path.EndpointB, path.EndpointA, packet)
 	}
 
 	return nil, nil, errors.New("packet commitment does not exist on either endpoint for provided packet")
+}
+
+// hasPacketCommitment returns true if the endpoint's chain stores the commitment of the provided packet.
+func hasPacketCommitment(endpoint *Endpoint, packet channeltypes.Packet) bool {
+	pc := endpoint.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(endpoint.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	return bytes.Equal(pc, channeltypes.CommitPacket(packet))
+}
+
+// relayPacket receives the packet on dst and acknowledges it on src, returning the receive result and the acknowledgement.
+func relayPacket(src, dst *Endpoint, packet channeltypes.Packet) (*abci.ExecTxResult, []byte, error) {
+	if err := dst.UpdateClient(); err != nil {
+		return nil, nil, err
+	}
+
+	res, err := dst.RecvPacketWithResult(packet)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ack, err := ParseAckFromEvents(res.Events)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if err := src.AcknowledgePacket(packet, ack); err != nil {
+		return nil, nil, err
+	}
+
+	return res, ack, nil
 }
 
 // Reversed returns a new path with endpoints reversed.

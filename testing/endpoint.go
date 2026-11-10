@@ -111,11 +111,6 @@ func (ep *Endpoint) CreateClient() error {
 			ep.Counterparty.Chain.ChainID, tmConfig.TrustLevel, tmConfig.TrustingPeriod, tmConfig.UnbondingPeriod, tmConfig.MaxClockDrift,
 			height, commitmenttypes.GetSDKSpecs(), UpgradePath)
 		consensusState = ep.Counterparty.Chain.LatestCommittedHeader.ConsensusState()
-	case exported.Solomachine:
-		// TODO
-		//		solo := NewSolomachine(ep.Chain.TB, ep.Chain.Codec, clientID, "", 1)
-		//		clientState = solo.ClientState()
-		//		consensusState = solo.ConsensusState()
 	default:
 		return fmt.Errorf("client type %s is not supported", ep.ClientConfig.GetClientType())
 	}
@@ -514,13 +509,8 @@ func (ep *Endpoint) WriteAcknowledgement(ack exported.Acknowledgement, packet ex
 
 // AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the ep.
 func (ep *Endpoint) AcknowledgePacket(packet channeltypes.Packet, ack []byte) error {
-	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
-
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, ep.Chain.SenderAccount.GetAddress().String())
-
-	return ep.Chain.sendMsgs(ackMsg)
+	_, err := ep.AcknowledgePacketWithResult(packet, ack)
+	return err
 }
 
 // AcknowledgePacketWithResult sends a MsgAcknowledgement to the channel associated with the endpoint and returns the result.
@@ -536,22 +526,10 @@ func (ep *Endpoint) AcknowledgePacketWithResult(packet channeltypes.Packet, ack 
 
 // TimeoutPacketWithResult sends a MsgTimeout to the channel associated with the ep.
 func (ep *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.ExecTxResult, error) {
-	// get proof for timeout based on channel order
-	var packetKey []byte
-
-	switch ep.ChannelConfig.Order {
-	case channeltypes.ORDERED:
-		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
-	case channeltypes.UNORDERED:
-		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	default:
-		return nil, fmt.Errorf("unsupported order type %s", ep.ChannelConfig.Order)
+	proof, proofHeight, nextSeqRecv, err := ep.queryUnreceivedProof(packet)
+	if err != nil {
+		return nil, err
 	}
-
-	counterparty := ep.Counterparty
-	proof, proofHeight := counterparty.QueryProof(packetKey)
-	nextSeqRecv, found := counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(counterparty.Chain.GetContext(), counterparty.ChannelConfig.PortID, counterparty.ChannelID)
-	require.True(ep.Chain.TB, found)
 
 	timeoutMsg := channeltypes.NewMsgTimeout(
 		packet, nextSeqRecv,
@@ -559,6 +537,26 @@ func (ep *Endpoint) TimeoutPacketWithResult(packet channeltypes.Packet) (*abci.E
 	)
 
 	return ep.Chain.SendMsgs(timeoutMsg)
+}
+
+// queryUnreceivedProof queries the counterparty for the proof, based on the channel order, that the
+// packet has not been received, along with the proof height and the counterparty's next receive sequence.
+func (ep *Endpoint) queryUnreceivedProof(packet channeltypes.Packet) ([]byte, clienttypes.Height, uint64, error) {
+	var packetKey []byte
+	switch ep.ChannelConfig.Order {
+	case channeltypes.ORDERED:
+		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
+	case channeltypes.UNORDERED:
+		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	default:
+		return nil, clienttypes.Height{}, 0, fmt.Errorf("unsupported order type %s", ep.ChannelConfig.Order)
+	}
+
+	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
+	nextSeqRecv, found := ep.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(ep.Counterparty.Chain.GetContext(), ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
+	require.True(ep.Chain.TB, found)
+
+	return proof, proofHeight, nextSeqRecv, nil
 }
 
 // TimeoutPacket sends a MsgTimeout to the channel associated with the ep.
@@ -569,25 +567,13 @@ func (ep *Endpoint) TimeoutPacket(packet channeltypes.Packet) error {
 
 // TimeoutOnClose sends a MsgTimeoutOnClose to the channel associated with the ep.
 func (ep *Endpoint) TimeoutOnClose(packet channeltypes.Packet) error {
-	// get proof for timeout based on channel order
-	var packetKey []byte
-
-	switch ep.ChannelConfig.Order {
-	case channeltypes.ORDERED:
-		packetKey = host.NextSequenceRecvKey(packet.GetDestPort(), packet.GetDestChannel())
-	case channeltypes.UNORDERED:
-		packetKey = host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	default:
-		return fmt.Errorf("unsupported order type %s", ep.ChannelConfig.Order)
+	proof, proofHeight, nextSeqRecv, err := ep.queryUnreceivedProof(packet)
+	if err != nil {
+		return err
 	}
-
-	proof, proofHeight := ep.Counterparty.QueryProof(packetKey)
 
 	channelKey := host.ChannelKey(packet.GetDestPort(), packet.GetDestChannel())
 	closedProof, _ := ep.Counterparty.QueryProof(channelKey)
-
-	nextSeqRecv, found := ep.Counterparty.Chain.App.GetIBCKeeper().ChannelKeeper.GetNextSequenceRecv(ep.Counterparty.Chain.GetContext(), ep.Counterparty.ChannelConfig.PortID, ep.Counterparty.ChannelID)
-	require.True(ep.Chain.TB, found)
 
 	timeoutOnCloseMsg := channeltypes.NewMsgTimeoutOnClose(
 		packet, nextSeqRecv,
