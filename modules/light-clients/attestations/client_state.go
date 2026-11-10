@@ -90,53 +90,17 @@ func (cs *ClientState) verifyMembership(
 		return errorsmod.Wrap(ErrInvalidAttestationData, "value cannot be empty")
 	}
 
-	if _, found := getConsensusState(clientStore, cdc, height); !found {
-		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state not found for height %s", height)
-	}
-
-	var attestationProof AttestationProof
-	if err := cdc.Unmarshal(proof, &attestationProof); err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
-	}
-
-	if err := cs.verifySignatures(&attestationProof, AttestationTypePacket); err != nil {
+	packetAttestation, commitmentPath, err := cs.verifyPacketAttestation(clientStore, cdc, height, proof, path)
+	if err != nil {
 		return err
 	}
-
-	packetAttestation, err := ABIDecodePacketAttestation(attestationProof.AttestationData)
-	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode attestation data: %v", err)
-	}
-
-	if packetAttestation.Height != height.GetRevisionHeight() {
-		return errorsmod.Wrapf(ErrInvalidHeight, "height mismatch: expected %d, got %d", height.GetRevisionHeight(), packetAttestation.Height)
-	}
-
-	if len(packetAttestation.Packets) == 0 {
-		return errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
-	}
-
-	merklePath, ok := path.(commitmenttypesv2.MerklePath)
-	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
-	}
-
-	if len(merklePath.KeyPath) != 1 {
-		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
-	}
-
-	if len(merklePath.KeyPath[0]) == 0 {
-		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
-	}
-
-	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
 
 	if len(value) != 32 {
 		return errorsmod.Wrapf(ErrInvalidValue, "value must be 32 bytes, got %d", len(value))
 	}
 
 	for _, packet := range packetAttestation.Packets {
-		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
+		if bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}
@@ -160,67 +124,81 @@ func (cs *ClientState) verifyNonMembership(
 		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
 	}
 
+	packetAttestation, commitmentPath, err := cs.verifyPacketAttestation(clientStore, cdc, height, proof, path)
+	if err != nil {
+		return err
+	}
+
+	// every attested entry for the path must carry the zero commitment
+	found := false
+	for _, packet := range packetAttestation.Packets {
+		if bytes.Equal(packet.Path, commitmentPath) {
+			if !bytes.Equal(packet.Commitment, nonMembershipCommitment) {
+				return ErrNonMembershipFailed
+			}
+			found = true
+		}
+	}
+
+	if !found {
+		return ErrNotMember
+	}
+
+	return nil
+}
+
+// verifyPacketAttestation performs the checks shared by membership and non-membership verification:
+// it verifies the attestor signatures over the packet attestation at the given height and returns the
+// decoded attestation together with the keccak256 hash of the commitment path to look up in it.
+func (cs *ClientState) verifyPacketAttestation(
+	clientStore storetypes.KVStore,
+	cdc codec.BinaryCodec,
+	height exported.Height,
+	proof []byte,
+	path exported.Path,
+) (*PacketAttestation, []byte, error) {
 	if _, found := getConsensusState(clientStore, cdc, height); !found {
-		return errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state not found for height %s", height)
+		return nil, nil, errorsmod.Wrapf(clienttypes.ErrConsensusStateNotFound, "consensus state not found for height %s", height)
 	}
 
 	var attestationProof AttestationProof
 	if err := cdc.Unmarshal(proof, &attestationProof); err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
+		return nil, nil, errorsmod.Wrapf(ErrInvalidAttestationProof, "failed to unmarshal proof: %v", err)
 	}
 
 	if err := cs.verifySignatures(&attestationProof, AttestationTypePacket); err != nil {
-		return err
+		return nil, nil, err
 	}
 
 	packetAttestation, err := ABIDecodePacketAttestation(attestationProof.AttestationData)
 	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode attestation data: %v", err)
+		return nil, nil, errorsmod.Wrapf(ErrInvalidAttestationData, "failed to ABI decode attestation data: %v", err)
 	}
 
 	if packetAttestation.Height != height.GetRevisionHeight() {
-		return errorsmod.Wrapf(ErrInvalidHeight, "height mismatch: expected %d, got %d", height.GetRevisionHeight(), packetAttestation.Height)
+		return nil, nil, errorsmod.Wrapf(ErrInvalidHeight, "height mismatch: expected %d, got %d", height.GetRevisionHeight(), packetAttestation.Height)
 	}
 
 	if len(packetAttestation.Packets) == 0 {
-		return errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
+		return nil, nil, errorsmod.Wrap(ErrInvalidAttestationData, "packets cannot be empty")
 	}
 
 	merklePath, ok := path.(commitmenttypesv2.MerklePath)
 	if !ok {
-		return errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
+		return nil, nil, errorsmod.Wrapf(ibcerrors.ErrInvalidType, "expected %T, got %T", commitmenttypesv2.MerklePath{}, path)
 	}
 
 	if len(merklePath.KeyPath) != 1 {
-		return errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
+		return nil, nil, errorsmod.Wrapf(ErrInvalidPath, "key path must have exactly 1 element, got %d", len(merklePath.KeyPath))
 	}
 
 	if len(merklePath.KeyPath[0]) == 0 {
-		return errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
+		return nil, nil, errorsmod.Wrap(ErrInvalidPath, "path cannot be empty")
 	}
 
 	commitmentPath := crypto.Keccak256(merklePath.KeyPath[0])
 
-	foundMatchingPath := false
-	allZeroCommitments := true
-	for _, packet := range packetAttestation.Packets {
-		if bytes.Equal(packet.Path, commitmentPath) {
-			foundMatchingPath = true
-			if len(packet.Commitment) != 32 || !bytes.Equal(packet.Commitment, nonMembershipCommitment) {
-				allZeroCommitments = false
-			}
-		}
-	}
-
-	if !foundMatchingPath {
-		return ErrNotMember
-	}
-
-	if !allZeroCommitments {
-		return ErrNonMembershipFailed
-	}
-
-	return nil
+	return packetAttestation, commitmentPath, nil
 }
 
 // sets the client state to the store

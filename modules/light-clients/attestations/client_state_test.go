@@ -189,6 +189,65 @@ func (s *AttestationsTestSuite) TestVerifyMembership() {
 	}
 }
 
+func (s *AttestationsTestSuite) TestVerifyMembershipDuplicatePaths() {
+	pathToVerify := bytes.Repeat([]byte{0x01}, 32)
+	hashedPath := crypto.Keccak256(pathToVerify)
+	value := bytes.Repeat([]byte{0xAB}, 32)
+	otherCommitment := bytes.Repeat([]byte{0xCD}, 32)
+
+	testCases := []struct {
+		name    string
+		packets []attestations.PacketCompact
+		expErr  error
+	}{
+		{
+			name: "success: matching commitment first",
+			packets: []attestations.PacketCompact{
+				{Path: hashedPath, Commitment: value},
+				{Path: hashedPath, Commitment: otherCommitment},
+			},
+			expErr: nil,
+		},
+		{
+			name: "success: matching commitment last",
+			packets: []attestations.PacketCompact{
+				{Path: hashedPath, Commitment: otherCommitment},
+				{Path: hashedPath, Commitment: value},
+			},
+			expErr: nil,
+		},
+		{
+			name: "failure: no entry for the path carries the value",
+			packets: []attestations.PacketCompact{
+				{Path: hashedPath, Commitment: otherCommitment},
+				{Path: hashedPath, Commitment: bytes.Repeat([]byte{0xEF}, 32)},
+			},
+			expErr: attestations.ErrNotMember,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			clientID := testClientID
+			ctx := s.chainA.GetContext()
+			height := uint64(100)
+			s.initializeClient(ctx, clientID, height, uint64(time.Second.Nanoseconds()))
+
+			packetAttestation := s.createPacketAttestation(height, tc.packets)
+			proofBz := s.marshalProof(s.createAttestationProof(packetAttestation, []int{0, 1, 2}, attestations.AttestationTypePacket))
+
+			err := s.lightClientModule.VerifyMembership(ctx, clientID, clienttypes.NewHeight(0, height), 0, 0, proofBz, commitmenttypesv2.NewMerklePath(pathToVerify), value)
+			if tc.expErr != nil {
+				s.Require().ErrorIs(err, tc.expErr)
+			} else {
+				s.Require().NoError(err)
+			}
+		})
+	}
+}
+
 func (s *AttestationsTestSuite) TestVerifyMembershipMalformedProof() {
 	initialHeight := uint64(100)
 	initialTimestamp := uint64(time.Second.Nanoseconds())
