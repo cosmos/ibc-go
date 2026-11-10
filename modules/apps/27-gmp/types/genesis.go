@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
 	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
 )
 
@@ -25,14 +24,8 @@ func (gs GenesisState) Validate() error {
 		if _, err := sdk.AccAddressFromBech32(account.AccountAddress); err != nil {
 			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 		}
-		if _, err := sdk.AccAddressFromBech32(account.AccountId.Sender); err != nil {
-			return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
-		}
-		if err := host.ClientIdentifierValidator(account.AccountId.ClientId); err != nil {
-			return errorsmod.Wrapf(err, "invalid source client ID %s", account.AccountId.ClientId)
-		}
-		if len(account.AccountId.Salt) > MaximumSaltLength {
-			return errorsmod.Wrapf(ErrInvalidSalt, "salt must not exceed %d bytes", MaximumSaltLength)
+		if err := account.AccountId.Validate(); err != nil {
+			return err
 		}
 	}
 

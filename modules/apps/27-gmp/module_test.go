@@ -74,14 +74,14 @@ func (s *AppModuleTestSuite) TestValidateGenesis() {
 			true,
 		},
 		{
-			"failure: invalid sender address",
+			"failure: empty sender address",
 			&types.GenesisState{
 				Ics27Accounts: []types.RegisteredICS27Account{
 					{
 						AccountAddress: s.chainA.SenderAccount.GetAddress().String(),
 						AccountId: types.AccountIdentifier{
 							ClientId: ibctesting.FirstClientID,
-							Sender:   "invalid",
+							Sender:   "",
 							Salt:     []byte("salt"),
 						},
 					},
