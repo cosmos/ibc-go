@@ -20,7 +20,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.55.0
 	github.com/cosmos/gogoproto v1.7.2
-	github.com/cosmos/interchaintest/v11 v11.0.0-20260805134452-6ecd341bf76a
+	github.com/cosmos/interchaintest/v11 v11.0.0-20261110145912-88ccd80e7b63
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/ethereum/go-ethereum v1.17.8
 	github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11 v11.0.0-20260304204640-9f835275a381
@@ -115,7 +115,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/iavl v1.2.8 // indirect
-	github.com/cosmos/ibc-go/v11 v11.0.0 // indirect
 	github.com/cosmos/ics23/go v0.11.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v1.0.0 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.5.0 // indirect
