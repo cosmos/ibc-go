@@ -35,7 +35,7 @@ options specified in your config file. These are primarily used for CI and are n
 
 See the extended sample config to understand all the available fields and their purposes.
 
-> Note: when running tests locally, **no images are pushed** to the `ghcr.io/cosmos/ibc-go-simd` registry.
+> Note: when running tests locally, **no images are pushed** to the `ghcr.io/lfdt-ibc/ibc-go-simd` registry.
 > The images which are used only exist locally only.
 
 These environment variables allow us to run tests with arbitrary versions (from branches or releases) of simd and the go / hermes relayer.

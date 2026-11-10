@@ -3,8 +3,6 @@ module github.com/lfdt-ibc/ibc-go/e2e
 go 1.26.10
 
 replace (
-	// interchaintest imports ibc-go under its pre-rename path; alias it to local ibc-go
-	github.com/cosmos/ibc-go/v11 => ./compat/cosmos-ibc-go
 	// use Cosmos geth fork (interchaintest/evm uses trie/utils from this fork)
 	github.com/ethereum/go-ethereum => github.com/cosmos/go-ethereum v1.16.2-cosmos-1.0.20260126204437-32ededcf907f
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

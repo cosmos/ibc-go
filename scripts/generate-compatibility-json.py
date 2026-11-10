@@ -28,7 +28,7 @@ CHAIN_B = "chain-b"
 # both chain-a -> chain-b and chain-b -> chain-a tests should be run.
 ALL = "all"
 HERMES = "hermes"
-DEFAULT_IMAGE = "ghcr.io/cosmos/ibc-go-simd"
+DEFAULT_IMAGE = "ghcr.io/lfdt-ibc/ibc-go-simd"
 RLY = "rly"
 # MAX_VERSION is a version string that will be greater than any other semver version.
 MAX_VERSION = "9999.999.999"

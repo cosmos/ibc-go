@@ -20,7 +20,7 @@ on:
         description: 'The chain image repository to use for compatibility tests.'
         required: false
         type: string
-        default: ghcr.io/cosmos/ibc-go-simd
+        default: ghcr.io/lfdt-ibc/ibc-go-simd
 
 permissions: {}
 

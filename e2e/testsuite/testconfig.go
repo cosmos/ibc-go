@@ -39,7 +39,7 @@ import (
 
 const (
 	// ChainImageEnv specifies the image that the chains will use. If left unspecified, it will
-	// default to being determined based on the specified binary. E.g. ghcr.io/cosmos/ibc-go-simd
+	// default to being determined based on the specified binary. E.g. ghcr.io/lfdt-ibc/ibc-go-simd
 	ChainImageEnv = "CHAIN_IMAGE"
 	// ChainATagEnv specifies the tag that Chain A will use.
 	ChainATagEnv = "CHAIN_A_TAG"
@@ -90,7 +90,7 @@ func getChainImage(binary string) string {
 	if binary == "" {
 		binary = defaultBinary
 	}
-	return fmt.Sprintf("ghcr.io/cosmos/ibc-go-%s", binary)
+	return fmt.Sprintf("ghcr.io/lfdt-ibc/ibc-go-%s", binary)
 }
 
 // TestConfig holds configuration used throughout the different e2e tests.

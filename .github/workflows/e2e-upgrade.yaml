@@ -17,7 +17,7 @@ on:
 permissions: {}
 
 env:
-  DOCKER_IMAGE_NAME: ghcr.io/cosmos/ibc-go-simd
+  DOCKER_IMAGE_NAME: ghcr.io/lfdt-ibc/ibc-go-simd
 
 jobs:
   e2e-upgrade-tests:
