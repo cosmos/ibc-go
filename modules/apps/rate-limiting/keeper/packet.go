@@ -283,6 +283,19 @@ func (k *Keeper) TimeoutRateLimitedPacket(ctx sdk.Context, packet channeltypes.P
 	return k.UndoSendPacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom, packetInfo.Amount)
 }
 
+// CompleteReceivePacket finalizes a receive that was acknowledged successfully by
+// removing its pending receive marker, after which the inflow can no longer be undone.
+// If the packet data cannot be parsed, no inflow was recorded and there is nothing to remove.
+func (k *Keeper) CompleteReceivePacket(ctx sdk.Context, packet channeltypes.Packet) error {
+	packetInfo, err := ParsePacketInfo(packet, types.PACKET_RECV)
+	if err != nil {
+		k.Logger(ctx).Error("Unable to parse packet data for rate limiting", "error", err)
+		return nil
+	}
+
+	return k.RemovePendingReceivePacket(ctx, packetInfo.ChannelID, packet.Sequence, packetInfo.Denom)
+}
+
 // UndoReceivePacket reverses the inflow increment from a receive that was later
 // invalidated, for example when PFM writes an async error acknowledgement for a
 // failed forward.

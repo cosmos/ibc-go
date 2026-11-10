@@ -541,6 +541,35 @@ func (s *KeeperTestSuite) TestTimeoutRateLimitedPacket() {
 	s.Require().Equal(expectedOutflow.Int64(), rateLimit.Flow.Outflow.Int64(), "outflow should not have changed")
 }
 
+func (s *KeeperTestSuite) TestCompleteReceivePacket() {
+	sequence := uint64(10)
+	rateLimitDenom := hashDenomTrace(fmt.Sprintf("%s/%s/%s", transferPort, channelOnStride, uosmo))
+	ctx := s.chainA.GetContext()
+	rateLimitKeeper := s.chainA.GetSimApp().RateLimitKeeper
+
+	packetData, err := json.Marshal(transfertypes.FungibleTokenPacketData{Denom: uosmo, Amount: "10"})
+	s.Require().NoError(err)
+	packet := channeltypes.Packet{
+		Sequence:           sequence,
+		SourcePort:         transferPort,
+		SourceChannel:      channelOnHost,
+		DestinationPort:    transferPort,
+		DestinationChannel: channelOnStride,
+		Data:               packetData,
+	}
+
+	s.Require().NoError(rateLimitKeeper.SetPendingReceivePacket(ctx, channelOnStride, sequence, rateLimitDenom))
+	s.Require().NoError(rateLimitKeeper.CompleteReceivePacket(ctx, packet))
+
+	found, err := rateLimitKeeper.CheckPacketReceivedDuringCurrentQuota(ctx, channelOnStride, sequence, rateLimitDenom)
+	s.Require().NoError(err)
+	s.Require().False(found, "pending receive marker should be removed")
+
+	// packet data that cannot be parsed recorded no inflow, so there is nothing to complete
+	packet.Data = []byte("invalid packet data")
+	s.Require().NoError(rateLimitKeeper.CompleteReceivePacket(ctx, packet))
+}
+
 func (s *KeeperTestSuite) TestUndoReceivePacket() {
 	zeroAmount := sdkmath.ZeroInt()
 
