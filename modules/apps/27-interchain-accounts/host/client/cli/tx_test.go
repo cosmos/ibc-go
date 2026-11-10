@@ -3,11 +3,13 @@
 package cli_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,6 +43,50 @@ const bankSendMessage = `{
 }`
 
 var multiMsg = fmt.Sprintf("[ %s, %s ]", msgDelegateMessage, bankSendMessage)
+
+func TestGeneratePacketDataCommand(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		flags    []string
+		encoding string
+		err      string
+	}{
+		{"default protobuf", nil, icatypes.EncodingProtobuf, ""},
+		{"explicit protobuf", []string{"--encoding", icatypes.EncodingProtobuf}, icatypes.EncodingProtobuf, ""},
+		{"explicit proto3 JSON", []string{"--encoding", icatypes.EncodingProto3JSON}, icatypes.EncodingProto3JSON, ""},
+		{"unsupported encoding", []string{"--encoding", "invalid"}, "", "unsupported encoding type: invalid"},
+		{"explicit empty encoding", []string{"--encoding="}, "", "unsupported encoding type: "},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ir := codectypes.NewInterfaceRegistry()
+			banktypes.RegisterInterfaces(ir)
+			cdc := codec.NewProtoCodec(ir)
+			cmd := cli.NewTxCmd()
+			cmd.SetContext(t.Context())
+			require.NoError(t, client.SetCmdClientContext(cmd, client.Context{}.WithCodec(cdc).WithInterfaceRegistry(ir)))
+			var output bytes.Buffer
+			cmd.SetOut(&output)
+			cmd.SetErr(&output)
+			args := []string{"generate-packet-data", bankSendMessage, "--memo", "memo"}
+			cmd.SetArgs(append(args, tc.flags...))
+
+			err := cmd.Execute()
+			if tc.err != "" {
+				require.EqualError(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+			var packetData icatypes.InterchainAccountPacketData
+			require.NoError(t, cdc.UnmarshalJSON(output.Bytes(), &packetData))
+			require.Equal(t, icatypes.EXECUTE_TX, packetData.Type)
+			require.Equal(t, "memo", packetData.Memo)
+			msgs, err := icatypes.DeserializeCosmosTx(cdc, packetData.Data, tc.encoding)
+			require.NoError(t, err)
+			require.Len(t, msgs, 1)
+			assertMsgBankSend(t, msgs[0])
+		})
+	}
+}
 
 func TestGeneratePacketData(t *testing.T) {
 	t.Helper()
