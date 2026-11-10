@@ -100,7 +100,7 @@ func (cs *ClientState) verifyMembership(
 	}
 
 	for _, packet := range packetAttestation.Packets {
-		if len(packet.Commitment) == 32 && len(packet.Path) == 32 && bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
+		if bytes.Equal(packet.Commitment, value) && bytes.Equal(packet.Path, commitmentPath) {
 			return nil
 		}
 	}
@@ -129,23 +129,19 @@ func (cs *ClientState) verifyNonMembership(
 		return err
 	}
 
-	foundMatchingPath := false
-	allZeroCommitments := true
+	// every attested entry for the path must carry the zero commitment
+	found := false
 	for _, packet := range packetAttestation.Packets {
 		if bytes.Equal(packet.Path, commitmentPath) {
-			foundMatchingPath = true
-			if len(packet.Commitment) != 32 || !bytes.Equal(packet.Commitment, nonMembershipCommitment) {
-				allZeroCommitments = false
+			if !bytes.Equal(packet.Commitment, nonMembershipCommitment) {
+				return ErrNonMembershipFailed
 			}
+			found = true
 		}
 	}
 
-	if !foundMatchingPath {
+	if !found {
 		return ErrNotMember
-	}
-
-	if !allZeroCommitments {
-		return ErrNonMembershipFailed
 	}
 
 	return nil
