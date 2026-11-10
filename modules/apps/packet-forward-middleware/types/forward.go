@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -139,6 +140,9 @@ func getForwardMetadata(forwardData map[string]any) (ForwardMetadata, error) {
 		retriesFloat, ok := retriesData.(float64)
 		if !ok {
 			return ForwardMetadata{}, errorsmod.Wrapf(ErrInvalidForwardMetadata, "key %s has invalid type, expected number", ForwardRetriesKey)
+		}
+		if retriesFloat != math.Trunc(retriesFloat) {
+			return ForwardMetadata{}, errors.New("retries must be an integer")
 		}
 		if retriesFloat < 0 || retriesFloat > 255 {
 			return ForwardMetadata{}, errors.New("retries must be between 0 and 255")
