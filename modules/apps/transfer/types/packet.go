@@ -65,7 +65,7 @@ func (ftpd FungibleTokenPacketData) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAmount, "unable to parse transfer amount (%s) into math.Int", ftpd.Amount)
 	}
 	if !amount.IsPositive() {
-		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
+		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %s", amount)
 	}
 	if strings.TrimSpace(ftpd.Sender) == "" {
 		return errorsmod.Wrap(ibcerrors.ErrInvalidAddress, "sender address cannot be blank")

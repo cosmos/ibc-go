@@ -26,7 +26,7 @@ func (t Token) Validate() error {
 	}
 
 	if !amount.IsPositive() {
-		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %d", amount)
+		return errorsmod.Wrapf(ErrInvalidAmount, "amount must be strictly positive: got %s", amount)
 	}
 
 	return nil
