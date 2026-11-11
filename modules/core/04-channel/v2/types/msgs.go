@@ -119,7 +119,17 @@ func (msg *MsgAcknowledgement) ValidateBasic() error {
 		return errorsmod.Wrapf(ibcerrors.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 
-	return msg.Packet.ValidateBasic()
+	if err := msg.Packet.ValidateBasic(); err != nil {
+		return err
+	}
+
+	// a successful acknowledgement carries one app acknowledgement per payload,
+	// the handler indexes them by payload position
+	if msg.Acknowledgement.Success() && len(msg.Acknowledgement.AppAcknowledgements) != len(msg.Packet.Payloads) {
+		return errorsmod.Wrapf(ErrInvalidAcknowledgement, "length of app acknowledgements %d does not match length of payloads %d", len(msg.Acknowledgement.AppAcknowledgements), len(msg.Packet.Payloads))
+	}
+
+	return nil
 }
 
 // NewMsgTimeout creates a new MsgTimeout instance
