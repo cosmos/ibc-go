@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	ibcmetrics "github.com/cosmos/ibc-go/v11/modules/core/metrics"
+	ibcmetrics "github.com/lfdt-ibc/ibc-go/v11/modules/core/metrics"
 )
 
 const (

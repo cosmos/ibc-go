@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"errors"
 
-	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	solomachine "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/06-solomachine"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (

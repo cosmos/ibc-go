@@ -10,10 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // ChanOpenInit is called by a module to initiate a channel opening handshake with
@@ -350,7 +350,7 @@ func (k *Keeper) WriteOpenConfirmChannel(
 // Closing Handshake
 //
 // This section defines the set of functions required to close a channel handshake
-// as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#closing-handshake
+// as defined in https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#closing-handshake
 //
 // ChanCloseInit is called by either module to close their end of the channel. Once
 // closed, channels cannot be reopened.

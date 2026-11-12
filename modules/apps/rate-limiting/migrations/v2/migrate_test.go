@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/migrations/v2"
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/migrations/v2"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func TestMigrateClearsLegacyPendingPacketStores(t *testing.T) {

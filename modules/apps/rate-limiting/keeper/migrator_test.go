@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/v2/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/keeper"
-	ratelimittypes "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/keeper"
+	ratelimittypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 func (s *KeeperTestSuite) TestMigrate1to2() {

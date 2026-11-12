@@ -11,11 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/migrations/v7"
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/migrations/v7"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 // numCreations is the number of clients/consensus states created for

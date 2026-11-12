@@ -3,9 +3,9 @@
 package types_test
 
 import (
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 // use TestVersion as metadata being compared against

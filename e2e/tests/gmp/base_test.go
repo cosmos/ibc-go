@@ -21,17 +21,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	gmptypes "github.com/cosmos/ibc-go/v11/modules/apps/27-gmp/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	channeltypesv2 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	hostv2 "github.com/cosmos/ibc-go/v11/modules/core/24-host/v2"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	"github.com/cosmos/ibc-go/v11/modules/light-clients/attestations"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	gmptypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-gmp/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	clientv2types "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	channeltypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	hostv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host/v2"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/attestations"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (

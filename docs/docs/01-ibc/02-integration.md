@@ -12,7 +12,7 @@ Learn how to integrate IBC to your application
 :::
 
 This document outlines the required steps to integrate and configure the [IBC
-module](https://github.com/cosmos/ibc-go/tree/main/modules/core) to your Cosmos SDK application and enable sending fungible token transfers to other chains. There is a [simapp included using ibc-go](https://github.com/cosmos/ibc-go/tree/main/simapp) as a reference.
+module](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core) to your Cosmos SDK application and enable sending fungible token transfers to other chains. There is a [simapp included using ibc-go](https://github.com/lfdt-ibc/ibc-go/tree/main/simapp) as a reference.
 
 ## Integrating the IBC module
 
@@ -36,11 +36,11 @@ We need to register the core `ibc` and `transfer` `Keeper`s. To support the use 
 import (
   // other imports
   // ...
-  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
-  ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
+  ibckeeper "github.com/lfdt-ibc/ibc-go/v11/modules/core/keeper"
+  ibctransferkeeper "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/keeper"
   // ibc v2 imports
-  transferv2 "github.com/cosmos/ibc-go/v11/modules/apps/transfer/v2"
-  ibccallbacksv2 "github.com/cosmos/ibc-go/v11/modules/apps/callbacks/v2"
+  transferv2 "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/v2"
+  ibccallbacksv2 "github.com/lfdt-ibc/ibc-go/v11/modules/apps/callbacks/v2"
 )
 
 type App struct {
@@ -70,11 +70,11 @@ import (
   // ...
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-  ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
-  "github.com/cosmos/ibc-go/v11/modules/apps/transfer"
-  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-  ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+  ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+  ibckeeper "github.com/lfdt-ibc/ibc-go/v11/modules/core/keeper"
+  "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer"
+  ibctransfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+  ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 func NewApp(...args) *App {
@@ -157,7 +157,7 @@ IBC needs to know which module is bound to which port so that it can route packe
 appropriate module and call the appropriate callbacks. The port to module name mapping is handled by
 IBC's port `Keeper`. However, the mapping from module name to the relevant callbacks is accomplished
 by the port
-[`Router`](https://github.com/cosmos/ibc-go/blob/main/modules/core/05-port/types/router.go) on the
+[`Router`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/05-port/types/router.go) on the
 `ibc` module.
 
 Adding the module routes allows the IBC handler to call the appropriate callback when processing a channel handshake or a packet.
@@ -169,8 +169,8 @@ Once the `Router` has been set, no new routes can be added.
 import (
   // other imports
   // ...
-  porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types" 
-  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+  porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types" 
+  ibctransfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {
@@ -188,7 +188,7 @@ func NewApp(...args) *App {
 
 #### IBC v2 Router
 
-With IBC v2, there is a new [router](https://github.com/cosmos/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. It supports two kinds of routes: direct routes and prefix-based routes. The direct routes match one specific port ID to a module, while the prefix-based routes match any port ID with a specific prefix to a module.
+With IBC v2, there is a new [router](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/api/router.go) that needs to register the routes for a portID to a given IBCModule. It supports two kinds of routes: direct routes and prefix-based routes. The direct routes match one specific port ID to a module, while the prefix-based routes match any port ID with a specific prefix to a module.
 For example, if a direct route named `someModule` exists, only messages addressed to exactly that port ID will be passed to the corresponding module.
 However, if instead, `someModule` is a prefix-based route, port IDs like `someModuleRandomPort1`, `someModuleRandomPort2`, etc., will be passed to the module.
 Note that the router will panic when you add a route that conflicts with an already existing route. This is also the case if you add a prefix-based route that conflicts with an existing direct route or vice versa.
@@ -212,8 +212,8 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
 
-  ibc "github.com/cosmos/ibc-go/v11/modules/core"
-  "github.com/cosmos/ibc-go/v11/modules/apps/transfer"
+  ibc "github.com/lfdt-ibc/ibc-go/v11/modules/core"
+  "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer"
 )
 
 func NewApp(...args) *App {
@@ -253,7 +253,7 @@ import (
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
   // highlight-next-line
-+ ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
++ ibctransfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 // app.go
@@ -279,7 +279,7 @@ import (
   // ...
   "github.com/cosmos/cosmos-sdk/types/module"
   // highlight-next-line
-+ ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
++ ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 // app.go
@@ -304,7 +304,7 @@ app.ModuleManager = module.NewManager(
 #### Allowed Clients Params
 
 The allowed clients parameter defines an allow list of client types supported by the chain. The 
-default value is a single-element list containing the [`AllowedClients`](https://github.com/cosmos/ibc-go/blob/main/modules/core/02-client/types/client.pb.go#L248-L253) wildcard (`"*"`). Alternatively, the parameter
+default value is a single-element list containing the [`AllowedClients`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/02-client/types/client.pb.go#L248-L253) wildcard (`"*"`). Alternatively, the parameter
 may be set with a list of client types (e.g. `"06-solomachine","07-tendermint","09-localhost"`).
 A client type that is not registered on this list will fail upon creation or on genesis validation.
 Note that, since the client type is an arbitrary string, chains must not register two light clients
@@ -323,9 +323,9 @@ import (
   // other imports
   // ...
   stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-  ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-  ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
-  ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+  ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+  ibckeeper "github.com/lfdt-ibc/ibc-go/v11/modules/core/keeper"
+  ibctransfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func NewApp(...args) *App {
@@ -360,4 +360,4 @@ func NewApp(...args) *App {
 
 That's it! You have now wired up the IBC module and the `transfer` module, and are now able to send fungible tokens across
 different chains. If you want to have a broader view of the changes take a look into the SDK's
-[`SimApp`](https://github.com/cosmos/ibc-go/blob/main/testing/simapp/app.go).
+[`SimApp`](https://github.com/lfdt-ibc/ibc-go/blob/main/testing/simapp/app.go).

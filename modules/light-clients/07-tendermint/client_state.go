@@ -17,11 +17,11 @@ import (
 	"github.com/cometbft/cometbft/light"
 	cmttypes "github.com/cometbft/cometbft/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	commitmenttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	commitmenttypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types/v2"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 var _ exported.ClientState = (*ClientState)(nil)
@@ -119,7 +119,7 @@ func (cs ClientState) Validate() error {
 	// If this occurs, the code here must account for potential difference
 	// between the tendermint version being run by the counterparty chain
 	// and the tendermint version used by this light client.
-	// https://github.com/cosmos/ibc-go/issues/177
+	// https://github.com/lfdt-ibc/ibc-go/issues/177
 	if len(cs.ChainId) > cmttypes.MaxChainIDLen {
 		return errorsmod.Wrapf(ErrInvalidChainID, "chainID is too long; got: %d, max: %d", len(cs.ChainId), cmttypes.MaxChainIDLen)
 	}

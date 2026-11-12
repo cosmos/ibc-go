@@ -7,11 +7,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	clientsim "github.com/cosmos/ibc-go/v11/modules/core/02-client/simulation"
-	connectionsim "github.com/cosmos/ibc-go/v11/modules/core/03-connection/simulation"
-	channelsim "github.com/cosmos/ibc-go/v11/modules/core/04-channel/simulation"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	"github.com/cosmos/ibc-go/v11/modules/core/keeper"
+	clientsim "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/simulation"
+	connectionsim "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/simulation"
+	channelsim "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/simulation"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/keeper"
 )
 
 // NewDecodeStore returns a decoder function closure that unmarshals the KVPair's

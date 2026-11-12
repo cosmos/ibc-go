@@ -5,7 +5,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

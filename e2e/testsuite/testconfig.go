@@ -27,19 +27,18 @@ import (
 
 	cmtjson "github.com/cometbft/cometbft/libs/json"
 
-	"github.com/cosmos/ibc-go/e2e/internal/directories"
-	"github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/semverutil"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v11/modules/core/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/internal/directories"
+	"github.com/lfdt-ibc/ibc-go/e2e/relayer"
+	"github.com/lfdt-ibc/ibc-go/e2e/semverutil"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/types"
 )
 
 const (
 	// ChainImageEnv specifies the image that the chains will use. If left unspecified, it will
-	// default to being determined based on the specified binary. E.g. ghcr.io/cosmos/ibc-go-simd
+	// default to being determined based on the specified binary. E.g. ghcr.io/lfdt-ibc/ibc-go-simd
 	ChainImageEnv = "CHAIN_IMAGE"
 	// ChainATagEnv specifies the tag that Chain A will use.
 	ChainATagEnv = "CHAIN_A_TAG"
@@ -66,6 +65,10 @@ const (
 	// depend on those chains.
 	KeepContainersEnv = "KEEP_CONTAINERS"
 
+	// WasmClientType is the 08-wasm light client type. It is defined here so that e2e does not import
+	// the 08-wasm module, whose proto types clash with interchaintest's copy in chain/cosmos/08-wasm-types.
+	WasmClientType = "08-wasm"
+
 	// defaultBinary is the default binary that will be used by the chains.
 	defaultBinary = "simd"
 	// defaultRlyTag is the tag that will be used if no relayer tag is specified.
@@ -90,7 +93,7 @@ func getChainImage(binary string) string {
 	if binary == "" {
 		binary = defaultBinary
 	}
-	return fmt.Sprintf("ghcr.io/cosmos/ibc-go-%s", binary)
+	return fmt.Sprintf("ghcr.io/lfdt-ibc/ibc-go-%s", binary)
 }
 
 // TestConfig holds configuration used throughout the different e2e tests.
@@ -644,7 +647,7 @@ func getConfigFilePath() string {
 	return path.Join(homeDir, defaultConfigFileName)
 }
 
-// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
+// TODO: remove in https://github.com/lfdt-ibc/ibc-go/issues/4697
 // getDefaultHermesRelayerConfig returns the default config for the hermes relayer.
 func getDefaultHermesRelayerConfig() relayer.Config {
 	return relayer.Config{
@@ -654,7 +657,7 @@ func getDefaultHermesRelayerConfig() relayer.Config {
 	}
 }
 
-// TODO: remove in https://github.com/cosmos/ibc-go/issues/4697
+// TODO: remove in https://github.com/lfdt-ibc/ibc-go/issues/4697
 // getDefaultRlyRelayerConfig returns the default config for the golang relayer.
 func getDefaultRlyRelayerConfig() relayer.Config {
 	return relayer.Config{
@@ -1054,7 +1057,7 @@ func modifyClientGenesisAppState(ibcAppState []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to unmarshal genesis bytes into client genesis state: %w", err)
 	}
 
-	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, wasmtypes.Wasm)
+	ibcGenesisState.ClientGenesis.Params.AllowedClients = append(ibcGenesisState.ClientGenesis.Params.AllowedClients, WasmClientType)
 	ibcGenBz, err := cdc.MarshalJSON(ibcGenesisState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)

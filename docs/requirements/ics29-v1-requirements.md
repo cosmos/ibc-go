@@ -41,7 +41,7 @@ Provide a general fee payment design that can be adopted by any ICS application 
 
 ## Terminology
 
-See section [Definitions](https://github.com/cosmos/ibc/tree/main/spec/app/ics-029-fee-payment#definitions) in ICS 29 spec.
+See section [Definitions](https://github.com/lfdt-ibc/ibc/tree/main/spec/app/ics-029-fee-payment#definitions) in ICS 29 spec.
 
 ## Features
 

@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	ratelimiting "github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting"
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	ratelimiting "github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 func TestCodecTypeRegistration(t *testing.T) {

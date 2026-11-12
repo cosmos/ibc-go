@@ -19,7 +19,7 @@ SKIP = "skip"
 FIELDS = "fields"
 TEST_SUITE = "test_suite"
 TESTS = "tests"
-RELEASES_URL = "https://api.github.com/repos/cosmos/ibc-go/releases"
+RELEASES_URL = "https://api.github.com/repos/lfdt-ibc/ibc-go/releases"
 # CHAIN_A should be specified if just chain-a -> chain-b tests should be run.
 CHAIN_A = "chain-a"
 # CHAIN_B should be specified if just chain-b -> chain-a tests should be run.
@@ -28,7 +28,7 @@ CHAIN_B = "chain-b"
 # both chain-a -> chain-b and chain-b -> chain-a tests should be run.
 ALL = "all"
 HERMES = "hermes"
-DEFAULT_IMAGE = "ghcr.io/cosmos/ibc-go-simd"
+DEFAULT_IMAGE = "ghcr.io/lfdt-ibc/ibc-go-simd"
 RLY = "rly"
 # MAX_VERSION is a version string that will be greater than any other semver version.
 MAX_VERSION = "9999.999.999"

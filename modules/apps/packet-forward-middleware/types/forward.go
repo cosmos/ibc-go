@@ -10,8 +10,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // PacketMetadata represents the metadata for a packet in the packet-forward middleware.

@@ -10,15 +10,15 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	localhost "github.com/cosmos/ibc-go/v11/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	"github.com/cosmos/ibc-go/v11/testing/mock"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	localhost "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/09-localhost"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/mock"
 )
 
 type LocalhostTestSuite struct {

@@ -25,8 +25,8 @@ v                     without deliberation
 <!-- List of tests that need to be performed with previous
 versions of ibc-go to guarantee that no regression is introduced -->
 
-- [ ] [Compatibility tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.
-- [ ] [Upgrade tests](https://github.com/cosmos/ibc-go/actions/workflows/e2e-upgrade.yaml) pass.
+- [ ] [Compatibility tests](https://github.com/lfdt-ibc/ibc-go/actions/workflows/e2e-compatibility.yaml) pass for the release branch.
+- [ ] [Upgrade tests](https://github.com/lfdt-ibc/ibc-go/actions/workflows/e2e-upgrade.yaml) pass.
 - [ ] Manual test with ledger signing.
 
 ### Other testing
@@ -39,25 +39,25 @@ versions of ibc-go to guarantee that no regression is introduced -->
 
 <!-- Remove any items that are not applicable. -->
 
-- [ ] Bump [go package version](https://github.com/cosmos/ibc-go/blob/main/go.mod#L3).
-- [ ] Change all imports starting with `github.com/cosmos/ibc-go/v{x}` to `github.com/cosmos/ibc-go/v{x+1}`.
+- [ ] Bump [go package version](https://github.com/lfdt-ibc/ibc-go/blob/main/go.mod#L3).
+- [ ] Change all imports starting with `github.com/lfdt-ibc/ibc-go/v{x}` to `github.com/lfdt-ibc/ibc-go/v{x+1}`.
 - [ ] Branch off main to create release branch in the form of `release/vx.y.z` and add branch protection rules.
 - [ ] Add branch protection rules to new release branch.
-- [ ] Add backport task to [`mergify.yml`](https://github.com/cosmos/ibc-go/blob/main/.github/mergify.yml)
+- [ ] Add backport task to [`mergify.yml`](https://github.com/lfdt-ibc/ibc-go/blob/main/.github/mergify.yml)
 - [ ] Upgrade ibc-go version in [interchaintest](https://github.com/strangelove-ventures/ibctest).
 - [ ] Check Swagger is up-to-date.
-- [ ] Cut the release by following [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#cut-a-release).
+- [ ] Cut the release by following [`RELEASES.md`](https://github.com/lfdt-ibc/ibc-go/blob/main/RELEASES.md#cut-a-release).
 
 ## Post-release checklist
 
-- [ ] Update [`CHANGELOG.md`](https://github.com/cosmos/ibc-go/blob/main/CHANGELOG.md)
-- [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md):
+- [ ] Update [`CHANGELOG.md`](https://github.com/lfdt-ibc/ibc-go/blob/main/CHANGELOG.md)
+- [ ] Update the table of supported release lines (and End of Life dates) in [`RELEASES.md`](https://github.com/lfdt-ibc/ibc-go/blob/main/RELEASES.md):
   - Add the new release line.
   - Remove any release lines that might have become discontinued.
-- [ ] Update [version matrix](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`:
+- [ ] Update [version matrix](https://github.com/lfdt-ibc/ibc-go/blob/main/RELEASES.md#version-matrix) in `RELEASES.md`:
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
-- [ ] Update the list of [supported release lines in README.md](https://github.com/cosmos/ibc-go#releases), if necessary.
+- [ ] Update the list of [supported release lines in README.md](https://github.com/lfdt-ibc/ibc-go#releases), if necessary.
 - [ ] Update docs site:
   - [ ] Update permalinks with links of the released tag.
   - [ ] If the release is occurring on the main branch, on the latest version, then run `npm run docusaurus docs:version vX.Y.Z` in the `docs/` directory. (where `X.Y.Z` is the new version number)
@@ -70,7 +70,7 @@ versions of ibc-go to guarantee that no regression is introduced -->
 - [ ] Ensure annotations on tests are correct as per the [compatibility test tool](../../scripts/compatibility.md):
   - Add the new release.
   - Remove any tags that might not be recommended anymore.
-- [ ] Update the manual [e2e `simd`](https://github.com/cosmos/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
+- [ ] Update the manual [e2e `simd`](https://github.com/lfdt-ibc/ibc-go/blob/main/.github/workflows/e2e-manual-simd.yaml) test workflow:
   - Remove any tags that might not be recommended anymore.
 - [ ] After changes to docs site are deployed, check [ibc.cosmos.network](https://ibc.cosmos.network) is updated.
 - [ ] Open issue in [SDK tutorials repo](https://github.com/cosmos/sdk-tutorials) to update tutorials to the released version of ibc-go.

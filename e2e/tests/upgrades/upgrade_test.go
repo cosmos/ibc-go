@@ -24,19 +24,19 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	e2erelayer "github.com/cosmos/ibc-go/e2e/relayer"
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	v7migrations "github.com/cosmos/ibc-go/v11/modules/core/02-client/migrations/v7"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	solomachine "github.com/cosmos/ibc-go/v11/modules/light-clients/06-solomachine"
-	localhost "github.com/cosmos/ibc-go/v11/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	e2erelayer "github.com/lfdt-ibc/ibc-go/e2e/relayer"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	v7migrations "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/migrations/v7"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	solomachine "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/06-solomachine"
+	localhost "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/09-localhost"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 const (
@@ -342,7 +342,7 @@ func (s *UpgradeTestSuite) TestV6ToV7ChainUpgrade() {
 	})
 
 	// create solo machine client using the solomachine implementation from ibctesting
-	// TODO: the solomachine clientID should be updated when after fix of this issue: https://github.com/cosmos/ibc-go/issues/2907
+	// TODO: the solomachine clientID should be updated when after fix of this issue: https://github.com/lfdt-ibc/ibc-go/issues/2907
 	solo := ibctesting.NewSolomachine(t, testsuite.Codec(), "solomachine", "testing", 1)
 
 	legacyConsensusState := &v7migrations.ConsensusState{

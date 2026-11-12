@@ -2,7 +2,7 @@
 
 /*
 Package connection implements the ICS 03 - Connection Semantics specification
-(https://github.com/cosmos/ibc/tree/main/spec/core/ics-003-connection-semantics). This
+(https://github.com/lfdt-ibc/ibc/tree/main/spec/core/ics-003-connection-semantics). This
 concrete implementation defines types and methods for safely creating two
 stateful objects (connection ends) on two separate chains, each associated with a
 light client of the other chain, which together facilitate cross-chain

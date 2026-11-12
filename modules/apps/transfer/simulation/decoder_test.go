@@ -10,8 +10,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/kv"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/simulation"
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/simulation"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func TestDecodeStore(t *testing.T) {

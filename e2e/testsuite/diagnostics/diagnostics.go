@@ -14,8 +14,8 @@ import (
 	dockertypes "github.com/docker/docker/api/types"
 	dockerclient "github.com/moby/moby/client"
 
-	"github.com/cosmos/ibc-go/e2e/dockerutil"
-	"github.com/cosmos/ibc-go/e2e/internal/directories"
+	"github.com/lfdt-ibc/ibc-go/e2e/dockerutil"
+	"github.com/lfdt-ibc/ibc-go/e2e/internal/directories"
 )
 
 const (

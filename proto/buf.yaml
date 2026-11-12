@@ -12,6 +12,10 @@ deps:
 breaking:
   use:
     - FILE
+  except:
+    # go_package follows the Go module path, which changes on major version bumps and
+    # changed with the move to github.com/lfdt-ibc. It does not affect the wire format.
+    - FILE_SAME_GO_PACKAGE
 lint:
   use:
     - STANDARD

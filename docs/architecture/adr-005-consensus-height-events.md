@@ -28,7 +28,7 @@ message BatchedHeaders {
 }
 ```
 
-To complement this flexibility, the `UpdateClient` handler will now support the submission of [client misbehaviour](https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#misbehaviour) by consolidating the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` interface type:
+To complement this flexibility, the `UpdateClient` handler will now support the submission of [client misbehaviour](https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-002-client-semantics#misbehaviour) by consolidating the `Header` and `Misbehaviour` interfaces into a single `ClientMessage` interface type:
 
 ```go
 // ClientMessage is an interface used to update an IBC client.
@@ -81,12 +81,12 @@ UpdateState(sdk.Context, codec.BinaryCodec, sdk.KVStore, ClientMessage) []Height
 
 Discussions:
 
-- [#1208](https://github.com/cosmos/ibc-go/pull/1208#discussion_r839691927)
+- [#1208](https://github.com/lfdt-ibc/ibc-go/pull/1208#discussion_r839691927)
 
 Issues:
 
-- [#594](https://github.com/cosmos/ibc-go/issues/594)
+- [#594](https://github.com/lfdt-ibc/ibc-go/issues/594)
 
 PRs:
 
-- [#1285](https://github.com/cosmos/ibc-go/pull/1285)
+- [#1285](https://github.com/lfdt-ibc/ibc-go/pull/1285)

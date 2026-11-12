@@ -5,9 +5,9 @@ package tendermint_test
 import (
 	ics23 "github.com/cosmos/ics23/go"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types"
-	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	commitmenttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types"
+	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
 )
 
 const (
@@ -42,7 +42,7 @@ func (s *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/issues/177
+			// https://github.com/lfdt-ibc/ibc-go/issues/177
 			name:        "valid chainID - chainID validation did not fail for chainID of length 50! ",
 			clientState: ibctm.NewClientState(fiftyCharChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expErr:      nil,
@@ -50,7 +50,7 @@ func (s *TendermintTestSuite) TestValidate() {
 		{
 			// NOTE: if this test fails, the code must account for the change in chainID length across tendermint versions!
 			// Do not only fix the test, fix the code!
-			// https://github.com/cosmos/ibc-go/issues/177
+			// https://github.com/lfdt-ibc/ibc-go/issues/177
 			name:        "invalid chainID - chainID validation failed for chainID of length 51! ",
 			clientState: ibctm.NewClientState(fiftyOneCharChainID, ibctm.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, height, commitmenttypes.GetSDKSpecs(), upgradePath),
 			expErr:      ibctm.ErrInvalidChainID,

@@ -17,10 +17,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 // compatibility:from_version: v7.10.0
@@ -136,7 +136,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 
 		s.Require().Equal(sdkmath.ZeroInt(), actualBalance)
 
-		// https://github.com/cosmos/ibc-go/issues/6742
+		// https://github.com/lfdt-ibc/ibc-go/issues/6742
 		// if testvalues.TotalEscrowFeatureReleases.IsSupported(chainBVersion) {
 		//	actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainB, chainBIBCToken.IBCDenom())
 		//	s.Require().NoError(err)
@@ -156,7 +156,7 @@ func (s *TransferTestSuite) TestMsgTransfer_Succeeds_Nonincentivized() {
 		s.Require().Equal(expected, actualBalance)
 	})
 
-	// https://github.com/cosmos/ibc-go/issues/6742
+	// https://github.com/lfdt-ibc/ibc-go/issues/6742
 	// if testvalues.TotalEscrowFeatureReleases.IsSupported(chainAVersion) {
 	//	t.Run("tokens are un-escrowed", func(t *testing.T) {
 	//		actualTotalEscrow, err := query.TotalEscrowForDenom(ctx, chainA, chainADenom)

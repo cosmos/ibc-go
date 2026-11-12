@@ -5,8 +5,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v3"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/migrations/v4"
 )
 
 // Migrator is a struct for handling in-place state migrations.
