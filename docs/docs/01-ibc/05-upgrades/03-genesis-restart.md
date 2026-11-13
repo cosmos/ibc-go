@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Genesis Restart Upgrades
 sidebar_label: Genesis Restart Upgrades
 sidebar_position: 3

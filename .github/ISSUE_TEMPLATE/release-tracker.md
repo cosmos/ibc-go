@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 name: Release tracker
 about: Create an issue to track release progress
 ---

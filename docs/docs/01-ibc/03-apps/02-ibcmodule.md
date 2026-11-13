@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Implement IBCModule interface and callbacks
 sidebar_label: Implement IBCModule interface and callbacks
 sidebar_position: 2

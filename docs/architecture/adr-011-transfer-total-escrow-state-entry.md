@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 011: ICS-20 transfer state entry for total amount of tokens in escrow
 
 ## Changelog

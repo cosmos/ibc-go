@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Parameters
 sidebar_label: Parameters
 sidebar_position: 6

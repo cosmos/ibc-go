@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Project structure
 
 If you're not familiar with the overall module structure from the SDK modules, please check this [document](https://docs.cosmos.network/main/build/building-modules/intro) as prerequisite reading.

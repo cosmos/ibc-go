@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # Governance
 
@@ -15,7 +15,7 @@ Merge authority is earned through the same public record for everyone.
 
 ## Technical Steering Committee
 
-The TSC is the body of Maintainers. Every Maintainer is a voting member with one vote. The TSC decides by consensus where it can and by vote where it must, with a quorum of at least half the voting members, a majority of those present at a meeting, or a majority of all voting members for an electronic vote. The TSC elects a Chair, who presides over meetings and is the primary contact with LFDT. The initial Maintainers are the initial TSC and are listed in the [CONTRIBUTING file](CONTRIBUTING.md), as the Charter requires. A Contributor becomes a Maintainer, and so a voting member, by majority approval of the TSC. If the maintainer set grows large, the TSC may adopt an alternative approach to voting membership, documented in the [CONTRIBUTING file](CONTRIBUTING.md), as the Charter allows.
+The TSC is the body of Maintainers. Every Maintainer is a voting member with one vote. The TSC decides by consensus where it can and by vote where it must, with a quorum of at least half the voting members, a majority of those present at a meeting, or a majority of all voting members for an electronic vote. The TSC elects a Chair, who presides over meetings and is the primary contact with LFDT. The initial Maintainers are the initial TSC and are listed in [TSC_MEMBERS.md](TSC_MEMBERS.md). A Contributor becomes a Maintainer, and so a voting member, by majority approval of the TSC. If the maintainer set grows large, the TSC may adopt an alternative approach to voting membership, documented in the [CONTRIBUTING file](CONTRIBUTING.md), as the Charter allows.
 
 ## Decision-making
 

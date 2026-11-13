@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Create a custom IBC middleware
 sidebar_label: Create a custom IBC middleware
 sidebar_position: 3

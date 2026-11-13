@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Pull request guidelines
 
 > To accommodate the review process we suggest that PRs are categorically broken up. Ideally each PR addresses only a single issue and does not introduce unrelated changes. Additionally, as much as possible code refactoring and cleanup should be submitted as separate PRs from bug fixes and feature additions.

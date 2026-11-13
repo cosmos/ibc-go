@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: State Verification
 sidebar_label: State Verification
 sidebar_position: 5

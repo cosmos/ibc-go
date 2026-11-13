@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 005: UpdateClient Events - ClientState Consensus Heights
 
 ## Changelog

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Development Use Cases
 sidebar_label: Development Use Cases
 sidebar_position: 2

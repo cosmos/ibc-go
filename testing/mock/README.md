@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 This package is only intended to be used for testing core IBC. In order to maintain secure
 testing, we need to do message passing and execution which requires connecting an IBC application
 module that fulfills all the callbacks. We cannot connect to ibc-transfer which does not support

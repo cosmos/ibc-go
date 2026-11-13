@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Interfaces
 sidebar_label: Interfaces
 sidebar_position: 3

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# Verifies that every eligible source file carries an `SPDX-License-Identifier` header
-# matching the license this repository is published under (see ../LICENSE.md).
+# Verifies that every eligible file carries an `SPDX-License-Identifier` header matching
+# the license CONTRIBUTING.md assigns to it: code under Apache-2.0 (see ../LICENSE) and
+# documentation (Markdown and MDX) under CC-BY-4.0 (see ../docs/LICENSE).
 #
 #   ./scripts/check-license-headers.sh            # report violations, exit 1 if any
 #   ./scripts/check-license-headers.sh --fix      # insert/correct headers in place
@@ -14,8 +15,8 @@
 
 set -euo pipefail
 
-LICENSE="Apache-2.0"
-SPDX_TAG="SPDX-License-Identifier: ${LICENSE}"
+CODE_LICENSE="Apache-2.0"
+DOCS_LICENSE="CC-BY-4.0"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${REPO_ROOT}"
@@ -25,6 +26,8 @@ cd "${REPO_ROOT}"
 #   #   -> yaml, nix, shell, just
 slash_exts="rs go sol proto"
 hash_exts="yml yaml nix sh just"
+#   <!-- --> or YAML front matter -> markdown, mdx (documentation, under ${DOCS_LICENSE})
+doc_exts="md mdx"
 
 # Paths (git pathspec globs) that are never checked. Each entry is paired with the reason
 # it is excluded so this list stays auditable.
@@ -44,13 +47,17 @@ EXCLUDED_PATHS=(
   '**/out/**'
   '**/lib/forge-std/**'
   'ibc-solidity/lib/**'
+
+  # Docusaurus snapshots of the documentation as it stood at each past release. They are
+  # frozen copies, not edited in place, so they keep the terms they were published under.
+  'docs/versioned_docs/**'
 )
 
-# Files whose existing SPDX header is intentionally different from ${LICENSE} and must be
-# left alone. Anything listed here is checked for *having* a header, but its value is not
-# forced to ${LICENSE}.
+# Files whose existing SPDX header is intentionally different from the license chosen by
+# license_for and must be left alone. Anything listed here is checked for *having* a
+# header, but its value is not forced.
 #
-# Deliberately empty: every file this repository owns is published under ${LICENSE}. This
+# Deliberately empty: every file this repository owns follows CONTRIBUTING.md. This
 # stays as an escape hatch for future third-party code that cannot be relicensed -- add the
 # path together with a comment saying why, rather than weakening the check.
 PRESERVED_HEADERS=()
@@ -82,7 +89,7 @@ is_generated() {
 # Emits the list of tracked, non-generated, non-excluded files that require a header.
 collect_files() {
   local pathspecs=() ext
-  for ext in ${slash_exts} ${hash_exts}; do
+  for ext in ${slash_exts} ${hash_exts} ${doc_exts}; do
     pathspecs+=("*.${ext}")
   done
   # `justfile` and `*.just` are both just-language files; the former has no extension.
@@ -103,6 +110,15 @@ collect_files() {
         is_generated "$f" && continue
         printf '%s\0' "$f"
       done
+}
+
+# Prints the license a file must carry: documentation under ${DOCS_LICENSE}, code under
+# ${CODE_LICENSE}.
+license_for() {
+  case "$1" in
+    *.md | *.mdx) printf '%s' "${DOCS_LICENSE}" ;;
+    *) printf '%s' "${CODE_LICENSE}" ;;
+  esac
 }
 
 comment_marker_for() {
@@ -141,7 +157,7 @@ write_back() {
 # Rewrites an existing SPDX value in place, preserving the surrounding comment syntax.
 replace_header() {
   local f=$1
-  awk -v want="${LICENSE}" '
+  awk -v want="$(license_for "$f")" '
     !done && /SPDX-License-Identifier:/ {
       sub(/SPDX-License-Identifier:[[:space:]]*[^ *\/#]+/, "SPDX-License-Identifier: " want)
       done = 1
@@ -150,12 +166,64 @@ replace_header() {
   ' "$f" >"$f.spdx.tmp" && write_back "$f" "$f.spdx.tmp"
 }
 
+# Directories Docusaurus renders (see ../docs/docusaurus.config.js). Docusaurus takes a
+# page title from a leading `#` heading only if nothing comes before it, so a page here
+# without front matter gets a front matter block for its header instead of an HTML comment.
+DOCUSAURUS_DIRS="docs/docs docs/architecture docs/events docs/params"
+
+is_docusaurus_page() {
+  local d
+  for d in ${DOCUSAURUS_DIRS}; do
+    [[ "$1" == "$d"/* ]] && return 0
+  done
+  return 1
+}
+
+# Inserts a header at the top of a Markdown or MDX file. A file that opens with YAML front
+# matter gets a YAML comment as its first front matter line, since the front matter must
+# stay on line 1 for GitHub and Docusaurus to recognise it. A Docusaurus page without front
+# matter gets a front matter block holding only that comment. Any other file gets an HTML
+# comment on line 1.
+insert_doc_header() {
+  local f=$1
+  local tag="SPDX-License-Identifier: $(license_for "$f")"
+  local frontmatter=0
+  is_docusaurus_page "$f" && frontmatter=1
+  awk -v tag="${tag}" -v frontmatter="${frontmatter}" '
+    { lines[NR] = $0 }
+    END {
+      if (NR >= 1 && lines[1] == "---") {
+        print lines[1]
+        print "# " tag
+        for (i = 2; i <= NR; i++) print lines[i]
+        exit
+      }
+      if (frontmatter) {
+        print "---"
+        print "# " tag
+        print "---"
+      } else {
+        print "<!-- " tag " -->"
+      }
+      # Separate the header from the body with exactly one blank line.
+      if (NR >= 1 && lines[1] != "") print ""
+      for (i = 1; i <= NR; i++) print lines[i]
+    }
+  ' "$f" >"$f.spdx.tmp" && write_back "$f" "$f.spdx.tmp"
+}
+
 # Inserts a header at the top of a file, after a shebang if one is present.
 insert_header() {
   local f=$1
+  case "$f" in
+    *.md | *.mdx)
+      insert_doc_header "$f"
+      return
+      ;;
+  esac
   local marker
   marker=$(comment_marker_for "$f")
-  local header="${marker} ${SPDX_TAG}"
+  local header="${marker} SPDX-License-Identifier: $(license_for "$f")"
 
   # The shebang pattern requires the `/` of an interpreter path so that Rust inner
   # attributes (`#![deny(...)]`, `#![doc = ...]`) are not mistaken for one.
@@ -212,12 +280,13 @@ while IFS= read -r -d '' file; do
   # A header exists. Leave deliberately-different licenses alone.
   is_preserved "${file}" && continue
 
-  if [[ "${found}" != "${LICENSE}" ]]; then
+  want=$(license_for "${file}")
+  if [[ "${found}" != "${want}" ]]; then
     if [[ "${MODE}" == fix ]]; then
       replace_header "${file}"
       fixed=$((fixed + 1))
     else
-      mismatched+=("${file}  (${found})")
+      mismatched+=("${file}  (${found}, want ${want})")
     fi
   fi
 done < <(collect_files)
@@ -235,23 +304,23 @@ status=0
 
 if ((${#missing[@]} > 0)); then
   status=1
-  echo "Missing '${SPDX_TAG}' header (${#missing[@]} file(s)):" >&2
+  echo "Missing 'SPDX-License-Identifier' header (${#missing[@]} file(s)):" >&2
   printf '  %s\n' "${missing[@]}" >&2
 fi
 
 if ((${#mismatched[@]} > 0)); then
   status=1
-  echo "Unexpected SPDX license, want '${LICENSE}' (${#mismatched[@]} file(s)):" >&2
+  echo "Unexpected SPDX license (${#mismatched[@]} file(s)):" >&2
   printf '  %s\n' "${mismatched[@]}" >&2
 fi
 
 if ((status != 0)); then
   echo >&2
-  echo "Run 'just lint-license-fix' (or ./scripts/check-license-headers.sh --fix) to correct these." >&2
+  echo "Run './scripts/check-license-headers.sh --fix' to correct these." >&2
   echo "If a file is intentionally licensed differently, add it to PRESERVED_HEADERS in" >&2
   echo "scripts/check-license-headers.sh with a comment explaining why." >&2
 else
-  echo "check-license-headers: all files carry the '${LICENSE}' header"
+  echo "check-license-headers: all files carry the '${CODE_LICENSE}' or '${DOCS_LICENSE}' header"
 fi
 
 exit "${status}"

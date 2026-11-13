@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 27: Add support for Wasm based light client
 
 ## Changelog

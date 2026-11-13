@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Messages
 sidebar_label: Messages
 sidebar_position: 4

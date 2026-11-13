@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Concepts
 sidebar_label: Concepts
 sidebar_position: 2

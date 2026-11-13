@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Example Flows
 sidebar_label: Example Flows
 sidebar_position: 3

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Metrics
 sidebar_label: Metrics
 sidebar_position: 6

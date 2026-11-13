@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Create and integrate IBC v2 middleware
 sidebar_label: Create and integrate IBC v2 middleware
 sidebar_position: 2

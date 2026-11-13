@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Consensus State interface
 sidebar_label: Consensus State interface
 sidebar_position: 4

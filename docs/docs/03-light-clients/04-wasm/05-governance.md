@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Governance
 sidebar_label: Governance
 sidebar_position: 5

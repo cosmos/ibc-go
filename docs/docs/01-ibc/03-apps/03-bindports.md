@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Bind ports
 sidebar_label: Bind ports
 sidebar_position: 3

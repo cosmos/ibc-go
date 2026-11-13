@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Table of Contents
 
 1. [Running Tests](#running-tests)

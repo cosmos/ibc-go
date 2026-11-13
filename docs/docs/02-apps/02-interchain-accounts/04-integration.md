@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Integration
 sidebar_label: Integration
 sidebar_position: 4

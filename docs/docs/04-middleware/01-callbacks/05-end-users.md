@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: End Users
 sidebar_label: End Users
 sidebar_position: 5

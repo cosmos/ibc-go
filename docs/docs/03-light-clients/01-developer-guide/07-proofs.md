@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Existence/Non-Existence Proofs
 sidebar_label: Existence/Non-Existence Proofs
 sidebar_position: 7

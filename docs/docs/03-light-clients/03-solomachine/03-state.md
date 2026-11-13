@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: State
 sidebar_label: State
 sidebar_position: 3

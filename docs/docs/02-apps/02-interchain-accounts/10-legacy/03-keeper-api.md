@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Keeper API
 sidebar_label: Keeper API
 sidebar_position: 3

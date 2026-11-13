@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: How to Upgrade IBC Chains and their Clients
 sidebar_label: How to Upgrade IBC Chains and their Clients
 sidebar_position: 1

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Inter-Blockchain Communication Protocol (IBC)
 
 [![Version](https://img.shields.io/github/tag/lfdt-ibc/ibc-go.svg)](https://github.com/lfdt-ibc/ibc-go/releases/latest)

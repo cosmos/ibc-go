@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Authentication Modules
 sidebar_label: Authentication Modules
 sidebar_position: 3

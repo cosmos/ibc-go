@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Address Codec
 sidebar_label: Address Codec
 sidebar_position: 7

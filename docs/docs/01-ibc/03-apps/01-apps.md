@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: IBC Applications
 sidebar_label: IBC Applications
 sidebar_position: 1
