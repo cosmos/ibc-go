@@ -10,10 +10,10 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	wasmtesting "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/testing"
-	"github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	wasmtesting "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 func TestValidateWasmCode(t *testing.T) {

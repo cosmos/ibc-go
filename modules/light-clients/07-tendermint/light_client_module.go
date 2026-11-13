@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 var _ exported.LightClientModule = (*LightClientModule)(nil)

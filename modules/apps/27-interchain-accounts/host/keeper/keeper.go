@@ -22,13 +22,13 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	genesistypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/genesis/types"
-	"github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	genesistypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/genesis/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // Keeper defines the IBC interchain accounts host keeper

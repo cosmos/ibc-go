@@ -18,4 +18,4 @@ The callbacks middleware has no stable releases yet. To use it, you need to impo
 go get github.com/cosmos/ibc-go/modules/apps/callbacks@342c00b0f8bd7feeebf0780f208a820b0faf90d1
 ```
 
-You can find the version matrix for the callbacks middleware [here](https://github.com/cosmos/ibc-go/blob/main/RELEASES.md#callbacks-middleware-1)
+You can find the version matrix for the callbacks middleware [here](https://github.com/lfdt-ibc/ibc-go/blob/main/RELEASES.md#callbacks-middleware-1)

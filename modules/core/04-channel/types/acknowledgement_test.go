@@ -12,8 +12,8 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	cmtstate "github.com/cometbft/cometbft/state"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
 )
 
 const (

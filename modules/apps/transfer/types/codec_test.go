@@ -9,9 +9,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer"
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 // TestMustMarshalProtoJSON tests that the memo field is only emitted (marshalled) if it is populated

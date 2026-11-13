@@ -22,8 +22,8 @@ import (
   authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
   govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+  ibcwasmkeeper "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+  ibcwasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
   ...
 )
 

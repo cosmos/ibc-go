@@ -8,7 +8,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 const pendingGenesisPacketID = "channel-0/1/denomA"

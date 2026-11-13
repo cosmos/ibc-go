@@ -8,11 +8,11 @@ import (
 
 	testifysuite "github.com/stretchr/testify/suite"
 
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	ibcmock "github.com/cosmos/ibc-go/v11/testing/mock"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	clientv2types "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	ibcmock "github.com/lfdt-ibc/ibc-go/v11/testing/mock"
 )
 
 // KeeperTestSuite is a testing suite to test keeper functions.

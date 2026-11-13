@@ -15,7 +15,7 @@ Learn how to integrate the `08-wasm` module in a chain binary and about the reco
 `08-wasm` has no stable releases yet. To use it, you need to import the git commit that contains the module with the compatible versions of `ibc-go` and `wasmvm`. To do so, run the following command with the desired git commit in your project:
 
 ```sh
-go get github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11
+go get github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11
 ```
 
 ## `app.go` setup
@@ -30,9 +30,9 @@ import (
 
   cmtos "github.com/cometbft/cometbft/libs/os"
 
-  ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11"
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+  ibcwasm "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11"
+  ibcwasmkeeper "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+  ibcwasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
   ...
 )
 
@@ -163,8 +163,8 @@ import (
   wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
   wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+  ibcwasmkeeper "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+  ibcwasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
   ...
 )
 
@@ -242,8 +242,8 @@ import (
   ...
   "github.com/cosmos/cosmos-sdk/runtime"
 
-  ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/keeper"
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+  ibcwasmkeeper "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/keeper"
+  ibcwasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
   ...
 )
 
@@ -343,7 +343,7 @@ If the chain's 02-client submodule parameter `AllowedClients` contains the singl
 ```go
 import (
   ...
-  ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v11/types"
+  ibcwasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
   ...
 )
 

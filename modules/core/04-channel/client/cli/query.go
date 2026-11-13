@@ -12,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/client/utils"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/client/utils"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 const (

@@ -8,12 +8,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	channeltypesv1 "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
-	"github.com/cosmos/ibc-go/v11/testing/mock"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	channeltypesv1 "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/testing/mock"
 )
 
 // TestValidateBasic tests the ValidateBasic function of Packet

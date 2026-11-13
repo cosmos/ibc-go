@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/rate-limiting/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/rate-limiting/types"
 )
 
 // SetPendingSendPacket records a packet whose send flow was applied and may be

@@ -6,8 +6,8 @@ name: Release
 # the signed assets exist before the release is published. Once the assets verify, it also publishes
 # the signed simd container images built from the tagged commit.
 #
-# The attesting, signing and publishing steps are the shared actions in cosmos/ibc's
-# .github/actions, which cosmos/ibc and cosmos/ibc-contracts use too. Images for branches are built,
+# The attesting, signing and publishing steps are the shared actions in lfdt-ibc/ibc's
+# .github/actions, which lfdt-ibc/ibc and lfdt-ibc/ibc-contracts use too. Images for branches are built,
 # unsigned, by docker.yml.
 
 on:
@@ -190,7 +190,7 @@ jobs:
           verify-only: "true"
 
   # Builds each platform image from the tagged commit. The source archive holds only the tagged
-  # module, not the simapp simd is built from, so unlike cosmos/ibc's CLI image the images cannot be
+  # module, not the simapp simd is built from, so unlike lfdt-ibc/ibc's CLI image the images cannot be
   # built from the attested archive.
   image:
     name: Image ${{ matrix.image }} ${{ matrix.goos }}-${{ matrix.goarch }}

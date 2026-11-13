@@ -14,11 +14,11 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/keeper"
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/migrations/v10"
-	host "github.com/cosmos/ibc-go/v11/modules/core/24-host"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/keeper"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/migrations/v10"
+	host "github.com/lfdt-ibc/ibc-go/v11/modules/core/24-host"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 type MigrationsV10TestSuite struct {

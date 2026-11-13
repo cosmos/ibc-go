@@ -9,8 +9,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/23-commitment/types/v2"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/23-commitment/types/v2"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 // var representing the proofspecs for an SDK chain

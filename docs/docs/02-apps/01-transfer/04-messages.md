@@ -34,8 +34,8 @@ type MsgTransfer struct {
 
 This message is expected to fail if:
 
-- `SourcePort` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
-- `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/cosmos/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
+- `SourcePort` is invalid (see [24-host naming requirements](https://github.com/lfdt-ibc/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators).
+- `SourceChannel` is invalid (see [24-host naming requirements](https://github.com/lfdt-ibc/ibc/blob/master/spec/core/ics-024-host-requirements/README.md#paths-identifiers-separators)).
 - `Token` is invalid:
     - `Amount` is not positive.
     - `Denom` is not a valid IBC denomination as per [ADR 001 - Coin Source Tracing](/architecture/adr-001-coin-source-tracing).

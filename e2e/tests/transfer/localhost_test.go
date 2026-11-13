@@ -11,15 +11,15 @@ import (
 	test "github.com/cosmos/interchaintest/v11/testutil"
 	testifysuite "github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/e2e/testsuite"
-	"github.com/cosmos/ibc-go/e2e/testsuite/query"
-	"github.com/cosmos/ibc-go/e2e/testvalues"
-	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v11/modules/core/exported"
-	localhost "github.com/cosmos/ibc-go/v11/modules/light-clients/09-localhost"
-	ibctesting "github.com/cosmos/ibc-go/v11/testing"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
+	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
+	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
+	transfertypes "github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
+	localhost "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/09-localhost"
+	ibctesting "github.com/lfdt-ibc/ibc-go/v11/testing"
 )
 
 // compatibility:from_version: v7.10.0

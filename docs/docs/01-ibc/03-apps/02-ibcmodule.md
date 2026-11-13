@@ -13,7 +13,7 @@ Learn how to implement the `IBCModule` interface and all of the callbacks it req
 :::
 
 The Cosmos SDK expects all IBC modules to implement the [`IBCModule`
-interface](https://github.com/cosmos/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. They include callbacks related to channel handshake, closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
+interface](https://github.com/lfdt-ibc/ibc-go/tree/main/modules/core/05-port/types/module.go). This interface contains all of the callbacks IBC expects modules to implement. They include callbacks related to channel handshake, closing and packet callbacks (`OnRecvPacket`, `OnAcknowledgementPacket` and `OnTimeoutPacket`).
 
 ```go
 // IBCModule implements the ICS26 interface for given the keeper.
@@ -198,7 +198,7 @@ various features in between major releases then it is advised to use the same ve
 as IBC. This versioning scheme specifies a version identifier and compatible feature set with
 that identifier. Valid version selection includes selecting a compatible version identifier with
 a subset of features supported by your application for that version. The struct used for this
-scheme can be found in [03-connection/types](https://github.com/cosmos/ibc-go/blob/main/modules/core/03-connection/types/version.go#L16).
+scheme can be found in [03-connection/types](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/core/03-connection/types/version.go#L16).
 
 Since the version type is a string, applications have the ability to do simple version verification
 via string matching or they can use the already implemented versioning system and pass the proto

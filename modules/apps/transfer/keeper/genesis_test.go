@@ -9,7 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/transfer/types"
 )
 
 func (s *KeeperTestSuite) TestGenesis() {

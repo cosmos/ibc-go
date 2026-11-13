@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	types "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
+	types "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -412,7 +412,7 @@ var xxx_messageInfo_PacketId proto.InternalMessageInfo
 // conflicts with other protobuf message formats used for acknowledgements.
 // The first byte of any message with this format will be the non-ASCII values
 // `0xaa` (result) or `0xb2` (error). Implemented as defined by ICS:
-// https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
+// https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#acknowledgement-envelope
 type Acknowledgement struct {
 	// response contains either a result or an error and must be non-empty
 	//

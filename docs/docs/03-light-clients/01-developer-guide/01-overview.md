@@ -18,7 +18,7 @@ Learn how to build IBC light client modules and fulfill the interfaces required 
 
 - [IBC Overview](../../01-ibc/01-overview.md)
 - [IBC Transport, Authentication, and Ordering Layer - Clients](https://tutorials.cosmos.network/academy/3-ibc/4-clients.html)
-- [ICS-002 Client Semantics](https://github.com/cosmos/ibc/tree/main/spec/core/ics-002-client-semantics)
+- [ICS-002 Client Semantics](https://github.com/lfdt-ibc/ibc/tree/main/spec/core/ics-002-client-semantics)
 
 :::
 

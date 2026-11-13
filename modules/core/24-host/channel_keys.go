@@ -10,7 +10,7 @@ const (
 )
 
 // ICS04
-// The following paths are the keys to the store as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#store-paths
+// The following paths are the keys to the store as defined in https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-004-channel-and-packet-semantics#store-paths
 
 // ChannelKey returns the store key for a particular channel
 func ChannelKey(portID, channelID string) []byte {

@@ -5,7 +5,7 @@ package exported
 // ICS 023 Types Implementation
 //
 // This file includes types defined under
-// https://github.com/cosmos/ibc/tree/master/spec/core/ics-023-vector-commitments
+// https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-023-vector-commitments
 
 // spec:Path and spec:Value are defined as bytestring
 

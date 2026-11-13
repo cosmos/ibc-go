@@ -30,7 +30,7 @@ As mentioned in [IBC middleware development](../../01-ibc/04-middleware/02-devel
 These layers form the complete set of application logic that enable developers to build composable and flexible IBC application stacks.
 For example, an application stack may just be a single base application like `transfer`, however, the same application stack composed with `packet-forward-middleware` and `callbacks` will nest the `transfer` base application twice by wrapping it with the callbacks module and then packet forward middleware.
 
-The callbacks middleware also **requires** a secondary application that will receive the callbacks to implement the [`ContractKeeper`](https://github.com/cosmos/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L12-L100). The wasmd contract keeper has been implemented [here](https://github.com/CosmWasm/wasmd/tree/main/x/wasm/keeper) and is referenced as the `WasmKeeper`.
+The callbacks middleware also **requires** a secondary application that will receive the callbacks to implement the [`ContractKeeper`](https://github.com/lfdt-ibc/ibc-go/blob/main/modules/apps/callbacks/types/expected_keepers.go#L12-L100). The wasmd contract keeper has been implemented [here](https://github.com/CosmWasm/wasmd/tree/main/x/wasm/keeper) and is referenced as the `WasmKeeper`.
 
 ### Transfer
 

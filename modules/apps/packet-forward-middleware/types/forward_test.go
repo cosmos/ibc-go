@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/ibc-go/v11/modules/apps/packet-forward-middleware/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/apps/packet-forward-middleware/types"
 )
 
 func TestTimeoutUnmarshalJSON(t *testing.T) {

@@ -10,14 +10,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	clientv2types "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	connectiontypes "github.com/cosmos/ibc-go/v11/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v11/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
-	ibcerrors "github.com/cosmos/ibc-go/v11/modules/core/errors"
-	internalerrors "github.com/cosmos/ibc-go/v11/modules/core/internal/errors"
-	"github.com/cosmos/ibc-go/v11/modules/core/internal/telemetry"
+	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	clientv2types "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	connectiontypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/03-connection/types"
+	channeltypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/types"
+	porttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/05-port/types"
+	ibcerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/errors"
+	internalerrors "github.com/lfdt-ibc/ibc-go/v11/modules/core/internal/errors"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/internal/telemetry"
 )
 
 var (

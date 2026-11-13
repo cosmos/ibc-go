@@ -12,10 +12,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/client/utils"
-	"github.com/cosmos/ibc-go/v11/modules/core/02-client/types"
-	clienttypesv2 "github.com/cosmos/ibc-go/v11/modules/core/02-client/v2/types"
-	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/client/utils"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
+	clienttypesv2 "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/v2/types"
+	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 )
 
 const (
@@ -166,7 +166,7 @@ func GetCmdQueryClientConfig() *cobra.Command {
 }
 
 // GetCmdQueryClientState defines the command to query the state of a client with
-// a given id as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#query
+// a given id as defined in https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-002-client-semantics#query
 func GetCmdQueryClientState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "state [client-id]",
@@ -328,7 +328,7 @@ func GetCmdQueryConsensusStateHeights() *cobra.Command {
 }
 
 // GetCmdQueryConsensusState defines the command to query the consensus state of
-// the chain as defined in https://github.com/cosmos/ibc/tree/master/spec/core/ics-002-client-semantics#query
+// the chain as defined in https://github.com/lfdt-ibc/ibc/tree/master/spec/core/ics-002-client-semantics#query
 func GetCmdQueryConsensusState() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "consensus-state [client-id] [height]",

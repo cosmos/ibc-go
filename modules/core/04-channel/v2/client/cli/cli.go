@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/cosmos/ibc-go/v11/modules/core/04-channel/v2/types"
+	"github.com/lfdt-ibc/ibc-go/v11/modules/core/04-channel/v2/types"
 )
 
 // GetQueryCmd returns the query commands for the IBC channel/v2.
@@ -43,7 +43,7 @@ func NewTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	// TODO: Add v2 packet commands: https://github.com/cosmos/ibc-go/issues/7853
+	// TODO: Add v2 packet commands: https://github.com/lfdt-ibc/ibc-go/issues/7853
 	txCmd.AddCommand()
 
 	return txCmd
