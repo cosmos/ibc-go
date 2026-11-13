@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Business requirements
 
 > **TL;DR**: Rather than creating an IBC application to expose cross-chain access to every module's features, the Interchain Accounts feature would allow to leverage the capabilities of an account to access a blockchain's application-specific features.

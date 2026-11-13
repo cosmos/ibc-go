@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: SDK v0.43 to IBC-Go v1
 sidebar_label: SDK v0.43 to IBC-Go v1
 sidebar_position: 2

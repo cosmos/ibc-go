@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 004: Lock fee module upon escrow out of balance
 
 ## Changelog

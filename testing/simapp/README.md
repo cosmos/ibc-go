@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # simapp
 
 simapp is an application built using the Cosmos SDK for testing and educational purposes.

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Setup
 sidebar_label: Setup
 sidebar_position: 9

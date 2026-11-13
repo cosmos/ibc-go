@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Define packets and acks
 sidebar_label: Define packets and acks
 sidebar_position: 5

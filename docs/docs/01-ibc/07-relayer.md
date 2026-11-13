@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Relayer
 sidebar_label: Relayer
 sidebar_position: 7

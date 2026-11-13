@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 006: ICS-02 client refactor
 
 ## Changelog

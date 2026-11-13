@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Solomachine
 sidebar_label: Solomachine
 sidebar_position: 1

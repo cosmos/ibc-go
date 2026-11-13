@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 name: Epic Tracker
 about: Create an issue to track feature epic progress
 

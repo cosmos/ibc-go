@@ -1,4 +1,4 @@
-<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
 # Contributing to IBC
 
@@ -89,7 +89,7 @@ All changes are code reviewed. For non-trivial changes, the reviewer should be a
 
 ## Copyright and license
 
-Code is contributed under Apache 2.0, specifications under the Community Specification License 1.0, and documentation under CC BY 4.0, regardless of where in the repository the file lives. The SPDX header on each file records which applies.
+Code is contributed under [Apache 2.0](LICENSE), specifications under the Community Specification License 1.0, and documentation under [CC BY 4.0](docs/LICENSE), regardless of where in the repository the file lives. The SPDX header on each file records which applies.
 
 ## Trivial contributions
 

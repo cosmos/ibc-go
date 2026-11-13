@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: IBC middleware
 sidebar_label: IBC middleware
 sidebar_position: 1

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Token Transfer Model-based Testing Guide
 
 In the process of IBC Audit performed by Informal Systems, we have implemented

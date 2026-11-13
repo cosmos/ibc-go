@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Contracts
 sidebar_label: Contracts
 sidebar_position: 7

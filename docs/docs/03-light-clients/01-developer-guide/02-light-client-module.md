@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Light Client Module interface
 sidebar_label: Light Client Module interface
 sidebar_position: 2

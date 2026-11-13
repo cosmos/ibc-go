@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 ## Description
 
 What does this change and why. Link the issue: fixes #

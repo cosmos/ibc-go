@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Support transfer of coins whose base denom contains slashes
 sidebar_label: Support transfer of coins whose base denom contains slashes
 sidebar_position: 1

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Repository instructions for coding agents
 
 This file applies to the entire repository. Add a nested `AGENTS.md` only when a

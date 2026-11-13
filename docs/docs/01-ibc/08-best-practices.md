@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Best Practices
 sidebar_label: Best Practices
 sidebar_position: 8

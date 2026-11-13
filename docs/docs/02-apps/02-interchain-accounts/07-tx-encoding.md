@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Transaction Encoding
 sidebar_label: Transaction Encoding
 sidebar_position: 7

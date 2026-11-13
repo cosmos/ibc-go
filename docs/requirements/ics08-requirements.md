@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 <!-- markdown-link-check-disable -->
 # Business requirements
 

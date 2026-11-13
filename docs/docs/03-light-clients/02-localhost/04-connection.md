@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Connection
 sidebar_label: Connection
 sidebar_position: 4

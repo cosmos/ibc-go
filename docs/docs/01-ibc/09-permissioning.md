@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Permissioning
 sidebar_label: Permissioning
 sidebar_position: 9

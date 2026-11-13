@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 009: ICS27 message server addition
 
 ## Changelog

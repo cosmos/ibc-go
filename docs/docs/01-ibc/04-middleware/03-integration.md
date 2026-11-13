@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Integrating IBC middleware into a chain
 sidebar_label: Integrating IBC middleware into a chain
 sidebar_position: 4

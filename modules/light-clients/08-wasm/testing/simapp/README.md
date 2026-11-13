@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # 08-Wasm Testing SimApp
 
 This testing directory is a duplicate of the ibc-go testing directory.

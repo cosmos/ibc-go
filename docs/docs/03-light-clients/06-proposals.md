@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Governance Proposals
 sidebar_label: Light Client Recovery
 sidebar_position: 6

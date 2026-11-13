@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 010: IBC light clients as SDK modules
 
 ## Changelog

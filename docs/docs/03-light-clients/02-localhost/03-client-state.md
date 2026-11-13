@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: ClientState
 sidebar_label: ClientState
 sidebar_position: 3

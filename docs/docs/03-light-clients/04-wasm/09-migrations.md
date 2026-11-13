@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Migrations
 sidebar_label: Migrations
 sidebar_position: 9

@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 slug: /
 sidebar_position: 0
 ---

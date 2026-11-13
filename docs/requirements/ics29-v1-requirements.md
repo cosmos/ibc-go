@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
 # Business requirements
 
 > **TL;DR**: There is no general incentivization mechanism to reward relayers for their service ensuring Interchain liveness.

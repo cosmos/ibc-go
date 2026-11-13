@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Handling Upgrades
 sidebar_label: Handling Upgrades
 sidebar_position: 6

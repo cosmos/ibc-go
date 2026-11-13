@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Gas Management
 sidebar_label: Gas Management
 sidebar_position: 6

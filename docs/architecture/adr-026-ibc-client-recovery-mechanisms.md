@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 026: IBC Client Recovery Mechanisms
 
 ## Changelog

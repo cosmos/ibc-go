@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Handling Updates and Misbehaviour
 sidebar_label: Handling Updates and Misbehaviour
 sidebar_position: 5

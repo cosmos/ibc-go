@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: State Transitions
 sidebar_label: State Transitions
 sidebar_position: 3

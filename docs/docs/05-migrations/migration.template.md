@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # Migrating from \<old-version\> to \<new-version\>
 
 This guide provides instructions for migrating to a new version of ibc-go.

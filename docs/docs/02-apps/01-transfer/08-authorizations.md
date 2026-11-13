@@ -1,4 +1,5 @@
 ---
+# SPDX-License-Identifier: CC-BY-4.0
 title: Authorizations
 sidebar_label: Authorizations
 sidebar_position: 8

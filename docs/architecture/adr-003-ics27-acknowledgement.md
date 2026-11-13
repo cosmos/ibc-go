@@ -1,3 +1,7 @@
+---
+# SPDX-License-Identifier: CC-BY-4.0
+---
+
 # ADR 003: ICS27 Acknowledgement Format
 
 ## Changelog
