@@ -4,7 +4,7 @@
 
 Thank you for your interest in contributing to IBC. IBC is an open standard for trust-minimized interoperability between independent ledgers, stewarded under the Linux Foundation Decentralized Trust (LFDT). Contributions come in many forms, and all of them follow the same public path.
 
-Before participating, please read the LFDT Code of Conduct. If you use AI or LLM tooling in your contributions, see the AI sign-off rule under Developer Certificate of Origin below.
+Before participating, please read the [Code of Conduct](CODE_OF_CONDUCT.md), which adopts the LF Decentralized Trust Code of Conduct. If you use AI or LLM tooling in your contributions, see the AI sign-off rule under Developer Certificate of Origin below.
 
 ## Ways to contribute
 
