@@ -34,7 +34,6 @@ import (
 	"github.com/lfdt-ibc/ibc-go/e2e/testsuite"
 	"github.com/lfdt-ibc/ibc-go/e2e/testsuite/query"
 	"github.com/lfdt-ibc/ibc-go/e2e/testvalues"
-	wasmtypes "github.com/lfdt-ibc/ibc-go/modules/light-clients/08-wasm/v11/types"
 	clienttypes "github.com/lfdt-ibc/ibc-go/v11/modules/core/02-client/types"
 	ibcexported "github.com/lfdt-ibc/ibc-go/v11/modules/core/exported"
 	ibctm "github.com/lfdt-ibc/ibc-go/v11/modules/light-clients/07-tendermint"
@@ -390,7 +389,7 @@ func (s *ClientTestSuite) TestAllowedClientsParam() {
 
 		defaultAllowedClients := clienttypes.DefaultAllowedClients
 		if !testvalues.AllowAllClientsWildcardFeatureReleases.IsSupported(chainAVersion) {
-			defaultAllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, wasmtypes.Wasm}
+			defaultAllowedClients = []string{ibcexported.Solomachine, ibcexported.Tendermint, ibcexported.Localhost, testsuite.WasmClientType}
 		}
 		if !testvalues.LocalhostClientFeatureReleases.IsSupported(chainAVersion) {
 			defaultAllowedClients = slices.DeleteFunc(defaultAllowedClients, func(s string) bool { return s == ibcexported.Localhost })
