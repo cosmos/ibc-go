@@ -54,6 +54,32 @@ func TestFungibleTokenPacketDataValidateBasic(t *testing.T) {
 	}
 }
 
+// TestFungibleTokenPacketDataNonPositiveAmountErrorMessage checks that the error
+// returned for a non-positive amount reports the decimal amount itself.
+// sdkmath.Int holds a *big.Int, so formatting it with %d used to print the
+// pointer address instead of the value, which also made the error text differ
+// between nodes and runs when it was surfaced in the receive error event.
+func TestFungibleTokenPacketDataNonPositiveAmountErrorMessage(t *testing.T) {
+	testCases := []struct {
+		name   string
+		amount string
+	}{
+		{"zero amount", "0"},
+		{"negative amount", "-1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			packetData := types.NewFungibleTokenPacketData(packetDenom, tc.amount, sender, receiver, "")
+
+			err := packetData.ValidateBasic()
+			require.ErrorIs(t, err, types.ErrInvalidAmount, tc.name)
+			require.ErrorContains(t, err, "amount must be strictly positive: got "+tc.amount, tc.name)
+			require.NotContains(t, err.Error(), "{", tc.name)
+		})
+	}
+}
+
 func (s *TypesTestSuite) TestGetPacketSender() {
 	packetData := types.FungibleTokenPacketData{
 		Denom:    packetDenom,
