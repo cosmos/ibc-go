@@ -157,6 +157,34 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+// TestValidateNonPositiveAmountErrorMessage checks that the error returned for a
+// non-positive amount reports the decimal amount itself. sdkmath.Int holds a
+// *big.Int, so formatting it with %d used to print the pointer address instead
+// of the value, which also made the text differ between nodes and runs.
+func TestValidateNonPositiveAmountErrorMessage(t *testing.T) {
+	testCases := []struct {
+		name   string
+		amount string
+	}{
+		{"zero amount", "0"},
+		{"negative amount", "-1"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			token := types.Token{
+				Denom:  types.Denom{Base: "atom"},
+				Amount: tc.amount,
+			}
+
+			err := token.Validate()
+			require.ErrorIs(t, err, types.ErrInvalidAmount, tc.name)
+			require.ErrorContains(t, err, "amount must be strictly positive: got "+tc.amount, tc.name)
+			require.NotContains(t, err.Error(), "{", tc.name)
+		})
+	}
+}
+
 func TestToCoin(t *testing.T) {
 	testCases := []struct {
 		name     string
